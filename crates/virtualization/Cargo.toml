@@ -16,10 +16,6 @@ url.workspace = true
 [target.'cfg(target_os = "macos")'.dependencies]
 virtualization-sys.workspace = true
 
-[features]
-# Suites in `tests/` that boot or query the framework; see bin/dev/test-integration.
-integration = []
-
 # Every `unsafe` lives in virtualization-sys.
 [lints.rust]
 unsafe_code = "forbid"

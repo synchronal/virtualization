@@ -13,7 +13,7 @@ clipboard = true
 argv = ["cargo", "audit"]
 
 [host.commands.check]
-argv = ["cargo", "check", "--all-targets"]
+argv = ["cargo", "check", "--workspace", "--all-targets"]
 
 [host.commands.check-linux]
 argv = ["cargo", "check", "--target", "x86_64-unknown-linux-gnu", "-p", "virtualization", "--all-targets"]

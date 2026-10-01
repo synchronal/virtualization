@@ -1,11 +1,5 @@
-#![cfg(all(target_os = "macos", feature = "integration"))]
-
 use virtualization::LinuxBootLoader;
-use virtualization::url::Url;
-
-fn file_url(path: &str) -> Url {
-  Url::from_file_path(path).unwrap()
-}
+use virtualization_test::file_url;
 
 #[test]
 fn has_the_kernel_it_was_made_with() {

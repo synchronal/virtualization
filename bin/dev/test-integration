@@ -17,8 +17,8 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$root"
 
-# Only what is in the safe crate's `tests/`; virtualization-sys has no suites.
-package=virtualization
+# Every suite lives in virtualization-test; the other crates have none.
+package=virtualization-test
 targets=()
 for suite in crates/$package/tests/*.rs; do
   [ -e "$suite" ] || continue
@@ -33,7 +33,7 @@ fi
 # `--message-format=json` puts the manifest on stdout and the compiler's output on
 # stderr, so this prints paths and shows progress as usual.
 binaries="$(
-  cargo test -p "$package" --features integration "${targets[@]}" --no-run --message-format=json |
+  cargo test -p "$package" "${targets[@]}" --no-run --message-format=json |
     python3 -c 'import json, sys
 for line in sys.stdin:
     line = line.strip()
@@ -53,4 +53,4 @@ while IFS= read -r binary; do
   "$root/bin/dev/sign" "$binary"
 done <<<"$binaries"
 
-exec cargo nextest run -p "$package" --features integration "${targets[@]}" "$@"
+exec cargo nextest run -p "$package" "${targets[@]}" "$@"

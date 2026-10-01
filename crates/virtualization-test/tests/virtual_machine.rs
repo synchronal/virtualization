@@ -1,5 +1,3 @@
-#![cfg(all(target_os = "macos", feature = "integration"))]
-
 use virtualization::VirtualMachine;
 
 #[test]

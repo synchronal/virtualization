@@ -1,18 +1,5 @@
-#![cfg(all(target_os = "macos", feature = "integration"))]
-
-use std::path::PathBuf;
-
-use virtualization::url::Url;
 use virtualization::{DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, Error};
-
-/// A raw disk image: 1 MiB of zeroes, named for the test that uses it.
-fn disk_image(name: &str) -> Url {
-  let path = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(format!("{name}.img"));
-
-  std::fs::write(&path, vec![0u8; 1024 * 1024]).unwrap();
-
-  Url::from_file_path(path).unwrap()
-}
+use virtualization_test::{disk_image, file, file_url};
 
 #[test]
 fn attaches_a_disk_image() {
@@ -89,7 +76,7 @@ fn a_clone_is_the_same_object() {
 
 #[test]
 fn fails_as_virtualization_does_with_modes_and_no_image() {
-  let url = Url::from_file_path("/nowhere/disk.img").unwrap();
+  let url = file_url("/nowhere/disk.img");
 
   let result = DiskImageStorageDeviceAttachment::with_caching_mode_and_synchronization_mode(
     &url,
@@ -103,7 +90,7 @@ fn fails_as_virtualization_does_with_modes_and_no_image() {
 
 #[test]
 fn fails_as_virtualization_does_when_there_is_no_image() {
-  let url = Url::from_file_path("/nowhere/disk.img").unwrap();
+  let url = file_url("/nowhere/disk.img");
 
   let Err(Error::NSError(error)) = DiskImageStorageDeviceAttachment::new(&url, true) else {
     panic!("attached a disk image that does not exist");
@@ -121,9 +108,7 @@ fn fails_as_virtualization_does_when_there_is_no_image() {
 
 #[test]
 fn fails_as_virtualization_does_on_an_unrecognized_image() {
-  let path = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("unrecognized.img");
-  std::fs::write(&path, b"abc").unwrap();
-  let url = Url::from_file_path(path).unwrap();
+  let url = file("unrecognized.img", b"abc");
 
   let Err(Error::NSError(error)) = DiskImageStorageDeviceAttachment::new(&url, true) else {
     panic!("attached a disk image Virtualization can't read");
@@ -148,10 +133,8 @@ fn fails_as_virtualization_does_on_an_unrecognized_image() {
 /// be confused with the first.
 #[test]
 fn reports_each_thrown_error_as_its_own() {
-  let missing = Url::from_file_path("/nowhere/disk.img").unwrap();
-  let unrecognized_path = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("unrecognized-second.img");
-  std::fs::write(&unrecognized_path, b"abc").unwrap();
-  let unrecognized = Url::from_file_path(unrecognized_path).unwrap();
+  let missing = file_url("/nowhere/disk.img");
+  let unrecognized = file("unrecognized-second.img", b"abc");
 
   let Err(Error::NSError(first)) = DiskImageStorageDeviceAttachment::new(&missing, true) else {
     panic!("attached a disk image that does not exist");

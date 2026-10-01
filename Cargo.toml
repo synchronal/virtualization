@@ -1,5 +1,7 @@
 [workspace]
-members = ["crates/virtualization", "crates/virtualization-sys"]
+members = ["crates/virtualization", "crates/virtualization-sys", "crates/virtualization-test"]
+# The integration suites run only signed, through bin/dev/test-integration.
+default-members = ["crates/virtualization", "crates/virtualization-sys"]
 resolver = "3"
 
 [workspace.package]
@@ -15,4 +17,5 @@ version = "0.1.0"
 swift-bridge = "0.1.59"
 swift-bridge-build = "0.1.59"
 url = "2"
+virtualization = { path = "crates/virtualization", version = "0.1.0" }
 virtualization-sys = { path = "crates/virtualization-sys", version = "0.1.0" }

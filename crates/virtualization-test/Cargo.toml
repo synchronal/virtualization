@@ -1,0 +1,15 @@
+[package]
+description = "Integration suites for virtualization, and the setup they assume. macOS only."
+edition.workspace = true
+license.workspace = true
+name = "virtualization-test"
+publish = false
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+virtualization.workspace = true
+
+[lints.rust]
+unsafe_code = "forbid"
