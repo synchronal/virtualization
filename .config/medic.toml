@@ -4,7 +4,7 @@ checks = [
   {check = "tool-versions", command = "plugin-installed", args = {plugin = "rust"}},
   {check = "tool-versions", command = "package-installed", args = {plugin = "rust"}},
   {check = "rust", command = "crate-installed", args = {name = ["cargo-audit","cargo-outdated", "cargo-nextest"]}},
-  {check = "rust", command = "target-installed", args = {target = ["aarch64-apple-darwin"]}},
+  {check = "rust", command = "target-installed", args = {target = ["aarch64-apple-darwin", "x86_64-unknown-linux-gnu"]}},
 ]
 
 [test]
@@ -16,7 +16,8 @@ checks = [
 checks = [
   {name = "rust: audit", shell = "cargo audit", verbose = true},
   {name = "rust: check", shell = "cargo check --workspace --all-targets --color always", remedy = "cargo fix --allow-dirty"},
-  {name = "rust: clippy", shell = "cargo clippy -- -D warnings", remedy = "cargo clippy --fix --allow-dirty"},
+  {name = "rust: check linux", shell = "cargo check --target x86_64-unknown-linux-gnu -p virtualization --all-targets --color always"},
+  {name = "rust: clippy", shell = "cargo clippy --workspace --all-targets --all-features -- -D warnings", remedy = "cargo clippy --workspace --all-targets --all-features --fix --allow-dirty"},
   {check = "rust", command = "format-check"},
   {name = "swift: format", shell = "bin/dev/format-swift --check", remedy = "bin/dev/format-swift --all"},
   {name = "swift: lint", shell = "bin/dev/lint-swift"},
