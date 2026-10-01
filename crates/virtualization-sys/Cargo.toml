@@ -1,0 +1,29 @@
+[package]
+build = "build.rs"
+categories.workspace = true
+description = "FFI to Apple's Virtualization framework, through swift-bridge. Use the `virtualization` crate instead."
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+links = "VirtualizationBridge"
+name = "virtualization-sys"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+# The Swift package is an input to the build script, not a cargo target, so it
+# ships whole. Naming the sources keeps the tarball the same whatever is lying
+# around a working tree.
+include = [
+  "/build.rs",
+  "/src/**/*.rs",
+  "/swift/Package.swift",
+  "/swift/Sources/**/*.h",
+  "/swift/Sources/**/*.swift",
+]
+
+[dependencies]
+swift-bridge.workspace = true
+
+[build-dependencies]
+swift-bridge-build.workspace = true

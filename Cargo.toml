@@ -1,0 +1,17 @@
+[workspace]
+members = ["crates/virtualization", "crates/virtualization-sys"]
+resolver = "3"
+
+[workspace.package]
+categories = ["api-bindings", "os::macos-apis", "virtualization"]
+edition = "2024"
+keywords = ["virtualization", "macos", "vm", "hypervisor"]
+license = "MIT"
+repository = "https://github.com/synchronal/virtualization"
+rust-version = "1.98"
+version = "0.1.0"
+
+[workspace.dependencies]
+swift-bridge = "0.1.59"
+swift-bridge-build = "0.1.59"
+virtualization-sys = { path = "crates/virtualization-sys", version = "0.1.0" }

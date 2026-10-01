@@ -1,0 +1,22 @@
+[package]
+categories.workspace = true
+description = "Rust bindings for Apple's Virtualization framework."
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "virtualization"
+readme = "../../README.md"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+virtualization-sys.workspace = true
+
+[features]
+# Suites in `tests/` that boot or query the framework; see bin/dev/test-integration.
+integration = []
+
+# Every `unsafe` lives in virtualization-sys.
+[lints.rust]
+unsafe_code = "forbid"
