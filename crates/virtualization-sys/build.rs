@@ -85,7 +85,10 @@ fn publish_bridge_shims(generated: &Path) {
     );
   }
 
-  std::fs::write(&path, published).expect("the generated glue should be writable");
+  // The glue names Virtualization's classes, and a Swift import reaches only
+  // the file it is written in.
+  std::fs::write(&path, format!("import Virtualization\n\n{published}"))
+    .expect("the generated glue should be writable");
 }
 
 /// Mirrors `from` onto `to`, skipping unchanged files and removing anything

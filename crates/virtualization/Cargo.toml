@@ -10,6 +10,9 @@ repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
 
+[dependencies]
+url.workspace = true
+
 [target.'cfg(target_os = "macos")'.dependencies]
 virtualization-sys.workspace = true
 

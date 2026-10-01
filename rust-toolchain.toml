@@ -3,3 +3,5 @@
 # developed and tested against.
 [toolchain]
 channel = "1.98.1"
+# Linux is only checked, never run: `virtualization` must compile off macOS.
+targets = ["aarch64-apple-darwin", "x86_64-unknown-linux-gnu"]

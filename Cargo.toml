@@ -14,4 +14,5 @@ version = "0.1.0"
 [workspace.dependencies]
 swift-bridge = "0.1.59"
 swift-bridge-build = "0.1.59"
+url = "2"
 virtualization-sys = { path = "crates/virtualization-sys", version = "0.1.0" }

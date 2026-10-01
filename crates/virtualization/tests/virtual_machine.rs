@@ -4,5 +4,5 @@ use virtualization::VirtualMachine;
 
 #[test]
 fn is_supported_on_the_host() {
-  assert!(VirtualMachine::is_supported());
+  assert!(VirtualMachine::is_supported().unwrap());
 }
