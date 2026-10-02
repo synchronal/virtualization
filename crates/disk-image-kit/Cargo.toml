@@ -1,0 +1,22 @@
+[package]
+categories.workspace = true
+description = "Rust bindings for Apple's DiskImageKit framework."
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "disk-image-kit"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+foundation-sys.workspace = true
+url.workspace = true
+uuid.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+disk-image-kit-sys.workspace = true
+
+# Every `unsafe` lives in disk-image-kit-sys.
+[lints.rust]
+unsafe_code = "forbid"

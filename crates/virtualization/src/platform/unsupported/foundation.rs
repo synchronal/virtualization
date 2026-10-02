@@ -1,68 +1,43 @@
 use super::{GUARDED, Never};
 
-pub(crate) type BridgedNil = Never;
 pub(crate) type BridgedThrown = Never;
+
+/// objc2's `Retained<T>`.
+pub(crate) struct Retained<T> {
+  object: T,
+}
+
+impl<T> std::ops::Deref for Retained<T> {
+  type Target = T;
+
+  fn deref(&self) -> &T {
+    &self.object
+  }
+}
 
 pub(crate) struct NSURL {
   never: Never,
 }
 
-pub(crate) fn ns_url_init_string(_string: &str) -> Result<NSURL, BridgedNil> {
+pub(crate) fn ns_url_init_string(_string: &str) -> Option<Retained<NSURL>> {
   unreachable!("{GUARDED}")
 }
 
-impl NSURL {
-  pub(crate) fn ns_absolute_string(&self) -> String {
-    match self.never {}
-  }
+pub(crate) fn ns_url_absolute_string(url: &NSURL) -> String {
+  match url.never {}
 }
 
 pub(crate) struct NSError {
   never: Never,
 }
 
-pub(crate) fn bridge_take_thrown_error() -> NSError {
+pub(crate) fn bridge_take_thrown_error() -> Retained<NSError> {
   unreachable!("{GUARDED}")
 }
 
-impl NSError {
-  pub(crate) fn ns_domain(&self) -> String {
-    match self.never {}
-  }
-
-  pub(crate) fn ns_code(&self) -> isize {
-    match self.never {}
-  }
-
-  pub(crate) fn ns_localized_description(&self) -> String {
-    match self.never {}
-  }
-
-  pub(crate) fn ns_localized_failure_reason(&self) -> Option<String> {
-    match self.never {}
-  }
-
-  pub(crate) fn ns_localized_recovery_suggestion(&self) -> Option<String> {
-    match self.never {}
-  }
-
-  pub(crate) fn bridge_user_info_count(&self) -> usize {
-    match self.never {}
-  }
-
-  pub(crate) fn bridge_user_info_key_at(&self, _index: usize) -> String {
-    match self.never {}
-  }
-
-  pub(crate) fn bridge_user_info_value_description_at(&self, _index: usize) -> String {
-    match self.never {}
-  }
-
-  pub(crate) fn bridge_underlying_errors_count(&self) -> usize {
-    match self.never {}
-  }
-
-  pub(crate) fn bridge_underlying_error_at(&self, _index: usize) -> NSError {
-    match self.never {}
+/// `crate::error` reads an `NSError` through objc2 on macOS.
+impl From<&NSError> for crate::NSError {
+  fn from(error: &NSError) -> Self {
+    match error.never {}
   }
 }

@@ -1,5 +1,9 @@
+use virtualization::disk_image_kit::{
+  ASIFCreationConfiguration, ASIFLayerCreationConfiguration, DiskImage, DiskImageBlockSize, DiskImageLayerType,
+  OpenConfiguration, OpenConfigurationMode,
+};
 use virtualization::{DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, Error};
-use virtualization_test::{disk_image, file, file_url};
+use virtualization_test::{disk_image, file, file_url, new_file_url};
 
 #[test]
 fn attaches_a_disk_image() {
@@ -60,6 +64,63 @@ fn attaches_with_each_caching_and_synchronization_mode() {
       assert_eq!(attachment.synchronization_mode(), synchronization_mode);
     }
   }
+}
+
+#[test]
+fn attaches_a_diskimagekit_image() {
+  let url = new_file_url("attaches_a_diskimagekit_image.asif");
+  let image =
+    DiskImage::new(&ASIFCreationConfiguration::asif(&url, 2048, DiskImageBlockSize::Bytes512).unwrap()).unwrap();
+
+  let attachment = DiskImageStorageDeviceAttachment::with_disk_image_and_caching_mode_and_synchronization_mode(
+    &image,
+    DiskImageCachingMode::Cached,
+    DiskImageSynchronizationMode::Fsync,
+  )
+  .unwrap();
+
+  assert_eq!(attachment.url().unwrap(), url);
+  assert!(!attachment.is_read_only());
+  assert_eq!(attachment.caching_mode(), DiskImageCachingMode::Cached);
+  assert_eq!(attachment.synchronization_mode(), DiskImageSynchronizationMode::Fsync);
+}
+
+#[test]
+fn attaches_a_read_only_diskimagekit_image_as_it_is() {
+  let url = new_file_url("attaches_a_read_only_diskimagekit_image.asif");
+  DiskImage::new(&ASIFCreationConfiguration::asif(&url, 2048, DiskImageBlockSize::Bytes512).unwrap()).unwrap();
+  let image = DiskImage::with_opening(&OpenConfiguration::new(url, OpenConfigurationMode::ReadOnly)).unwrap();
+
+  let attachment = DiskImageStorageDeviceAttachment::with_disk_image_and_caching_mode_and_synchronization_mode(
+    &image,
+    DiskImageCachingMode::Automatic,
+    DiskImageSynchronizationMode::Full,
+  )
+  .unwrap();
+
+  assert!(attachment.is_read_only());
+}
+
+/// Apple documents a stack's attachment URL as its top layer's.
+#[test]
+fn attaches_a_stacked_image_by_its_top_layer() {
+  let base_url = new_file_url("attaches_a_stacked_image_base.asif");
+  let overlay_url = new_file_url("attaches_a_stacked_image_overlay.asif");
+  DiskImage::new(&ASIFCreationConfiguration::asif(&base_url, 2048, DiskImageBlockSize::Bytes512).unwrap()).unwrap();
+  let base = DiskImage::with_opening(&OpenConfiguration::new(base_url, OpenConfigurationMode::ReadOnly)).unwrap();
+  let overlay =
+    ASIFLayerCreationConfiguration::asif_layer(&overlay_url, &DiskImageLayerType::overlay().unwrap()).unwrap();
+  let stacked = base.appending_configuration(&overlay).unwrap();
+
+  let attachment = DiskImageStorageDeviceAttachment::with_disk_image_and_caching_mode_and_synchronization_mode(
+    &stacked,
+    DiskImageCachingMode::Automatic,
+    DiskImageSynchronizationMode::Full,
+  )
+  .unwrap();
+
+  assert_eq!(attachment.url().unwrap(), overlay_url);
+  assert!(!attachment.is_read_only());
 }
 
 #[test]

@@ -1,11 +1,9 @@
 //! What a call into Virtualization failed with.
 
-use std::collections::BTreeMap;
 use std::fmt;
 
+pub use foundation_sys::NSError;
 use url::Url;
-
-use crate::platform::ffi;
 
 #[derive(Debug)]
 #[non_exhaustive]
@@ -18,27 +16,6 @@ pub enum Error {
   UnparseableUrl(url::ParseError),
   /// A URL Foundation's `NSURL(string:)` rejects.
   UnrepresentableUrl(Url),
-}
-
-/// [`NSError`](https://developer.apple.com/documentation/foundation/nserror),
-/// as thrown.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NSError {
-  /// [`domain`](https://developer.apple.com/documentation/foundation/nserror/domain)
-  pub domain: String,
-  /// [`code`](https://developer.apple.com/documentation/foundation/nserror/code)
-  pub code: isize,
-  /// [`userInfo`](https://developer.apple.com/documentation/foundation/nserror/userinfo),
-  /// each value as its `description`.
-  pub user_info: BTreeMap<String, String>,
-  /// [`localizedDescription`](https://developer.apple.com/documentation/foundation/nserror/localizeddescription)
-  pub localized_description: String,
-  /// [`localizedFailureReason`](https://developer.apple.com/documentation/foundation/nserror/localizedfailurereason)
-  pub localized_failure_reason: Option<String>,
-  /// [`localizedRecoverySuggestion`](https://developer.apple.com/documentation/foundation/nserror/localizedrecoverysuggestion)
-  pub localized_recovery_suggestion: Option<String>,
-  /// [`underlyingErrors`](https://developer.apple.com/documentation/foundation/nserror/underlyingerrors)
-  pub underlying_errors: Vec<NSError>,
 }
 
 impl fmt::Display for Error {
@@ -62,49 +39,6 @@ impl std::error::Error for Error {
   }
 }
 
-impl fmt::Display for NSError {
-  fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(
-      formatter,
-      "{} ({} {})",
-      self.localized_description, self.domain, self.code
-    )
-  }
-}
-
-/// Its source is its first underlying error.
-impl std::error::Error for NSError {
-  fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-    self
-      .underlying_errors
-      .first()
-      .map(|error| error as &(dyn std::error::Error + 'static))
-  }
-}
-
-impl From<ffi::NSError> for NSError {
-  fn from(error: ffi::NSError) -> Self {
-    Self {
-      domain: error.ns_domain(),
-      code: error.ns_code(),
-      user_info: (0..error.bridge_user_info_count())
-        .map(|index| {
-          (
-            error.bridge_user_info_key_at(index),
-            error.bridge_user_info_value_description_at(index),
-          )
-        })
-        .collect(),
-      localized_description: error.ns_localized_description(),
-      localized_failure_reason: error.ns_localized_failure_reason(),
-      localized_recovery_suggestion: error.ns_localized_recovery_suggestion(),
-      underlying_errors: (0..error.bridge_underlying_errors_count())
-        .map(|index| error.bridge_underlying_error_at(index).into())
-        .collect(),
-    }
-  }
-}
-
 impl From<url::ParseError> for Error {
   fn from(error: url::ParseError) -> Self {
     Self::UnparseableUrl(error)
@@ -113,6 +47,7 @@ impl From<url::ParseError> for Error {
 
 #[cfg(test)]
 mod tests {
+  use std::collections::BTreeMap;
   use std::error::Error as _;
 
   use super::*;

@@ -24,6 +24,8 @@ include = [
 ]
 
 [dependencies]
+disk-image-kit-sys.workspace = true
+foundation-sys.workspace = true
 swift-bridge.workspace = true
 
 [build-dependencies]

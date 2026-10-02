@@ -14,6 +14,15 @@ pub fn scratch_path(name: &str) -> PathBuf {
   directory.join(name)
 }
 
+/// A file URL in the scratch directory with nothing at it yet, to create
+/// something at.
+pub fn new_file_url(name: &str) -> Url {
+  let path = scratch_path(name);
+  let _ = std::fs::remove_file(&path);
+
+  Url::from_file_path(path).unwrap()
+}
+
 /// A raw disk image: 1 MiB of zeroes.
 pub fn disk_image(name: &str) -> Url {
   file(&format!("{name}.img"), &vec![0u8; 1024 * 1024])

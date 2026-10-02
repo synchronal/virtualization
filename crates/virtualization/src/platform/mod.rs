@@ -7,7 +7,7 @@ use crate::Error;
 pub(crate) mod unsupported;
 
 #[cfg(target_os = "macos")]
-pub(crate) use virtualization_sys::ffi;
+pub(crate) use virtualization_sys as ffi;
 
 #[cfg(not(target_os = "macos"))]
 pub(crate) use self::unsupported as ffi;

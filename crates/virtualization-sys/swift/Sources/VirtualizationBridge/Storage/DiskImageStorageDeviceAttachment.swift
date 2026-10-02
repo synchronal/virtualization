@@ -6,23 +6,26 @@
 // Function names are Rust's, which are snake_case.
 // swift-format-ignore-file: AlwaysUseLowerCamelCase
 
+import DiskImageKit
 import Virtualization
 
-func vz_disk_image_storage_device_attachment_init(url: NSURL, read_only: Bool) throws(BridgedThrown)
+func vz_disk_image_storage_device_attachment_init(url: UnsafeRawPointer, read_only: Bool) throws(BridgedThrown)
   -> VZDiskImageStorageDeviceAttachment
 {
-  try bridging { try VZDiskImageStorageDeviceAttachment(url: url as URL, readOnly: read_only) }
+  try bridging {
+    try VZDiskImageStorageDeviceAttachment(url: bridging(borrowed: url) as NSURL as URL, readOnly: read_only)
+  }
 }
 
 func vz_disk_image_storage_device_attachment_init_caching_mode_synchronization_mode(
-  url: NSURL,
+  url: UnsafeRawPointer,
   read_only: Bool,
   caching_mode: BridgedVZDiskImageCachingMode,
   synchronization_mode: BridgedVZDiskImageSynchronizationMode
 ) throws(BridgedThrown) -> VZDiskImageStorageDeviceAttachment {
   try bridging {
     try VZDiskImageStorageDeviceAttachment(
-      url: url as URL,
+      url: bridging(borrowed: url) as NSURL as URL,
       readOnly: read_only,
       cachingMode: VZDiskImageCachingMode(caching_mode),
       synchronizationMode: VZDiskImageSynchronizationMode(synchronization_mode)
@@ -30,11 +33,27 @@ func vz_disk_image_storage_device_attachment_init_caching_mode_synchronization_m
   }
 }
 
-extension VZDiskImageStorageDeviceAttachment {
-  func vz_url() -> NSURL {
-    url as NSURL
+/// `diskImage` is DiskImageKitBridge's, lent by address
+/// (`DiskImage.bridge_borrowed()`).
+func vz_disk_image_storage_device_attachment_init_disk_image_caching_mode_synchronization_mode(
+  disk_image: UnsafeRawPointer,
+  caching_mode: BridgedVZDiskImageCachingMode,
+  synchronization_mode: BridgedVZDiskImageSynchronizationMode
+) throws(BridgedThrown) -> VZDiskImageStorageDeviceAttachment {
+  try bridging {
+    try VZDiskImageStorageDeviceAttachment(
+      diskImage: bridging(borrowed: disk_image) as DiskImage,
+      cachingMode: VZDiskImageCachingMode(caching_mode),
+      synchronizationMode: VZDiskImageSynchronizationMode(synchronization_mode)
+    )
   }
+}
 
+func vz_disk_image_storage_device_attachment_url(this: VZDiskImageStorageDeviceAttachment) -> UnsafeMutableRawPointer {
+  bridging(retained: this.url as NSURL)
+}
+
+extension VZDiskImageStorageDeviceAttachment {
   func vz_is_read_only() -> Bool {
     isReadOnly
   }

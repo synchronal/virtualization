@@ -1,0 +1,31 @@
+[package]
+build = "build.rs"
+categories.workspace = true
+description = "FFI to Apple's DiskImageKit framework, through swift-bridge. Use the `disk-image-kit` crate instead."
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+links = "DiskImageKitBridge"
+name = "disk-image-kit-sys"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+# The Swift package is an input to the build script, not a cargo target, so it
+# ships whole. Naming the sources keeps the tarball the same whatever is lying
+# around a working tree.
+include = [
+  "/LICENSE",
+  "/build.rs",
+  "/src/**/*.rs",
+  "/swift/Package.swift",
+  "/swift/Sources/**/*.h",
+  "/swift/Sources/**/*.swift",
+]
+
+[dependencies]
+foundation-sys.workspace = true
+swift-bridge.workspace = true
+
+[build-dependencies]
+swift-bridge-build.workspace = true

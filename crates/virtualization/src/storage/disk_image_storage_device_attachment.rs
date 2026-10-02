@@ -1,5 +1,6 @@
 use std::fmt;
 
+use disk_image_kit::DiskImage;
 use url::Url;
 
 use crate::foundation;
@@ -18,7 +19,7 @@ impl DiskImageStorageDeviceAttachment {
     platform::supported()?;
 
     Ok(Self {
-      inner: ffi::vz_disk_image_storage_device_attachment_init(foundation::ns_url(url)?, read_only)
+      inner: ffi::vz_disk_image_storage_device_attachment_init(&*foundation::ns_url(url)?, read_only)
         .map_err(foundation::thrown)?,
     })
   }
@@ -34,8 +35,26 @@ impl DiskImageStorageDeviceAttachment {
 
     Ok(Self {
       inner: ffi::vz_disk_image_storage_device_attachment_init_caching_mode_synchronization_mode(
-        foundation::ns_url(url)?,
+        &*foundation::ns_url(url)?,
         read_only,
+        caching_mode.into(),
+        synchronization_mode.into(),
+      )
+      .map_err(foundation::thrown)?,
+    })
+  }
+
+  /// [`init(diskImage:cachingMode:synchronizationMode:)`](https://developer.apple.com/documentation/virtualization/vzdiskimagestoragedeviceattachment/init(diskimage:cachingmode:synchronizationmode:))
+  pub fn with_disk_image_and_caching_mode_and_synchronization_mode(
+    disk_image: &DiskImage,
+    caching_mode: DiskImageCachingMode,
+    synchronization_mode: DiskImageSynchronizationMode,
+  ) -> Result<Self, Error> {
+    platform::supported()?;
+
+    Ok(Self {
+      inner: ffi::vz_disk_image_storage_device_attachment_init_disk_image_caching_mode_synchronization_mode(
+        disk_image_kit::bridge::disk_image(disk_image),
         caching_mode.into(),
         synchronization_mode.into(),
       )

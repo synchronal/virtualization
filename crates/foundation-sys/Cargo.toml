@@ -1,0 +1,14 @@
+[package]
+categories.workspace = true
+description = "Foundation as the Apple framework sys crates share it: objc2's objects, the glue for passing them through swift-bridge, and `NSError` as plain Rust."
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "foundation-sys"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2.workspace = true
+objc2-foundation.workspace = true

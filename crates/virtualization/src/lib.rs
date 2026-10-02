@@ -10,6 +10,7 @@
 //!   is the object's `description`.
 //! - An abstract class is a sealed trait, implemented by its subclasses.
 //! - `URL` is [`url::Url`], re-exported as [`url`].
+//! - DiskImageKit's types are [`disk_image_kit`]'s, re-exported.
 //! - An enum has an `Unknown(rawValue)` case, for one newer than this crate.
 //! - Initializers, class members, throwing members, and members that take or
 //!   return a URL return `Result<_, Error>`.
@@ -27,6 +28,7 @@ mod sealed;
 mod storage;
 mod virtual_machine;
 
+pub use disk_image_kit;
 pub use url;
 
 pub use crate::boot_loader::{BootLoader, LinuxBootLoader};

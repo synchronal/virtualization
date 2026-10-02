@@ -18,7 +18,7 @@ impl LinuxBootLoader {
     platform::supported()?;
 
     Ok(Self {
-      inner: ffi::vz_linux_boot_loader_init(foundation::ns_url(kernel_url)?),
+      inner: ffi::vz_linux_boot_loader_init(&*foundation::ns_url(kernel_url)?),
     })
   }
 
@@ -31,7 +31,7 @@ impl LinuxBootLoader {
   pub fn set_kernel_url(&self, kernel_url: &Url) -> Result<(), Error> {
     self
       .inner
-      .vz_set_kernel_url(foundation::ns_url(kernel_url)?);
+      .vz_set_kernel_url(&*foundation::ns_url(kernel_url)?);
     Ok(())
   }
 
@@ -50,20 +50,17 @@ impl LinuxBootLoader {
     self
       .inner
       .vz_initial_ramdisk_url()
-      .ok()
       .map(|url| foundation::url(&url))
       .transpose()
   }
 
   /// [`initialRamdiskURL`](https://developer.apple.com/documentation/virtualization/vzlinuxbootloader/initialramdiskurl)
   pub fn set_initial_ramdisk_url(&self, initial_ramdisk_url: Option<&Url>) -> Result<(), Error> {
-    match initial_ramdisk_url {
-      Some(url) => self
-        .inner
-        .vz_set_initial_ramdisk_url(foundation::ns_url(url)?),
-      None => self.inner.bridge_set_initial_ramdisk_url_nil(),
-    }
+    let initial_ramdisk_url = initial_ramdisk_url.map(foundation::ns_url).transpose()?;
 
+    self
+      .inner
+      .vz_set_initial_ramdisk_url(initial_ramdisk_url.as_deref());
     Ok(())
   }
 }
