@@ -29,6 +29,11 @@ func bridging<T: AnyObject>(borrowed pointer: UnsafeRawPointer) -> T {
   Unmanaged<T>.fromOpaque(pointer).takeUnretainedValue()
 }
 
+/// An array Rust lends for the call, as an `NSArray` of `T`s.
+func bridging<T>(borrowedArray pointer: UnsafeRawPointer) -> [T] {
+  (bridging(borrowed: pointer) as NSArray) as! [T]
+}
+
 /// A Foundation object for Rust, which takes over this reference.
 func bridging(retained object: AnyObject) -> UnsafeMutableRawPointer {
   Unmanaged.passRetained(object).toOpaque()

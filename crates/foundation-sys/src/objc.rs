@@ -9,13 +9,16 @@
 //!   lends for one call, made here with [`borrowed`] / [`borrowed_or_nil`].
 //! - `bridging(retained:)` / `bridging(retainedAddress:)`: an object Swift
 //!   hands over, taken here with [`retained`] / [`retained_or_nil`].
+//! - `bridging(borrowedArray:)`: an array Rust lends, made here with
+//!   [`ns_array`] and lent with [`borrowed`]. Swift returns one as an
+//!   `NSArray`, read here with [`ns_array_objects`].
 
 use std::ffi::c_void;
 
 pub use objc2::rc::Retained;
 pub use objc2::runtime::{AnyObject, NSObject};
 use objc2_foundation::NSString;
-pub use objc2_foundation::{NSError, NSURL, NSUUID};
+pub use objc2_foundation::{NSArray, NSError, NSURL, NSUUID};
 
 /// A Foundation object, lent to Swift for one call.
 pub fn borrowed<T: objc2::Message>(object: &T) -> *const c_void {
@@ -48,6 +51,16 @@ pub unsafe fn retained<T: objc2::Message>(pointer: *mut c_void) -> Retained<T> {
 pub unsafe fn retained_or_nil<T: objc2::Message>(address: usize) -> Option<Retained<T>> {
   // SAFETY: the caller's; `0` is `nil`, anything else a retained `T`.
   (address != 0).then(|| unsafe { retained(std::ptr::with_exposed_provenance_mut(address)) })
+}
+
+/// An `NSArray` of `objects`, as Swift bridges an array.
+pub fn ns_array<T: objc2::Message>(objects: &[&T]) -> Retained<NSArray<T>> {
+  NSArray::from_slice(objects)
+}
+
+/// An `NSArray`'s objects, in order.
+pub fn ns_array_objects<T: objc2::Message>(array: &NSArray<T>) -> Vec<Retained<T>> {
+  array.to_vec()
 }
 
 /// [`NSURL(string:)`](https://developer.apple.com/documentation/foundation/nsurl/init(string:)).
