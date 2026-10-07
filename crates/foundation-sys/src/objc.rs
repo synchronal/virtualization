@@ -13,8 +13,7 @@
 use std::ffi::c_void;
 
 pub use objc2::rc::Retained;
-pub use objc2::runtime::AnyObject;
-use objc2::runtime::NSObject;
+pub use objc2::runtime::{AnyObject, NSObject};
 use objc2_foundation::NSString;
 pub use objc2_foundation::{NSError, NSURL, NSUUID};
 

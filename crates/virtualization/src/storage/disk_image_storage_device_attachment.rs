@@ -98,7 +98,15 @@ impl fmt::Debug for DiskImageStorageDeviceAttachment {
   }
 }
 
-impl Sealed for DiskImageStorageDeviceAttachment {}
+impl Sealed for DiskImageStorageDeviceAttachment {
+  fn bridge_object(&self) -> &ffi::NSObject {
+    self.inner.bridge_object()
+  }
+
+  fn bridge_cast(object: &ffi::NSObject) -> Option<Self> {
+    ffi::vz_disk_image_storage_device_attachment_bridge_cast(object).map(|inner| Self { inner })
+  }
+}
 
 impl StorageDeviceAttachment for DiskImageStorageDeviceAttachment {}
 

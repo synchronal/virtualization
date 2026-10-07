@@ -16,6 +16,12 @@ extension NSObject {
   func ns_description() -> RustString {
     description.intoRustString()
   }
+
+  /// For `bridging(borrowed:)` as an abstract class, while Rust holds this
+  /// one.
+  func bridge_borrowed() -> UnsafeRawPointer {
+    UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque())
+  }
 }
 
 /// A Foundation object Rust lends for the call: Rust keeps its reference.

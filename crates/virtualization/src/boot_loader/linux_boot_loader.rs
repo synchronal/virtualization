@@ -80,7 +80,15 @@ impl fmt::Debug for LinuxBootLoader {
   }
 }
 
-impl Sealed for LinuxBootLoader {}
+impl Sealed for LinuxBootLoader {
+  fn bridge_object(&self) -> &ffi::NSObject {
+    self.inner.bridge_object()
+  }
+
+  fn bridge_cast(object: &ffi::NSObject) -> Option<Self> {
+    ffi::vz_linux_boot_loader_bridge_cast(object).map(|inner| Self { inner })
+  }
+}
 
 impl BootLoader for LinuxBootLoader {}
 

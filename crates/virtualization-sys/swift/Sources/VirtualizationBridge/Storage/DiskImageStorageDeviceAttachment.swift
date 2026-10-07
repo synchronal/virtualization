@@ -49,6 +49,14 @@ func vz_disk_image_storage_device_attachment_init_disk_image_caching_mode_synchr
   }
 }
 
+/// `object as? VZDiskImageStorageDeviceAttachment`, for an abstract class's
+/// object.
+func vz_disk_image_storage_device_attachment_bridge_cast(object: UnsafeRawPointer) throws(BridgedNil)
+  -> VZDiskImageStorageDeviceAttachment
+{
+  try bridging(bridging(borrowed: object) as NSObject as? VZDiskImageStorageDeviceAttachment)
+}
+
 func vz_disk_image_storage_device_attachment_url(this: VZDiskImageStorageDeviceAttachment) -> UnsafeMutableRawPointer {
   bridging(retained: this.url as NSURL)
 }

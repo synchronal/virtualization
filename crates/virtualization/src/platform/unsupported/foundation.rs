@@ -15,6 +15,18 @@ impl<T> std::ops::Deref for Retained<T> {
   }
 }
 
+/// `pub`, not `pub(crate)`: `Sealed`'s methods name it, and are reachable
+/// wherever the traits it seals are.
+pub struct NSObject {
+  never: Never,
+}
+
+impl NSObject {
+  pub(crate) fn never(&self) -> ! {
+    match self.never {}
+  }
+}
+
 pub(crate) struct NSURL {
   never: Never,
 }

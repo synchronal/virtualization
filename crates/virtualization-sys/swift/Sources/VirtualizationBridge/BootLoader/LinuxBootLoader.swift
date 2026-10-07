@@ -11,6 +11,11 @@ func vz_linux_boot_loader_init(kernel_url: UnsafeRawPointer) -> VZLinuxBootLoade
   VZLinuxBootLoader(kernelURL: bridging(borrowed: kernel_url) as NSURL as URL)
 }
 
+/// `object as? VZLinuxBootLoader`, for an abstract class's object.
+func vz_linux_boot_loader_bridge_cast(object: UnsafeRawPointer) throws(BridgedNil) -> VZLinuxBootLoader {
+  try bridging(bridging(borrowed: object) as NSObject as? VZLinuxBootLoader)
+}
+
 func vz_linux_boot_loader_kernel_url(this: VZLinuxBootLoader) -> UnsafeMutableRawPointer {
   bridging(retained: this.kernelURL as NSURL)
 }

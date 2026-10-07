@@ -15,6 +15,9 @@
 //! - `bridge_*` members cross what swift-bridge can't: `bridge_retained` is
 //!   another reference to the same object (opaque Swift types pass only by
 //!   value).
+//! - An abstract class is [`NSObject`]: swift-bridge has no subclassing.
+//!   `bridge_object` lends a class's object as one, and
+//!   `vz_<type>_bridge_cast` is Swift's `as?` back to the class.
 //! - swift-bridge can't pass `Option` of an opaque Swift type. One returned is
 //!   `Result<T, BridgedNil>`.
 //! - A throwing function returns `Result<T, BridgedThrown>`, and
@@ -33,12 +36,13 @@
 
 use std::ffi::c_void;
 
-pub use foundation_sys::objc::{NSError, NSURL, Retained, ns_url_absolute_string, ns_url_init_string};
+pub use foundation_sys::objc::{NSError, NSObject, NSURL, Retained, ns_url_absolute_string, ns_url_init_string};
 use foundation_sys::objc::{borrowed, borrowed_or_nil, retained, retained_or_nil};
 
 pub use self::ffi::{
   BridgedNil, BridgedThrown, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
-  VZDiskImageSynchronizationMode, VZLinuxBootLoader, vz_virtual_machine_is_supported,
+  VZDiskImageSynchronizationMode, VZLinuxBootLoader, VZVirtioBlockDeviceConfiguration,
+  vz_virtio_block_device_configuration_validate_block_device_identifier, vz_virtual_machine_is_supported,
 };
 
 // No doc comments inside the module: swift-bridge can't parse them. Shared
@@ -75,6 +79,8 @@ mod ffi {
 
     fn vz_linux_boot_loader_init(kernel_url: *const c_void) -> VZLinuxBootLoader;
     fn bridge_retained(self: &VZLinuxBootLoader) -> VZLinuxBootLoader;
+    fn bridge_borrowed(self: &VZLinuxBootLoader) -> *const c_void;
+    fn vz_linux_boot_loader_bridge_cast(object: *const c_void) -> Result<VZLinuxBootLoader, BridgedNil>;
     fn ns_description(self: &VZLinuxBootLoader) -> String;
     fn vz_linux_boot_loader_kernel_url(this: VZLinuxBootLoader) -> *mut c_void;
     fn vz_linux_boot_loader_set_kernel_url(this: VZLinuxBootLoader, kernel_url: *const c_void);
@@ -121,12 +127,52 @@ mod ffi {
       synchronization_mode: VZDiskImageSynchronizationMode,
     ) -> Result<VZDiskImageStorageDeviceAttachment, BridgedThrown>;
     fn bridge_retained(self: &VZDiskImageStorageDeviceAttachment) -> VZDiskImageStorageDeviceAttachment;
+    fn bridge_borrowed(self: &VZDiskImageStorageDeviceAttachment) -> *const c_void;
+    fn vz_disk_image_storage_device_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZDiskImageStorageDeviceAttachment, BridgedNil>;
     fn ns_description(self: &VZDiskImageStorageDeviceAttachment) -> String;
     fn vz_disk_image_storage_device_attachment_url(this: VZDiskImageStorageDeviceAttachment) -> *mut c_void;
     fn vz_is_read_only(self: &VZDiskImageStorageDeviceAttachment) -> bool;
     fn vz_caching_mode(self: &VZDiskImageStorageDeviceAttachment) -> VZDiskImageCachingMode;
     fn vz_synchronization_mode(self: &VZDiskImageStorageDeviceAttachment) -> VZDiskImageSynchronizationMode;
   }
+
+  // Storage/StorageDeviceConfiguration.swift
+
+  extern "Swift" {
+    fn vz_storage_device_configuration_attachment(this: *const c_void) -> *mut c_void;
+  }
+
+  // Storage/VirtioBlockDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioBlockDeviceConfiguration;
+
+    fn vz_virtio_block_device_configuration_init(attachment: *const c_void) -> VZVirtioBlockDeviceConfiguration;
+    fn bridge_retained(self: &VZVirtioBlockDeviceConfiguration) -> VZVirtioBlockDeviceConfiguration;
+    fn bridge_borrowed(self: &VZVirtioBlockDeviceConfiguration) -> *const c_void;
+    fn vz_virtio_block_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioBlockDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioBlockDeviceConfiguration) -> String;
+    fn vz_virtio_block_device_configuration_validate_block_device_identifier(
+      block_device_identifier: &str,
+    ) -> Result<(), BridgedThrown>;
+    fn vz_block_device_identifier(self: &VZVirtioBlockDeviceConfiguration) -> String;
+    fn vz_set_block_device_identifier(self: &VZVirtioBlockDeviceConfiguration, block_device_identifier: &str);
+  }
+}
+
+/// An object as its abstract class, for as long as `owner`, which holds it.
+///
+/// # Safety
+///
+/// `pointer` is what `bridge_borrowed()` returned for an object `owner` holds.
+unsafe fn bridge_object<O>(_owner: &O, pointer: *const c_void) -> &NSObject {
+  // SAFETY: the caller's: `owner` keeps the object alive while it is
+  // borrowed, and every Virtualization class is an `NSObject`.
+  unsafe { &*pointer.cast::<NSObject>() }
 }
 
 // Foundation.swift
@@ -144,7 +190,16 @@ pub fn vz_linux_boot_loader_init(kernel_url: &NSURL) -> VZLinuxBootLoader {
   ffi::vz_linux_boot_loader_init(borrowed(kernel_url))
 }
 
+pub fn vz_linux_boot_loader_bridge_cast(object: &NSObject) -> Option<VZLinuxBootLoader> {
+  ffi::vz_linux_boot_loader_bridge_cast(borrowed(object)).ok()
+}
+
 impl VZLinuxBootLoader {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
   pub fn vz_kernel_url(&self) -> Retained<NSURL> {
     // SAFETY: `kernelURL`, a retained `NSURL`.
     unsafe { retained(ffi::vz_linux_boot_loader_kernel_url(self.bridge_retained())) }
@@ -200,9 +255,47 @@ pub fn vz_disk_image_storage_device_attachment_init_disk_image_caching_mode_sync
   )
 }
 
+pub fn vz_disk_image_storage_device_attachment_bridge_cast(
+  object: &NSObject,
+) -> Option<VZDiskImageStorageDeviceAttachment> {
+  ffi::vz_disk_image_storage_device_attachment_bridge_cast(borrowed(object)).ok()
+}
+
 impl VZDiskImageStorageDeviceAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
   pub fn vz_url(&self) -> Retained<NSURL> {
     // SAFETY: `url`, a retained `NSURL`.
     unsafe { retained(ffi::vz_disk_image_storage_device_attachment_url(self.bridge_retained())) }
+  }
+}
+
+// Storage/StorageDeviceConfiguration.swift
+
+/// `this` is any `VZStorageDeviceConfiguration`; the attachment, any
+/// `VZStorageDeviceAttachment`.
+pub fn vz_storage_device_configuration_attachment(this: &NSObject) -> Retained<NSObject> {
+  // SAFETY: `attachment`, a retained `VZStorageDeviceAttachment`.
+  unsafe { retained(ffi::vz_storage_device_configuration_attachment(borrowed(this))) }
+}
+
+// Storage/VirtioBlockDeviceConfiguration.swift
+
+/// `attachment` is any `VZStorageDeviceAttachment`.
+pub fn vz_virtio_block_device_configuration_init(attachment: &NSObject) -> VZVirtioBlockDeviceConfiguration {
+  ffi::vz_virtio_block_device_configuration_init(borrowed(attachment))
+}
+
+pub fn vz_virtio_block_device_configuration_bridge_cast(object: &NSObject) -> Option<VZVirtioBlockDeviceConfiguration> {
+  ffi::vz_virtio_block_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioBlockDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
   }
 }

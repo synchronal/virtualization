@@ -1,4 +1,4 @@
-use super::{GUARDED, NSURL, Never, Retained};
+use super::{GUARDED, NSObject, NSURL, Never, Retained};
 
 pub(crate) struct VZLinuxBootLoader {
   never: Never,
@@ -8,8 +8,16 @@ pub(crate) fn vz_linux_boot_loader_init(_kernel_url: &NSURL) -> VZLinuxBootLoade
   unreachable!("{GUARDED}")
 }
 
+pub(crate) fn vz_linux_boot_loader_bridge_cast(object: &NSObject) -> Option<VZLinuxBootLoader> {
+  object.never()
+}
+
 impl VZLinuxBootLoader {
   pub(crate) fn bridge_retained(&self) -> VZLinuxBootLoader {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
     match self.never {}
   }
 
