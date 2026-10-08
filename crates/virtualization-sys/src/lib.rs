@@ -38,18 +38,24 @@
 
 use std::any::Any;
 use std::ffi::c_void;
+use std::os::fd::{BorrowedFd, OwnedFd};
 use std::ptr::{self, NonNull};
 use std::sync::Arc;
 
 use dispatch2::{DispatchQueue, DispatchRetained};
 use foundation_sys::objc::{NSArray, borrowed, borrowed_or_nil, ns_array, ns_array_objects, retained, retained_or_nil};
 pub use foundation_sys::objc::{NSError, NSObject, NSURL, Retained, ns_url_absolute_string, ns_url_init_string};
+use foundation_sys::objc::{
+  NSFileHandle, ns_file_handle_file_descriptor, ns_file_handle_init_file_descriptor_close_on_dealloc,
+};
 
 pub use self::ffi::{
   BridgedNil, BridgedThrown, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
-  VZDiskImageSynchronizationMode, VZLinuxBootLoader, VZNetworkDevice, VZVirtioBlockDeviceConfiguration,
-  VZVirtualMachine, VZVirtualMachineConfiguration, VZVirtualMachineState,
-  vz_virtio_block_device_configuration_validate_block_device_identifier, vz_virtual_machine_configuration_init,
+  VZDiskImageSynchronizationMode, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment, VZLinuxBootLoader,
+  VZNetworkDevice, VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtualMachine,
+  VZVirtualMachineConfiguration, VZVirtualMachineState,
+  vz_virtio_block_device_configuration_validate_block_device_identifier,
+  vz_virtio_console_device_serial_port_configuration_init, vz_virtual_machine_configuration_init,
   vz_virtual_machine_configuration_maximum_allowed_cpu_count,
   vz_virtual_machine_configuration_maximum_allowed_memory_size,
   vz_virtual_machine_configuration_minimum_allowed_cpu_count,
@@ -278,6 +284,67 @@ mod ffi {
     fn ns_description(self: &VZNetworkDevice) -> String;
     fn vz_network_device_attachment(this: VZNetworkDevice) -> usize;
     fn vz_network_device_set_attachment(this: VZNetworkDevice, attachment: usize);
+  }
+
+  // SerialPort/FileHandleSerialPortAttachment.swift
+
+  extern "Swift" {
+    type VZFileHandleSerialPortAttachment;
+
+    fn vz_file_handle_serial_port_attachment_init(
+      file_handle_for_reading: usize,
+      file_handle_for_writing: usize,
+    ) -> VZFileHandleSerialPortAttachment;
+    fn bridge_retained(self: &VZFileHandleSerialPortAttachment) -> VZFileHandleSerialPortAttachment;
+    fn bridge_borrowed(self: &VZFileHandleSerialPortAttachment) -> *const c_void;
+    fn vz_file_handle_serial_port_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZFileHandleSerialPortAttachment, BridgedNil>;
+    fn ns_description(self: &VZFileHandleSerialPortAttachment) -> String;
+    fn vz_file_handle_serial_port_attachment_file_handle_for_reading(this: VZFileHandleSerialPortAttachment) -> usize;
+    fn vz_file_handle_serial_port_attachment_file_handle_for_writing(this: VZFileHandleSerialPortAttachment) -> usize;
+  }
+
+  // SerialPort/FileSerialPortAttachment.swift
+
+  extern "Swift" {
+    type VZFileSerialPortAttachment;
+
+    fn vz_file_serial_port_attachment_init(
+      url: *const c_void,
+      append: bool,
+    ) -> Result<VZFileSerialPortAttachment, BridgedThrown>;
+    fn bridge_retained(self: &VZFileSerialPortAttachment) -> VZFileSerialPortAttachment;
+    fn bridge_borrowed(self: &VZFileSerialPortAttachment) -> *const c_void;
+    fn vz_file_serial_port_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZFileSerialPortAttachment, BridgedNil>;
+    fn ns_description(self: &VZFileSerialPortAttachment) -> String;
+    fn vz_file_serial_port_attachment_url(this: VZFileSerialPortAttachment) -> *mut c_void;
+    fn vz_append(self: &VZFileSerialPortAttachment) -> bool;
+  }
+
+  // SerialPort/SerialPortConfiguration.swift
+
+  extern "Swift" {
+    fn vz_serial_port_configuration_attachment(this: *const c_void) -> usize;
+    fn vz_serial_port_configuration_set_attachment(this: *const c_void, attachment: usize);
+  }
+
+  // SerialPort/VirtioConsoleDeviceSerialPortConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioConsoleDeviceSerialPortConfiguration;
+
+    fn vz_virtio_console_device_serial_port_configuration_init() -> VZVirtioConsoleDeviceSerialPortConfiguration;
+    fn bridge_retained(
+      self: &VZVirtioConsoleDeviceSerialPortConfiguration,
+    ) -> VZVirtioConsoleDeviceSerialPortConfiguration;
+    fn bridge_borrowed(self: &VZVirtioConsoleDeviceSerialPortConfiguration) -> *const c_void;
+    fn vz_virtio_console_device_serial_port_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioConsoleDeviceSerialPortConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioConsoleDeviceSerialPortConfiguration) -> String;
   }
 
   // Storage/DiskImageStorageDeviceAttachment.swift
@@ -902,6 +969,119 @@ impl VZNetworkDevice {
   /// `attachment` is any `VZNetworkDeviceAttachment`.
   pub fn vz_set_attachment(&self, attachment: Option<&NSObject>) {
     ffi::vz_network_device_set_attachment(self.bridge_retained(), borrowed_or_nil(attachment));
+  }
+}
+
+// SerialPort/FileHandleSerialPortAttachment.swift
+
+/// Each descriptor becomes a `FileHandle` that owns it.
+pub fn vz_file_handle_serial_port_attachment_init(
+  file_handle_for_reading: Option<OwnedFd>,
+  file_handle_for_writing: Option<OwnedFd>,
+) -> VZFileHandleSerialPortAttachment {
+  let file_handle_for_reading = file_handle_for_reading.map(ns_file_handle_init_file_descriptor_close_on_dealloc);
+  let file_handle_for_writing = file_handle_for_writing.map(ns_file_handle_init_file_descriptor_close_on_dealloc);
+
+  ffi::vz_file_handle_serial_port_attachment_init(
+    borrowed_or_nil(file_handle_for_reading.as_deref()),
+    borrowed_or_nil(file_handle_for_writing.as_deref()),
+  )
+}
+
+pub fn vz_file_handle_serial_port_attachment_bridge_cast(
+  object: &NSObject,
+) -> Option<VZFileHandleSerialPortAttachment> {
+  ffi::vz_file_handle_serial_port_attachment_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZFileHandleSerialPortAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// `fileHandleForReading`'s descriptor, open as long as the attachment,
+  /// which keeps the handle.
+  pub fn vz_file_handle_for_reading(&self) -> Option<BorrowedFd<'_>> {
+    // SAFETY: `fileHandleForReading`, a retained `FileHandle` or `nil`.
+    let handle: Option<Retained<NSFileHandle>> = unsafe {
+      retained_or_nil(ffi::vz_file_handle_serial_port_attachment_file_handle_for_reading(
+        self.bridge_retained(),
+      ))
+    };
+
+    // SAFETY: the attachment's handles are fixed, and a handle's descriptor
+    // stays open while it lives.
+    handle.map(|handle| unsafe { BorrowedFd::borrow_raw(ns_file_handle_file_descriptor(&handle)) })
+  }
+
+  /// `fileHandleForWriting`'s descriptor, open as long as the attachment,
+  /// which keeps the handle.
+  pub fn vz_file_handle_for_writing(&self) -> Option<BorrowedFd<'_>> {
+    // SAFETY: `fileHandleForWriting`, a retained `FileHandle` or `nil`.
+    let handle: Option<Retained<NSFileHandle>> = unsafe {
+      retained_or_nil(ffi::vz_file_handle_serial_port_attachment_file_handle_for_writing(
+        self.bridge_retained(),
+      ))
+    };
+
+    // SAFETY: as for `vz_file_handle_for_reading`.
+    handle.map(|handle| unsafe { BorrowedFd::borrow_raw(ns_file_handle_file_descriptor(&handle)) })
+  }
+}
+
+// SerialPort/FileSerialPortAttachment.swift
+
+pub fn vz_file_serial_port_attachment_init(
+  url: &NSURL,
+  append: bool,
+) -> Result<VZFileSerialPortAttachment, BridgedThrown> {
+  ffi::vz_file_serial_port_attachment_init(borrowed(url), append)
+}
+
+pub fn vz_file_serial_port_attachment_bridge_cast(object: &NSObject) -> Option<VZFileSerialPortAttachment> {
+  ffi::vz_file_serial_port_attachment_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZFileSerialPortAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  pub fn vz_url(&self) -> Retained<NSURL> {
+    // SAFETY: `url`, a retained `NSURL`.
+    unsafe { retained(ffi::vz_file_serial_port_attachment_url(self.bridge_retained())) }
+  }
+}
+
+// SerialPort/SerialPortConfiguration.swift
+
+/// `this` is any `VZSerialPortConfiguration`; the attachment, any
+/// `VZSerialPortAttachment`.
+pub fn vz_serial_port_configuration_attachment(this: &NSObject) -> Option<Retained<NSObject>> {
+  // SAFETY: `attachment`, a retained `VZSerialPortAttachment` or `nil`.
+  unsafe { retained_or_nil(ffi::vz_serial_port_configuration_attachment(borrowed(this))) }
+}
+
+/// `this` is any `VZSerialPortConfiguration`; `attachment`, any
+/// `VZSerialPortAttachment`.
+pub fn vz_serial_port_configuration_set_attachment(this: &NSObject, attachment: Option<&NSObject>) {
+  ffi::vz_serial_port_configuration_set_attachment(borrowed(this), borrowed_or_nil(attachment));
+}
+
+// SerialPort/VirtioConsoleDeviceSerialPortConfiguration.swift
+
+pub fn vz_virtio_console_device_serial_port_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioConsoleDeviceSerialPortConfiguration> {
+  ffi::vz_virtio_console_device_serial_port_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioConsoleDeviceSerialPortConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
   }
 }
 

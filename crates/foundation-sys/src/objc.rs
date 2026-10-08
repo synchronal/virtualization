@@ -14,11 +14,13 @@
 //!   `NSArray`, read here with [`ns_array_objects`].
 
 use std::ffi::c_void;
+use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 
+use objc2::AllocAnyThread;
 pub use objc2::rc::Retained;
 pub use objc2::runtime::{AnyObject, NSObject};
 use objc2_foundation::NSString;
-pub use objc2_foundation::{NSArray, NSError, NSURL, NSUUID};
+pub use objc2_foundation::{NSArray, NSError, NSFileHandle, NSURL, NSUUID};
 
 /// A Foundation object, lent to Swift for one call.
 pub fn borrowed<T: objc2::Message>(object: &T) -> *const c_void {
@@ -76,6 +78,17 @@ pub fn ns_url_absolute_string(url: &NSURL) -> String {
     .absoluteString()
     .map(|string| string.to_string())
     .unwrap_or_default()
+}
+
+/// [`FileHandle(fileDescriptor:closeOnDealloc:)`](https://developer.apple.com/documentation/foundation/filehandle/init(filedescriptor:closeondealloc:)),
+/// closing on dealloc: the handle owns `fd`.
+pub fn ns_file_handle_init_file_descriptor_close_on_dealloc(fd: OwnedFd) -> Retained<NSFileHandle> {
+  NSFileHandle::initWithFileDescriptor_closeOnDealloc(NSFileHandle::alloc(), fd.into_raw_fd(), true)
+}
+
+/// [`fileDescriptor`](https://developer.apple.com/documentation/foundation/filehandle/filedescriptor).
+pub fn ns_file_handle_file_descriptor(file_handle: &NSFileHandle) -> RawFd {
+  file_handle.fileDescriptor()
 }
 
 /// [`uuidString`](https://developer.apple.com/documentation/foundation/nsuuid/uuidstring).

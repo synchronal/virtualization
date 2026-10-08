@@ -14,7 +14,9 @@
 //!   `as?`, and returns `None` when it is another. An array of one is a slice
 //!   of trait objects going in, and a `Vec` of each element cast coming out.
 //! - `URL` is [`url::Url`], re-exported as [`url`]; a dispatch queue is
-//!   [`dispatch2`]'s, re-exported.
+//!   [`dispatch2`]'s, re-exported. A `FileHandle` is its descriptor: an
+//!   [`OwnedFd`](std::os::fd::OwnedFd) going in, a
+//!   [`BorrowedFd`](std::os::fd::BorrowedFd) coming out.
 //! - A completion handler is a closure, called on the queue Virtualization
 //!   calls Swift's on. A delegate is a trait object, held as weakly as Swift
 //!   holds its delegate.
@@ -57,7 +59,9 @@ pub use crate::other_devices::{
   USBControllerConfiguration,
 };
 pub use crate::serial_port::{
-  ConsoleDevice, ConsoleDeviceConfiguration, SerialPortConfiguration, SocketDevice, SocketDeviceConfiguration,
+  ConsoleDevice, ConsoleDeviceConfiguration, FileHandleSerialPortAttachment, FileSerialPortAttachment,
+  SerialPortAttachment, SerialPortConfiguration, SocketDevice, SocketDeviceConfiguration,
+  VirtioConsoleDeviceSerialPortConfiguration,
 };
 pub use crate::storage::{
   DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, StorageDeviceAttachment,
