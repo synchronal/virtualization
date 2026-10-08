@@ -57,16 +57,20 @@ pub use self::ffi::{
   VZDiskImageSynchronizationMode, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment,
   VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader, VZMACAddress,
   VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
-  VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioEntropyDeviceConfiguration,
-  VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration, VZVirtioNetworkDeviceConfiguration,
-  VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
-  VZVirtualMachineConfiguration, VZVirtualMachineState, vz_generic_machine_identifier_init,
-  vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
-  vz_mac_address_random_locally_administered, vz_multiple_directory_share_canonicalized_name,
-  vz_multiple_directory_share_init, vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
-  vz_virtio_block_device_configuration_validate_block_device_identifier,
-  vz_virtio_console_device_serial_port_configuration_init, vz_virtio_entropy_device_configuration_init,
-  vz_virtio_file_system_device_configuration_init,
+  VZSpiceAgentPortAttachment, VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice,
+  VZVirtioConsoleDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort,
+  VZVirtioConsolePortArray, VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray,
+  VZVirtioEntropyDeviceConfiguration, VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration,
+  VZVirtioNetworkDeviceConfiguration, VZVirtioTraditionalMemoryBalloonDevice,
+  VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine, VZVirtualMachineConfiguration,
+  VZVirtualMachineState, vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
+  vz_generic_platform_configuration_is_nested_virtualization_supported, vz_mac_address_random_locally_administered,
+  vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
+  vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
+  vz_spice_agent_port_attachment_init, vz_spice_agent_port_attachment_spice_agent_port_name,
+  vz_virtio_block_device_configuration_validate_block_device_identifier, vz_virtio_console_device_configuration_init,
+  vz_virtio_console_device_serial_port_configuration_init, vz_virtio_console_port_configuration_init,
+  vz_virtio_entropy_device_configuration_init, vz_virtio_file_system_device_configuration_init,
   vz_virtio_file_system_device_configuration_macos_guest_automount_tag,
   vz_virtio_file_system_device_configuration_validate_tag, vz_virtio_network_device_configuration_init,
   vz_virtio_traditional_memory_balloon_device_configuration_init, vz_virtual_machine_configuration_init,
@@ -516,6 +520,13 @@ mod ffi {
     fn ns_description(self: &VZVirtioTraditionalMemoryBalloonDeviceConfiguration) -> String;
   }
 
+  // SerialPort/ConsolePortConfiguration.swift
+
+  extern "Swift" {
+    fn vz_console_port_configuration_attachment(this: *const c_void) -> usize;
+    fn vz_console_port_configuration_set_attachment(this: *const c_void, attachment: usize);
+  }
+
   // SerialPort/FileHandleSerialPortAttachment.swift
 
   extern "Swift" {
@@ -561,6 +572,72 @@ mod ffi {
     fn vz_serial_port_configuration_set_attachment(this: *const c_void, attachment: usize);
   }
 
+  // SerialPort/SpiceAgentPortAttachment.swift
+
+  extern "Swift" {
+    type VZSpiceAgentPortAttachment;
+
+    fn vz_spice_agent_port_attachment_init() -> VZSpiceAgentPortAttachment;
+    fn bridge_retained(self: &VZSpiceAgentPortAttachment) -> VZSpiceAgentPortAttachment;
+    fn bridge_borrowed(self: &VZSpiceAgentPortAttachment) -> *const c_void;
+    fn vz_spice_agent_port_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZSpiceAgentPortAttachment, BridgedNil>;
+    fn ns_description(self: &VZSpiceAgentPortAttachment) -> String;
+    fn vz_spice_agent_port_attachment_spice_agent_port_name() -> String;
+    fn vz_shares_clipboard(self: &VZSpiceAgentPortAttachment) -> bool;
+    fn vz_set_shares_clipboard(self: &VZSpiceAgentPortAttachment, shares_clipboard: bool);
+  }
+
+  // SerialPort/VirtioConsoleDevice.swift
+
+  extern "Swift" {
+    type VZVirtioConsoleDevice;
+
+    fn bridge_retained(self: &VZVirtioConsoleDevice) -> VZVirtioConsoleDevice;
+    fn bridge_borrowed(self: &VZVirtioConsoleDevice) -> *const c_void;
+    fn vz_virtio_console_device_bridge_cast(object: *const c_void) -> Result<VZVirtioConsoleDevice, BridgedNil>;
+    fn ns_description(self: &VZVirtioConsoleDevice) -> String;
+    fn vz_virtio_console_device_delegate(this: VZVirtioConsoleDevice) -> usize;
+    fn vz_virtio_console_device_set_delegate(
+      this: VZVirtioConsoleDevice,
+      delegate: VZVirtioConsoleDeviceDelegateBridge,
+    );
+    fn bridge_set_delegate_nil(self: &VZVirtioConsoleDevice);
+    fn vz_ports(self: &VZVirtioConsoleDevice) -> VZVirtioConsolePortArray;
+  }
+
+  extern "Rust" {
+    type VZVirtioConsoleDeviceDelegateBridge;
+
+    fn bridge_retained(self: &VZVirtioConsoleDeviceDelegateBridge) -> usize;
+    fn console_device_did_open(
+      self: &VZVirtioConsoleDeviceDelegateBridge,
+      console_device: VZVirtioConsoleDevice,
+      console_port: VZVirtioConsolePort,
+    );
+    fn console_device_did_close(
+      self: &VZVirtioConsoleDeviceDelegateBridge,
+      console_device: VZVirtioConsoleDevice,
+      console_port: VZVirtioConsolePort,
+    );
+  }
+
+  // SerialPort/VirtioConsoleDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioConsoleDeviceConfiguration;
+
+    fn vz_virtio_console_device_configuration_init() -> VZVirtioConsoleDeviceConfiguration;
+    fn bridge_retained(self: &VZVirtioConsoleDeviceConfiguration) -> VZVirtioConsoleDeviceConfiguration;
+    fn bridge_borrowed(self: &VZVirtioConsoleDeviceConfiguration) -> *const c_void;
+    fn vz_virtio_console_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioConsoleDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioConsoleDeviceConfiguration) -> String;
+    fn vz_ports(self: &VZVirtioConsoleDeviceConfiguration) -> VZVirtioConsolePortConfigurationArray;
+  }
+
   // SerialPort/VirtioConsoleDeviceSerialPortConfiguration.swift
 
   extern "Swift" {
@@ -575,6 +652,68 @@ mod ffi {
       object: *const c_void,
     ) -> Result<VZVirtioConsoleDeviceSerialPortConfiguration, BridgedNil>;
     fn ns_description(self: &VZVirtioConsoleDeviceSerialPortConfiguration) -> String;
+  }
+
+  // SerialPort/VirtioConsolePort.swift
+
+  extern "Swift" {
+    type VZVirtioConsolePort;
+
+    fn bridge_retained(self: &VZVirtioConsolePort) -> VZVirtioConsolePort;
+    fn ns_description(self: &VZVirtioConsolePort) -> String;
+    fn vz_name(self: &VZVirtioConsolePort) -> Option<String>;
+    fn vz_virtio_console_port_attachment(this: VZVirtioConsolePort) -> usize;
+    fn vz_virtio_console_port_set_attachment(this: VZVirtioConsolePort, attachment: usize);
+  }
+
+  // SerialPort/VirtioConsolePortArray.swift
+
+  extern "Swift" {
+    type VZVirtioConsolePortArray;
+
+    fn bridge_retained(self: &VZVirtioConsolePortArray) -> VZVirtioConsolePortArray;
+    fn ns_description(self: &VZVirtioConsolePortArray) -> String;
+    fn vz_maximum_port_count(self: &VZVirtioConsolePortArray) -> u32;
+    fn vz_subscript(self: &VZVirtioConsolePortArray, port_index: isize) -> Result<VZVirtioConsolePort, BridgedNil>;
+  }
+
+  // SerialPort/VirtioConsolePortConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioConsolePortConfiguration;
+
+    fn vz_virtio_console_port_configuration_init() -> VZVirtioConsolePortConfiguration;
+    fn bridge_retained(self: &VZVirtioConsolePortConfiguration) -> VZVirtioConsolePortConfiguration;
+    fn bridge_borrowed(self: &VZVirtioConsolePortConfiguration) -> *const c_void;
+    fn vz_virtio_console_port_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioConsolePortConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioConsolePortConfiguration) -> String;
+    fn vz_name(self: &VZVirtioConsolePortConfiguration) -> Option<String>;
+    fn vz_set_name(self: &VZVirtioConsolePortConfiguration, name: Option<&str>);
+    fn vz_is_console(self: &VZVirtioConsolePortConfiguration) -> bool;
+    fn vz_set_is_console(self: &VZVirtioConsolePortConfiguration, is_console: bool);
+  }
+
+  // SerialPort/VirtioConsolePortConfigurationArray.swift
+
+  extern "Swift" {
+    type VZVirtioConsolePortConfigurationArray;
+
+    fn bridge_retained(self: &VZVirtioConsolePortConfigurationArray) -> VZVirtioConsolePortConfigurationArray;
+    fn ns_description(self: &VZVirtioConsolePortConfigurationArray) -> String;
+    fn vz_maximum_port_count(self: &VZVirtioConsolePortConfigurationArray) -> u32;
+    fn vz_set_maximum_port_count(self: &VZVirtioConsolePortConfigurationArray, maximum_port_count: u32);
+    fn vz_subscript(
+      self: &VZVirtioConsolePortConfigurationArray,
+      port_index: isize,
+    ) -> Result<VZVirtioConsolePortConfiguration, BridgedNil>;
+    fn vz_set_subscript(
+      self: &VZVirtioConsolePortConfigurationArray,
+      port_index: isize,
+      value: VZVirtioConsolePortConfiguration,
+    );
+    fn bridge_set_subscript_nil(self: &VZVirtioConsolePortConfigurationArray, port_index: isize);
   }
 
   // Storage/DiskImageStorageDeviceAttachment.swift
@@ -1487,6 +1626,21 @@ impl VZVirtioTraditionalMemoryBalloonDeviceConfiguration {
   }
 }
 
+// SerialPort/ConsolePortConfiguration.swift
+
+/// `this` is any `VZConsolePortConfiguration`; the attachment, any
+/// `VZSerialPortAttachment`.
+pub fn vz_console_port_configuration_attachment(this: &NSObject) -> Option<Retained<NSObject>> {
+  // SAFETY: `attachment`, a retained `VZSerialPortAttachment` or `nil`.
+  unsafe { retained_or_nil(ffi::vz_console_port_configuration_attachment(borrowed(this))) }
+}
+
+/// `this` is any `VZConsolePortConfiguration`; `attachment`, any
+/// `VZSerialPortAttachment`.
+pub fn vz_console_port_configuration_set_attachment(this: &NSObject, attachment: Option<&NSObject>) {
+  ffi::vz_console_port_configuration_set_attachment(borrowed(this), borrowed_or_nil(attachment));
+}
+
 // SerialPort/FileHandleSerialPortAttachment.swift
 
 /// Each descriptor becomes a `FileHandle` that owns it.
@@ -1585,6 +1739,102 @@ pub fn vz_serial_port_configuration_set_attachment(this: &NSObject, attachment: 
   ffi::vz_serial_port_configuration_set_attachment(borrowed(this), borrowed_or_nil(attachment));
 }
 
+// SerialPort/SpiceAgentPortAttachment.swift
+
+pub fn vz_spice_agent_port_attachment_bridge_cast(object: &NSObject) -> Option<VZSpiceAgentPortAttachment> {
+  ffi::vz_spice_agent_port_attachment_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZSpiceAgentPortAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// SerialPort/VirtioConsoleDevice.swift
+
+pub fn vz_virtio_console_device_bridge_cast(object: &NSObject) -> Option<VZVirtioConsoleDevice> {
+  ffi::vz_virtio_console_device_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioConsoleDevice {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// The delegate set with [`Self::vz_set_delegate`].
+  pub fn vz_delegate(&self) -> Option<Arc<dyn VZVirtioConsoleDeviceDelegate>> {
+    let address = ffi::vz_virtio_console_device_delegate(self.bridge_retained());
+
+    // SAFETY: `VZVirtioConsoleDeviceDelegateBridge::bridge_retained`'s
+    // address, taken once, or `0` for none.
+    (address != 0).then(|| *unsafe { Box::from_raw(address as *mut Arc<dyn VZVirtioConsoleDeviceDelegate>) })
+  }
+
+  pub fn vz_set_delegate(&self, delegate: Option<Arc<dyn VZVirtioConsoleDeviceDelegate>>) {
+    match delegate {
+      Some(delegate) => {
+        ffi::vz_virtio_console_device_set_delegate(
+          self.bridge_retained(),
+          VZVirtioConsoleDeviceDelegateBridge { delegate },
+        );
+      }
+      None => self.bridge_set_delegate_nil(),
+    }
+  }
+}
+
+/// `VZVirtioConsoleDeviceDelegate`, which Rust implements. Virtualization
+/// calls it on the machine's queue.
+pub trait VZVirtioConsoleDeviceDelegate: Any + Send + Sync {
+  fn console_device_did_open(&self, console_device: VZVirtioConsoleDevice, console_port: VZVirtioConsolePort);
+
+  fn console_device_did_close(&self, console_device: VZVirtioConsoleDevice, console_port: VZVirtioConsolePort);
+}
+
+/// A [`VZVirtioConsoleDeviceDelegate`] as Swift holds it.
+pub struct VZVirtioConsoleDeviceDelegateBridge {
+  delegate: Arc<dyn VZVirtioConsoleDeviceDelegate>,
+}
+
+impl VZVirtioConsoleDeviceDelegateBridge {
+  /// Another reference to the delegate, for
+  /// [`VZVirtioConsoleDevice::vz_delegate`] to take, by address.
+  /// (swift-bridge's code for returning this type by value fails clippy.)
+  fn bridge_retained(&self) -> usize {
+    Box::into_raw(Box::new(Arc::clone(&self.delegate))) as usize
+  }
+
+  fn console_device_did_open(&self, console_device: VZVirtioConsoleDevice, console_port: VZVirtioConsolePort) {
+    self
+      .delegate
+      .console_device_did_open(console_device, console_port);
+  }
+
+  fn console_device_did_close(&self, console_device: VZVirtioConsoleDevice, console_port: VZVirtioConsolePort) {
+    self
+      .delegate
+      .console_device_did_close(console_device, console_port);
+  }
+}
+
+// SerialPort/VirtioConsoleDeviceConfiguration.swift
+
+pub fn vz_virtio_console_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioConsoleDeviceConfiguration> {
+  ffi::vz_virtio_console_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioConsoleDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
 // SerialPort/VirtioConsoleDeviceSerialPortConfiguration.swift
 
 pub fn vz_virtio_console_device_serial_port_configuration_bridge_cast(
@@ -1594,6 +1844,34 @@ pub fn vz_virtio_console_device_serial_port_configuration_bridge_cast(
 }
 
 impl VZVirtioConsoleDeviceSerialPortConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// SerialPort/VirtioConsolePort.swift
+
+impl VZVirtioConsolePort {
+  /// Any `VZSerialPortAttachment`.
+  pub fn vz_attachment(&self) -> Option<Retained<NSObject>> {
+    // SAFETY: `attachment`, a retained `VZSerialPortAttachment` or `nil`.
+    unsafe { retained_or_nil(ffi::vz_virtio_console_port_attachment(self.bridge_retained())) }
+  }
+
+  /// `attachment` is any `VZSerialPortAttachment`.
+  pub fn vz_set_attachment(&self, attachment: Option<&NSObject>) {
+    ffi::vz_virtio_console_port_set_attachment(self.bridge_retained(), borrowed_or_nil(attachment));
+  }
+}
+
+// SerialPort/VirtioConsolePortConfiguration.swift
+
+pub fn vz_virtio_console_port_configuration_bridge_cast(object: &NSObject) -> Option<VZVirtioConsolePortConfiguration> {
+  ffi::vz_virtio_console_port_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioConsolePortConfiguration {
   pub fn bridge_object(&self) -> &NSObject {
     // SAFETY: this one's own object.
     unsafe { bridge_object(self, self.bridge_borrowed()) }

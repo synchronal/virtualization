@@ -1,6 +1,16 @@
+use std::any::Any;
 use std::os::fd::{BorrowedFd, OwnedFd};
+use std::sync::Arc;
 
-use super::{BridgedThrown, GUARDED, NSObject, NSURL, Never, Retained};
+use super::{BridgedNil, BridgedThrown, GUARDED, NSObject, NSURL, Never, Retained};
+
+pub(crate) fn vz_console_port_configuration_attachment(this: &NSObject) -> Option<Retained<NSObject>> {
+  this.never()
+}
+
+pub(crate) fn vz_console_port_configuration_set_attachment(this: &NSObject, _attachment: Option<&NSObject>) {
+  this.never()
+}
 
 pub(crate) struct VZFileHandleSerialPortAttachment {
   never: Never,
@@ -86,6 +96,114 @@ pub(crate) fn vz_serial_port_configuration_set_attachment(this: &NSObject, _atta
   this.never()
 }
 
+pub(crate) struct VZSpiceAgentPortAttachment {
+  never: Never,
+}
+
+pub(crate) fn vz_spice_agent_port_attachment_init() -> VZSpiceAgentPortAttachment {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_spice_agent_port_attachment_bridge_cast(object: &NSObject) -> Option<VZSpiceAgentPortAttachment> {
+  object.never()
+}
+
+pub(crate) fn vz_spice_agent_port_attachment_spice_agent_port_name() -> String {
+  unreachable!("{GUARDED}")
+}
+
+impl VZSpiceAgentPortAttachment {
+  pub(crate) fn bridge_retained(&self) -> VZSpiceAgentPortAttachment {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_shares_clipboard(&self) -> bool {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_shares_clipboard(&self, _shares_clipboard: bool) {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZVirtioConsoleDevice {
+  never: Never,
+}
+
+pub(crate) fn vz_virtio_console_device_bridge_cast(object: &NSObject) -> Option<VZVirtioConsoleDevice> {
+  object.never()
+}
+
+impl VZVirtioConsoleDevice {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioConsoleDevice {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_delegate(&self) -> Option<Arc<dyn VZVirtioConsoleDeviceDelegate>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_delegate(&self, _delegate: Option<Arc<dyn VZVirtioConsoleDeviceDelegate>>) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_ports(&self) -> VZVirtioConsolePortArray {
+    match self.never {}
+  }
+}
+
+pub(crate) trait VZVirtioConsoleDeviceDelegate: Any + Send + Sync {}
+
+impl<T: Any + Send + Sync> VZVirtioConsoleDeviceDelegate for T {}
+
+pub(crate) struct VZVirtioConsoleDeviceConfiguration {
+  never: Never,
+}
+
+pub(crate) fn vz_virtio_console_device_configuration_init() -> VZVirtioConsoleDeviceConfiguration {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_virtio_console_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioConsoleDeviceConfiguration> {
+  object.never()
+}
+
+impl VZVirtioConsoleDeviceConfiguration {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioConsoleDeviceConfiguration {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_ports(&self) -> VZVirtioConsolePortConfigurationArray {
+    match self.never {}
+  }
+}
+
 pub(crate) struct VZVirtioConsoleDeviceSerialPortConfiguration {
   never: Never,
 }
@@ -111,6 +229,132 @@ impl VZVirtioConsoleDeviceSerialPortConfiguration {
   }
 
   pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZVirtioConsolePort {
+  never: Never,
+}
+
+impl VZVirtioConsolePort {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioConsolePort {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_name(&self) -> Option<String> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_attachment(&self) -> Option<Retained<NSObject>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_attachment(&self, _attachment: Option<&NSObject>) {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZVirtioConsolePortArray {
+  never: Never,
+}
+
+impl VZVirtioConsolePortArray {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioConsolePortArray {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_maximum_port_count(&self) -> u32 {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_subscript(&self, _port_index: isize) -> Result<VZVirtioConsolePort, BridgedNil> {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZVirtioConsolePortConfiguration {
+  never: Never,
+}
+
+pub(crate) fn vz_virtio_console_port_configuration_init() -> VZVirtioConsolePortConfiguration {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_virtio_console_port_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioConsolePortConfiguration> {
+  object.never()
+}
+
+impl VZVirtioConsolePortConfiguration {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioConsolePortConfiguration {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_name(&self) -> Option<String> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_name(&self, _name: Option<&str>) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_is_console(&self) -> bool {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_is_console(&self, _is_console: bool) {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZVirtioConsolePortConfigurationArray {
+  never: Never,
+}
+
+impl VZVirtioConsolePortConfigurationArray {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioConsolePortConfigurationArray {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_maximum_port_count(&self) -> u32 {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_maximum_port_count(&self, _maximum_port_count: u32) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_subscript(&self, _port_index: isize) -> Result<VZVirtioConsolePortConfiguration, BridgedNil> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_subscript(&self, _port_index: isize, _value: VZVirtioConsolePortConfiguration) {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_set_subscript_nil(&self, _port_index: isize) {
     match self.never {}
   }
 }

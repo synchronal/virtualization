@@ -1,5 +1,7 @@
 use super::{GUARDED, Never};
 
+pub(crate) type BridgedNil = Never;
+
 pub(crate) type BridgedThrown = Never;
 
 /// objc2's `Retained<T>`.

@@ -90,8 +90,7 @@ pub fn booting_machine(
   let (machine, console) = on_queue(&queue, || {
     let kernel = std::env::var("VZ_TEST_KERNEL").expect("VZ_TEST_KERNEL: run under nextest, which sets it");
     let boot_loader = LinuxBootLoader::new(&Url::from_file_path(kernel).unwrap()).unwrap();
-    let (output, guest_output) = std::io::pipe().unwrap();
-    let (guest_input, input) = std::io::pipe().unwrap();
+    let (attachment, console) = console_attachment();
     let serial_port = VirtioConsoleDeviceSerialPortConfiguration::new().unwrap();
     let configuration = VirtualMachineConfiguration::new().unwrap();
 
@@ -99,28 +98,31 @@ pub fn booting_machine(
     boot_loader
       .set_initial_ramdisk_url(initial_ramdisk)
       .unwrap();
-    serial_port.set_attachment(Some(
-      &FileHandleSerialPortAttachment::new(Some(OwnedFd::from(guest_input)), Some(OwnedFd::from(guest_output)))
-        .unwrap(),
-    ));
+    serial_port.set_attachment(Some(&attachment));
     configuration.set_boot_loader(Some(&boot_loader));
     configuration.set_cpu_count(1);
     configuration.set_memory_size(512 * 1024 * 1024);
     configuration.set_serial_ports(&[&serial_port]);
     configure(&configuration);
 
-    let machine = VirtualMachine::with_queue(&configuration, &queue).unwrap();
-
-    (
-      machine,
-      Console {
-        output: BufReader::new(output).lines(),
-        input,
-      },
-    )
+    (VirtualMachine::with_queue(&configuration, &queue).unwrap(), console)
   });
 
   (queue, machine, console)
+}
+
+/// An attachment of a pipe each way, and the host's ends of them.
+pub fn console_attachment() -> (FileHandleSerialPortAttachment, Console) {
+  let (output, guest_output) = std::io::pipe().unwrap();
+  let (guest_input, input) = std::io::pipe().unwrap();
+
+  (
+    FileHandleSerialPortAttachment::new(Some(OwnedFd::from(guest_input)), Some(OwnedFd::from(guest_output))).unwrap(),
+    Console {
+      output: BufReader::new(output).lines(),
+      input,
+    },
+  )
 }
 
 /// Starts `machine` on `queue`, and waits for it to have started.
@@ -133,7 +135,8 @@ pub fn stop(queue: &DispatchQueue, machine: &VirtualMachine) {
   completed(queue, |completion_handler| machine.stop(completion_handler)).unwrap();
 }
 
-/// A guest's console, `hvc0`.
+/// The host's end of a guest's console: `hvc0`, or a port given
+/// `console_attachment`.
 pub struct Console {
   output: Lines<BufReader<PipeReader>>,
   /// What the guest reads.

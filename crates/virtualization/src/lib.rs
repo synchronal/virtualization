@@ -68,9 +68,11 @@ pub use crate::other_devices::{
   VirtioTraditionalMemoryBalloonDeviceConfiguration,
 };
 pub use crate::serial_port::{
-  ConsoleDevice, ConsoleDeviceConfiguration, FileHandleSerialPortAttachment, FileSerialPortAttachment,
-  SerialPortAttachment, SerialPortConfiguration, SocketDevice, SocketDeviceConfiguration,
-  VirtioConsoleDeviceSerialPortConfiguration,
+  ConsoleDevice, ConsoleDeviceConfiguration, ConsolePortConfiguration, FileHandleSerialPortAttachment,
+  FileSerialPortAttachment, SerialPortAttachment, SerialPortConfiguration, SocketDevice, SocketDeviceConfiguration,
+  SpiceAgentPortAttachment, VirtioConsoleDevice, VirtioConsoleDeviceConfiguration, VirtioConsoleDeviceDelegate,
+  VirtioConsoleDeviceSerialPortConfiguration, VirtioConsolePort, VirtioConsolePortArray,
+  VirtioConsolePortConfiguration, VirtioConsolePortConfigurationArray,
 };
 pub use crate::storage::{
   DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, StorageDeviceAttachment,
