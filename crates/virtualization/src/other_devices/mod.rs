@@ -1,3 +1,10 @@
+mod virtio_entropy_device_configuration;
+mod virtio_traditional_memory_balloon_device;
+mod virtio_traditional_memory_balloon_device_configuration;
+
+pub use self::virtio_entropy_device_configuration::VirtioEntropyDeviceConfiguration;
+pub use self::virtio_traditional_memory_balloon_device::VirtioTraditionalMemoryBalloonDevice;
+pub use self::virtio_traditional_memory_balloon_device_configuration::VirtioTraditionalMemoryBalloonDeviceConfiguration;
 use crate::sealed::Sealed;
 
 /// [`VZEntropyDeviceConfiguration`](https://developer.apple.com/documentation/virtualization/vzentropydeviceconfiguration)

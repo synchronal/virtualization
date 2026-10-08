@@ -57,17 +57,20 @@ pub use self::ffi::{
   VZDiskImageSynchronizationMode, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment,
   VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader, VZMACAddress,
   VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
-  VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioFileSystemDevice,
-  VZVirtioFileSystemDeviceConfiguration, VZVirtioNetworkDeviceConfiguration, VZVirtualMachine,
+  VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioEntropyDeviceConfiguration,
+  VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration, VZVirtioNetworkDeviceConfiguration,
+  VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
   VZVirtualMachineConfiguration, VZVirtualMachineState, vz_generic_machine_identifier_init,
   vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
   vz_mac_address_random_locally_administered, vz_multiple_directory_share_canonicalized_name,
   vz_multiple_directory_share_init, vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
   vz_virtio_block_device_configuration_validate_block_device_identifier,
-  vz_virtio_console_device_serial_port_configuration_init, vz_virtio_file_system_device_configuration_init,
+  vz_virtio_console_device_serial_port_configuration_init, vz_virtio_entropy_device_configuration_init,
+  vz_virtio_file_system_device_configuration_init,
   vz_virtio_file_system_device_configuration_macos_guest_automount_tag,
   vz_virtio_file_system_device_configuration_validate_tag, vz_virtio_network_device_configuration_init,
-  vz_virtual_machine_configuration_init, vz_virtual_machine_configuration_maximum_allowed_cpu_count,
+  vz_virtio_traditional_memory_balloon_device_configuration_init, vz_virtual_machine_configuration_init,
+  vz_virtual_machine_configuration_maximum_allowed_cpu_count,
   vz_virtual_machine_configuration_maximum_allowed_memory_size,
   vz_virtual_machine_configuration_minimum_allowed_cpu_count,
   vz_virtual_machine_configuration_minimum_allowed_memory_size, vz_virtual_machine_is_supported,
@@ -462,6 +465,55 @@ mod ffi {
       object: *const c_void,
     ) -> Result<VZVirtioNetworkDeviceConfiguration, BridgedNil>;
     fn ns_description(self: &VZVirtioNetworkDeviceConfiguration) -> String;
+  }
+
+  // OtherDevices/VirtioEntropyDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioEntropyDeviceConfiguration;
+
+    fn vz_virtio_entropy_device_configuration_init() -> VZVirtioEntropyDeviceConfiguration;
+    fn bridge_retained(self: &VZVirtioEntropyDeviceConfiguration) -> VZVirtioEntropyDeviceConfiguration;
+    fn bridge_borrowed(self: &VZVirtioEntropyDeviceConfiguration) -> *const c_void;
+    fn vz_virtio_entropy_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioEntropyDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioEntropyDeviceConfiguration) -> String;
+  }
+
+  // OtherDevices/VirtioTraditionalMemoryBalloonDevice.swift
+
+  extern "Swift" {
+    type VZVirtioTraditionalMemoryBalloonDevice;
+
+    fn bridge_retained(self: &VZVirtioTraditionalMemoryBalloonDevice) -> VZVirtioTraditionalMemoryBalloonDevice;
+    fn bridge_borrowed(self: &VZVirtioTraditionalMemoryBalloonDevice) -> *const c_void;
+    fn vz_virtio_traditional_memory_balloon_device_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioTraditionalMemoryBalloonDevice, BridgedNil>;
+    fn ns_description(self: &VZVirtioTraditionalMemoryBalloonDevice) -> String;
+    fn vz_target_virtual_machine_memory_size(self: &VZVirtioTraditionalMemoryBalloonDevice) -> u64;
+    fn vz_set_target_virtual_machine_memory_size(
+      self: &VZVirtioTraditionalMemoryBalloonDevice,
+      target_virtual_machine_memory_size: u64,
+    );
+  }
+
+  // OtherDevices/VirtioTraditionalMemoryBalloonDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioTraditionalMemoryBalloonDeviceConfiguration;
+
+    fn vz_virtio_traditional_memory_balloon_device_configuration_init()
+    -> VZVirtioTraditionalMemoryBalloonDeviceConfiguration;
+    fn bridge_retained(
+      self: &VZVirtioTraditionalMemoryBalloonDeviceConfiguration,
+    ) -> VZVirtioTraditionalMemoryBalloonDeviceConfiguration;
+    fn bridge_borrowed(self: &VZVirtioTraditionalMemoryBalloonDeviceConfiguration) -> *const c_void;
+    fn vz_virtio_traditional_memory_balloon_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioTraditionalMemoryBalloonDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioTraditionalMemoryBalloonDeviceConfiguration) -> String;
   }
 
   // SerialPort/FileHandleSerialPortAttachment.swift
@@ -1384,6 +1436,51 @@ pub fn vz_virtio_network_device_configuration_bridge_cast(
 }
 
 impl VZVirtioNetworkDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// OtherDevices/VirtioEntropyDeviceConfiguration.swift
+
+pub fn vz_virtio_entropy_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioEntropyDeviceConfiguration> {
+  ffi::vz_virtio_entropy_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioEntropyDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// OtherDevices/VirtioTraditionalMemoryBalloonDevice.swift
+
+pub fn vz_virtio_traditional_memory_balloon_device_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioTraditionalMemoryBalloonDevice> {
+  ffi::vz_virtio_traditional_memory_balloon_device_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioTraditionalMemoryBalloonDevice {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// OtherDevices/VirtioTraditionalMemoryBalloonDeviceConfiguration.swift
+
+pub fn vz_virtio_traditional_memory_balloon_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioTraditionalMemoryBalloonDeviceConfiguration> {
+  ffi::vz_virtio_traditional_memory_balloon_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioTraditionalMemoryBalloonDeviceConfiguration {
   pub fn bridge_object(&self) -> &NSObject {
     // SAFETY: this one's own object.
     unsafe { bridge_object(self, self.bridge_borrowed()) }

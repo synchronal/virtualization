@@ -64,7 +64,8 @@ pub use crate::network::{
 };
 pub use crate::other_devices::{
   EntropyDeviceConfiguration, MemoryBalloonDevice, MemoryBalloonDeviceConfiguration, USBController,
-  USBControllerConfiguration,
+  USBControllerConfiguration, VirtioEntropyDeviceConfiguration, VirtioTraditionalMemoryBalloonDevice,
+  VirtioTraditionalMemoryBalloonDeviceConfiguration,
 };
 pub use crate::serial_port::{
   ConsoleDevice, ConsoleDeviceConfiguration, FileHandleSerialPortAttachment, FileSerialPortAttachment,
