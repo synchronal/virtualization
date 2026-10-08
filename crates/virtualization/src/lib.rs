@@ -46,7 +46,9 @@ mod virtual_machine_configuration;
 
 pub use {disk_image_kit, dispatch2, url};
 
-pub use crate::boot_loader::{BootLoader, LinuxBootLoader, PlatformConfiguration};
+pub use crate::boot_loader::{
+  BootLoader, GenericMachineIdentifier, GenericPlatformConfiguration, LinuxBootLoader, PlatformConfiguration,
+};
 pub use crate::directory_sharing::{DirectorySharingDevice, DirectorySharingDeviceConfiguration};
 pub use crate::error::{Error, NSError};
 pub use crate::graphics::{

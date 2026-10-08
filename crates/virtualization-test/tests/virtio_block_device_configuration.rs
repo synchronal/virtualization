@@ -1,7 +1,9 @@
+use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
+use virtualization::url::Url;
 use virtualization::{
-  DiskImageStorageDeviceAttachment, Error, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
+  DiskImageStorageDeviceAttachment, Error, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration, VirtualMachine,
 };
-use virtualization_test::disk_image;
+use virtualization_test::{Console, booting_machine, disk_image, file, initial_ramdisk, start, stop};
 
 fn attachment(name: &str) -> DiskImageStorageDeviceAttachment {
   DiskImageStorageDeviceAttachment::new(&disk_image(name), true).unwrap()
@@ -74,6 +76,89 @@ fn fails_as_virtualization_does_on_an_identifier_that_isnt_ascii() {
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");
+}
+
+/// A booted guest running `script` with the raw image at `url` as `vda`.
+fn guest(
+  name: &str,
+  script: &str,
+  url: &Url,
+  read_only: bool,
+  block_device_identifier: &str,
+) -> (DispatchRetained<DispatchQueue>, VirtualMachine, Console) {
+  let (queue, machine, console) = booting_machine(name, Some(&initial_ramdisk(name, script)), |configuration| {
+    let device =
+      VirtioBlockDeviceConfiguration::new(&DiskImageStorageDeviceAttachment::new(url, read_only).unwrap()).unwrap();
+
+    device.set_block_device_identifier(block_device_identifier);
+    configuration.set_storage_devices(&[&device]);
+  });
+
+  start(&queue, &machine);
+
+  (queue, machine, console)
+}
+
+/// A 1 MiB raw image starting with `contents`.
+fn raw_image(name: &str, contents: &[u8]) -> Url {
+  let mut image = contents.to_vec();
+
+  image.resize(1024 * 1024, 0);
+  file(&format!("{name}.img"), &image)
+}
+
+#[test]
+fn a_guest_reads_the_disk_image_it_was_given() {
+  let name = "a_guest_reads_the_disk_image_it_was_given";
+  let url = raw_image(name, b"from the host");
+
+  let (_queue, _machine, mut console) = guest(name, "echo \"read:$(head -c 13 /dev/vda)\"", &url, true, "");
+
+  assert_eq!(console.read_until("read:").trim_end(), "read:from the host");
+}
+
+#[test]
+fn a_guest_writes_a_writable_disk_image() {
+  let name = "a_guest_writes_a_writable_disk_image";
+  let url = raw_image(name, b"");
+  let script = "printf 'from the guest' | dd of=/dev/vda conv=notrunc,fsync 2>/dev/null\necho written";
+
+  let (queue, machine, mut console) = guest(name, script, &url, false, "");
+  console.read_until("written");
+  stop(&queue, &machine);
+
+  assert!(
+    std::fs::read(url.to_file_path().unwrap())
+      .unwrap()
+      .starts_with(b"from the guest")
+  );
+}
+
+#[test]
+fn a_guest_cannot_write_a_read_only_disk_image() {
+  let name = "a_guest_cannot_write_a_read_only_disk_image";
+  let url = raw_image(name, b"from the host");
+  let script = "printf x | dd of=/dev/vda conv=notrunc,fsync 2>/dev/null && echo write:done || echo write:refused";
+
+  let (queue, machine, mut console) = guest(name, script, &url, true, "");
+
+  assert_eq!(console.read_until("write:").trim_end(), "write:refused");
+  stop(&queue, &machine);
+  assert!(
+    std::fs::read(url.to_file_path().unwrap())
+      .unwrap()
+      .starts_with(b"from the host")
+  );
+}
+
+#[test]
+fn a_guest_sees_the_block_device_identifier() {
+  let name = "a_guest_sees_the_block_device_identifier";
+  let url = raw_image(name, b"");
+
+  let (_queue, _machine, mut console) = guest(name, "echo \"serial:$(cat /sys/block/vda/serial)\"", &url, true, "root");
+
+  assert_eq!(console.read_until("serial:").trim_end(), "serial:root");
 }
 
 #[test]

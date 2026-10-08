@@ -43,7 +43,10 @@ use std::ptr::{self, NonNull};
 use std::sync::Arc;
 
 use dispatch2::{DispatchQueue, DispatchRetained};
-use foundation_sys::objc::{NSArray, borrowed, borrowed_or_nil, ns_array, ns_array_objects, retained, retained_or_nil};
+use foundation_sys::objc::{
+  NSArray, NSData, borrowed, borrowed_or_nil, ns_array, ns_array_objects, ns_data, ns_data_bytes, retained,
+  retained_or_nil,
+};
 pub use foundation_sys::objc::{NSError, NSObject, NSURL, Retained, ns_url_absolute_string, ns_url_init_string};
 use foundation_sys::objc::{
   NSFileHandle, ns_file_handle_file_descriptor, ns_file_handle_init_file_descriptor_close_on_dealloc,
@@ -51,9 +54,11 @@ use foundation_sys::objc::{
 
 pub use self::ffi::{
   BridgedNil, BridgedThrown, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
-  VZDiskImageSynchronizationMode, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment, VZLinuxBootLoader,
-  VZNetworkDevice, VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtualMachine,
-  VZVirtualMachineConfiguration, VZVirtualMachineState,
+  VZDiskImageSynchronizationMode, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment,
+  VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader, VZNetworkDevice,
+  VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtualMachine,
+  VZVirtualMachineConfiguration, VZVirtualMachineState, vz_generic_machine_identifier_init,
+  vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
   vz_virtio_block_device_configuration_validate_block_device_identifier,
   vz_virtio_console_device_serial_port_configuration_init, vz_virtual_machine_configuration_init,
   vz_virtual_machine_configuration_maximum_allowed_cpu_count,
@@ -272,6 +277,40 @@ mod ffi {
     fn vz_set_command_line(self: &VZLinuxBootLoader, command_line: &str);
     fn vz_linux_boot_loader_initial_ramdisk_url(this: VZLinuxBootLoader) -> usize;
     fn vz_linux_boot_loader_set_initial_ramdisk_url(this: VZLinuxBootLoader, initial_ramdisk_url: usize);
+  }
+
+  // BootLoader/GenericPlatformConfiguration.swift
+
+  extern "Swift" {
+    type VZGenericPlatformConfiguration;
+
+    fn vz_generic_platform_configuration_init() -> VZGenericPlatformConfiguration;
+    fn bridge_retained(self: &VZGenericPlatformConfiguration) -> VZGenericPlatformConfiguration;
+    fn bridge_borrowed(self: &VZGenericPlatformConfiguration) -> *const c_void;
+    fn vz_generic_platform_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZGenericPlatformConfiguration, BridgedNil>;
+    fn ns_description(self: &VZGenericPlatformConfiguration) -> String;
+    fn vz_generic_platform_configuration_is_nested_virtualization_supported() -> bool;
+    fn vz_machine_identifier(self: &VZGenericPlatformConfiguration) -> VZGenericMachineIdentifier;
+    fn vz_set_machine_identifier(self: &VZGenericPlatformConfiguration, machine_identifier: VZGenericMachineIdentifier);
+    fn vz_is_nested_virtualization_enabled(self: &VZGenericPlatformConfiguration) -> bool;
+    fn vz_set_nested_virtualization_enabled(self: &VZGenericPlatformConfiguration, nested_virtualization_enabled: bool);
+  }
+
+  // BootLoader/GenericMachineIdentifier.swift
+
+  extern "Swift" {
+    type VZGenericMachineIdentifier;
+
+    fn vz_generic_machine_identifier_init() -> VZGenericMachineIdentifier;
+    fn vz_generic_machine_identifier_init_data_representation(
+      data_representation: *const c_void,
+    ) -> Result<VZGenericMachineIdentifier, BridgedNil>;
+    fn bridge_retained(self: &VZGenericMachineIdentifier) -> VZGenericMachineIdentifier;
+    fn ns_description(self: &VZGenericMachineIdentifier) -> String;
+    fn ns_is_equal(self: &VZGenericMachineIdentifier, object: VZGenericMachineIdentifier) -> bool;
+    fn vz_generic_machine_identifier_data_representation(this: VZGenericMachineIdentifier) -> *mut c_void;
   }
 
   // Network/NetworkDevice.swift
@@ -954,6 +993,42 @@ impl VZLinuxBootLoader {
 
   pub fn vz_set_initial_ramdisk_url(&self, initial_ramdisk_url: Option<&NSURL>) {
     ffi::vz_linux_boot_loader_set_initial_ramdisk_url(self.bridge_retained(), borrowed_or_nil(initial_ramdisk_url));
+  }
+}
+
+// BootLoader/GenericPlatformConfiguration.swift
+
+pub fn vz_generic_platform_configuration_bridge_cast(object: &NSObject) -> Option<VZGenericPlatformConfiguration> {
+  ffi::vz_generic_platform_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZGenericPlatformConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// BootLoader/GenericMachineIdentifier.swift
+
+/// `Data` is its bytes.
+pub fn vz_generic_machine_identifier_init_data_representation(
+  data_representation: &[u8],
+) -> Option<VZGenericMachineIdentifier> {
+  ffi::vz_generic_machine_identifier_init_data_representation(borrowed(&*ns_data(data_representation))).ok()
+}
+
+impl VZGenericMachineIdentifier {
+  /// `Data` is its bytes.
+  pub fn vz_data_representation(&self) -> Vec<u8> {
+    // SAFETY: `dataRepresentation`, a retained `NSData`.
+    let data: Retained<NSData> = unsafe {
+      retained(ffi::vz_generic_machine_identifier_data_representation(
+        self.bridge_retained(),
+      ))
+    };
+
+    ns_data_bytes(&data)
   }
 }
 

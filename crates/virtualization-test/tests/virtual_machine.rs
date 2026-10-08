@@ -1,13 +1,14 @@
-use std::io::{BufRead, BufReader, PipeReader};
+use std::io::Write;
 use std::ptr::NonNull;
 use std::sync::{Arc, Mutex, mpsc};
 
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
-use virtualization::url::Url;
-use virtualization::{Error, VirtualMachine, VirtualMachineDelegate, VirtualMachineState};
+use virtualization::{
+  Error, GenericMachineIdentifier, GenericPlatformConfiguration, VirtualMachine, VirtualMachineConfiguration,
+  VirtualMachineDelegate, VirtualMachineState,
+};
 use virtualization_test::{
-  booting_configuration, completed, linux_configuration, new_file_url, on_queue, power_off_initial_ramdisk,
-  serial_queue,
+  booting_machine, completed, initial_ramdisk, linux_configuration, new_file_url, on_queue, serial_queue, start, stop,
 };
 
 struct Delegate;
@@ -21,20 +22,6 @@ fn linux_machine(name: &str) -> (DispatchRetained<DispatchQueue>, VirtualMachine
   });
 
   (queue, machine)
-}
-
-fn booting_machine(
-  name: &str,
-  initial_ramdisk: Option<&Url>,
-) -> (DispatchRetained<DispatchQueue>, VirtualMachine, PipeReader) {
-  let queue = serial_queue(name);
-  let (machine, console) = on_queue(&queue, || {
-    let (configuration, console) = booting_configuration(initial_ramdisk);
-
-    (VirtualMachine::with_queue(&configuration, &queue).unwrap(), console)
-  });
-
-  (queue, machine, console)
 }
 
 fn ns_error(result: Result<(), Error>) -> Box<virtualization::NSError> {
@@ -207,24 +194,125 @@ fn fails_as_virtualization_does_to_restore_from_a_missing_file() {
   assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Stopped);
 }
 
+/// A guest that echoes each line it reads, once it says it's ready.
+const ECHO: &str = "echo ready\nwhile read line; do echo \"echo:$line\"; done";
+
 #[test]
 fn boots_linux_to_its_console() {
-  let (queue, machine, console) = booting_machine("boots_linux_to_its_console", None);
+  let (queue, machine, mut console) = booting_machine("boots_linux_to_its_console", None, |_| {});
 
-  completed(&queue, |completion_handler| machine.start(completion_handler)).unwrap();
+  start(&queue, &machine);
 
   assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Running);
-  assert!(
-    BufReader::new(console)
-      .lines()
-      .map_while(Result::ok)
-      .any(|line| line.contains("Kernel panic - not syncing: VFS: Unable to mount root fs")),
-    "the console closed before the kernel found no root filesystem"
-  );
+  console.read_until("Kernel panic - not syncing: VFS: Unable to mount root fs");
 
-  completed(&queue, |completion_handler| machine.stop(completion_handler)).unwrap();
+  stop(&queue, &machine);
 
   assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Stopped);
+}
+
+#[test]
+fn reads_and_writes_its_console() {
+  let name = "reads_and_writes_its_console";
+  let (queue, machine, mut console) = booting_machine(name, Some(&initial_ramdisk(name, ECHO)), |_| {});
+
+  start(&queue, &machine);
+  console.read_until("ready");
+  writeln!(console.input, "hello").unwrap();
+
+  console.read_until("echo:hello");
+}
+
+#[test]
+fn pauses_and_resumes_a_running_machine() {
+  let name = "pauses_and_resumes_a_running_machine";
+  let (queue, machine, mut console) = booting_machine(name, Some(&initial_ramdisk(name, ECHO)), |_| {});
+
+  start(&queue, &machine);
+  console.read_until("ready");
+
+  on_queue(&queue, || {
+    assert!(machine.can_pause());
+    assert!(machine.can_stop());
+    assert!(machine.can_request_stop());
+    assert!(!machine.can_resume());
+    assert!(!machine.can_start());
+  });
+  completed(&queue, |completion_handler| machine.pause(completion_handler)).unwrap();
+
+  on_queue(&queue, || {
+    assert_eq!(machine.state(), VirtualMachineState::Paused);
+    assert!(machine.can_resume());
+    assert!(!machine.can_pause());
+  });
+  completed(&queue, |completion_handler| machine.resume(completion_handler)).unwrap();
+
+  assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Running);
+  writeln!(console.input, "resumed").unwrap();
+  console.read_until("echo:resumed");
+}
+
+/// The guest has no input devices, so nothing in it receives the request.
+#[test]
+fn requests_a_stop_that_a_guest_without_a_power_button_ignores() {
+  let name = "requests_a_stop_that_a_guest_without_a_power_button_ignores";
+  let (queue, machine, mut console) = booting_machine(name, Some(&initial_ramdisk(name, ECHO)), |_| {});
+
+  start(&queue, &machine);
+  console.read_until("ready");
+  on_queue(&queue, || machine.request_stop()).unwrap();
+  writeln!(console.input, "still running").unwrap();
+
+  console.read_until("echo:still running");
+  assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Running);
+}
+
+#[test]
+fn saves_and_restores_a_paused_machine() {
+  let name = "saves_and_restores_a_paused_machine";
+  let url = new_file_url("saves_and_restores_a_paused_machine.vzvmsave");
+  let initial_ramdisk = initial_ramdisk(name, ECHO);
+  let identifier = GenericMachineIdentifier::new()
+    .unwrap()
+    .data_representation();
+  let with_identifier = |configuration: &VirtualMachineConfiguration| {
+    let platform = GenericPlatformConfiguration::new().unwrap();
+
+    platform.set_machine_identifier(
+      &GenericMachineIdentifier::with_data_representation(&identifier)
+        .unwrap()
+        .unwrap(),
+    );
+    configuration.set_platform(&platform);
+    configuration.validate_save_restore_support().unwrap();
+  };
+  let (queue, machine, mut console) = booting_machine(name, Some(&initial_ramdisk), with_identifier);
+
+  start(&queue, &machine);
+  console.read_until("ready");
+  completed(&queue, |completion_handler| machine.pause(completion_handler)).unwrap();
+  completed(&queue, |completion_handler| {
+    machine
+      .save_machine_state_to(&url, completion_handler)
+      .unwrap()
+  })
+  .unwrap();
+
+  assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Paused);
+  stop(&queue, &machine);
+
+  let (queue, machine, mut console) = booting_machine(name, Some(&initial_ramdisk), with_identifier);
+  completed(&queue, |completion_handler| {
+    machine
+      .restore_machine_state_from(&url, completion_handler)
+      .unwrap()
+  })
+  .unwrap();
+
+  assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Paused);
+  completed(&queue, |completion_handler| machine.resume(completion_handler)).unwrap();
+  writeln!(console.input, "restored").unwrap();
+  console.read_until("echo:restored");
 }
 
 /// Sends what stopped the machine.
@@ -243,12 +331,12 @@ impl VirtualMachineDelegate for Stops {
 #[test]
 fn tells_its_delegate_when_the_guest_stops() {
   let name = "tells_its_delegate_when_the_guest_stops";
-  let (queue, machine, _console) = booting_machine(name, Some(&power_off_initial_ramdisk(name)));
+  let (queue, machine, _console) = booting_machine(name, Some(&initial_ramdisk(name, "poweroff -f")), |_| {});
   let (sender, receiver) = mpsc::channel();
   let delegate: Arc<dyn VirtualMachineDelegate> = Arc::new(Stops(Mutex::new(sender)));
 
   on_queue(&queue, || machine.set_delegate(Some(&delegate)));
-  completed(&queue, |completion_handler| machine.start(completion_handler)).unwrap();
+  start(&queue, &machine);
 
   receiver.recv().unwrap().unwrap();
   assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Stopped);

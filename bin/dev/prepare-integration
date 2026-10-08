@@ -1,37 +1,64 @@
 #!/usr/bin/env bash
 #
-# Downloads the kernel the booting suites start, once, into the suites' cache.
-# Nextest runs this as a setup script (`.config/nextest.toml`), and hands the
-# kernel's path to the tests in VZ_TEST_KERNEL.
+# Downloads what the booting suites start, once, into the suites' cache: a
+# kernel, and a static busybox for their initial ramdisks. Nextest runs this as
+# a setup script (`.config/nextest.toml`), and hands the paths to the tests in
+# VZ_TEST_KERNEL and VZ_TEST_BUSYBOX.
 #
 # The kernel is Kata Containers' static arm64 build, as Containerization pins
 # it, since no one publishes a kernel on its own. In the archive,
 # `vmlinux.container` is a symlink to the versioned kernel, so it is resolved
 # before it moves out of the staging directory.
+#
+# busybox is Debian's busybox-static, from snapshot.debian.org, which keeps
+# every package it has seen at a URL named for its SHA-1.
 
 set -euo pipefail
 
+cache="${HOME:?}/.cache/virtualization-tests"
+
 kernel_version="3.17.0"
 kernel_in_archive="opt/kata/share/kata-containers/vmlinux.container"
-url="https://github.com/kata-containers/kata-containers/releases/download/${kernel_version}/kata-static-${kernel_version}-arm64.tar.xz"
+kernel_url="https://github.com/kata-containers/kata-containers/releases/download/${kernel_version}/kata-static-${kernel_version}-arm64.tar.xz"
+kernel="${cache}/kernels/vmlinux-${kernel_version}"
 
-kernels="${HOME:?}/.cache/virtualization-tests/kernels"
-kernel="${kernels}/vmlinux-${kernel_version}"
+busybox_version="1.37.0-6"
+busybox_url="https://snapshot.debian.org/file/5704024ea566a592797ec4de84f23cd5189cf607"
+busybox_sha256="a86ffdf53b586bec93b8e15aaa5a4813b80297f71819a44288db408758214792"
+busybox="${cache}/busybox/busybox-${busybox_version}"
+
+staging=""
+trap '[ -z "$staging" ] || rm -rf "$staging"' EXIT
+mkdir -p "${cache}/kernels" "${cache}/busybox"
+
+# macOS's own bsdtar throughout, whose libarchive reads xz and ar itself: a
+# `tar` earlier in PATH, like GNU tar, would need an `xz` binary.
 
 if [ ! -f "$kernel" ]; then
-  echo "bin/dev/prepare-integration: downloading the kernel from ${url}" >&2
-  mkdir -p "$kernels"
-  staging="$(mktemp -d "${kernels}/staging.XXXXXX")"
-  trap 'rm -rf "$staging"' EXIT
+  echo "bin/dev/prepare-integration: downloading the kernel from ${kernel_url}" >&2
+  staging="$(mktemp -d "${cache}/staging.XXXXXX")"
 
-  # macOS's own bsdtar, whose libarchive reads xz itself: a `tar` earlier in
-  # PATH, like GNU tar, would need an `xz` binary.
-  curl --fail --location --silent --show-error "$url" |
+  curl --fail --location --silent --show-error "$kernel_url" |
     /usr/bin/tar -xJf - -C "$staging" "opt/kata/share/kata-containers/vmlinux*"
 
   mv "$(realpath "${staging}/${kernel_in_archive}")" "$kernel"
+  rm -rf "$staging"
+fi
+
+if [ ! -f "$busybox" ]; then
+  echo "bin/dev/prepare-integration: downloading busybox from ${busybox_url}" >&2
+  staging="$(mktemp -d "${cache}/staging.XXXXXX")"
+
+  curl --fail --location --silent --show-error --output "${staging}/busybox.deb" "$busybox_url"
+  echo "${busybox_sha256}  ${staging}/busybox.deb" | shasum -a 256 --check --status
+  /usr/bin/tar -xf "${staging}/busybox.deb" -C "$staging" "data.tar.xz"
+  /usr/bin/tar -xJf "${staging}/data.tar.xz" -C "$staging" --include "*bin/busybox"
+
+  mv "$(find "$staging" -name busybox -type f)" "$busybox"
+  rm -rf "$staging"
 fi
 
 if [ -n "${NEXTEST_ENV:-}" ]; then
   echo "VZ_TEST_KERNEL=${kernel}" >>"$NEXTEST_ENV"
+  echo "VZ_TEST_BUSYBOX=${busybox}" >>"$NEXTEST_ENV"
 fi

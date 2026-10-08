@@ -2,8 +2,12 @@ use virtualization::disk_image_kit::{
   ASIFCreationConfiguration, ASIFLayerCreationConfiguration, DiskImage, DiskImageBlockSize, DiskImageLayerType,
   OpenConfiguration, OpenConfigurationMode,
 };
-use virtualization::{DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, Error};
-use virtualization_test::{disk_image, file, file_url, new_file_url};
+use virtualization::url::Url;
+use virtualization::{
+  DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, Error,
+  VirtioBlockDeviceConfiguration,
+};
+use virtualization_test::{booting_machine, disk_image, file, file_url, initial_ramdisk, new_file_url, start, stop};
 
 #[test]
 fn attaches_a_disk_image() {
@@ -121,6 +125,100 @@ fn attaches_a_stacked_image_by_its_top_layer() {
 
   assert_eq!(attachment.url().unwrap(), overlay_url);
   assert!(!attachment.is_read_only());
+}
+
+/// Boots a guest running `script` with `image()` as `vda`, until its console
+/// shows `text`; returns that line.
+fn run_guest(name: &str, script: &str, image: impl FnOnce() -> DiskImage + Send, text: &str) -> String {
+  let (queue, machine, mut console) = booting_machine(name, Some(&initial_ramdisk(name, script)), |configuration| {
+    let attachment = DiskImageStorageDeviceAttachment::with_disk_image_and_caching_mode_and_synchronization_mode(
+      &image(),
+      DiskImageCachingMode::Automatic,
+      DiskImageSynchronizationMode::Full,
+    )
+    .unwrap();
+
+    configuration.set_storage_devices(&[&VirtioBlockDeviceConfiguration::new(&attachment).unwrap()]);
+  });
+
+  start(&queue, &machine);
+  let line = console.read_until(text);
+  stop(&queue, &machine);
+
+  line.trim_end().to_owned()
+}
+
+/// Opens the image at `url` in `mode`, when called.
+fn opening(url: &Url, mode: OpenConfigurationMode) -> impl FnOnce() -> DiskImage + Send + '_ {
+  move || DiskImage::with_opening(&OpenConfiguration::new(url.clone(), mode)).unwrap()
+}
+
+const WRITE: &str = "printf %s \"$TEXT\" | dd of=/dev/vda conv=notrunc,fsync 2>/dev/null\necho written";
+const READ: &str = "echo \"read:$(head -c 9 /dev/vda)\"";
+
+#[test]
+fn a_guest_writes_and_reads_back_a_diskimagekit_image() {
+  let url = new_file_url("a_guest_writes_and_reads_back_a_diskimagekit_image.asif");
+  DiskImage::new(&ASIFCreationConfiguration::asif(&url, 2048, DiskImageBlockSize::Bytes512).unwrap()).unwrap();
+
+  run_guest(
+    "a_guest_writes_a_diskimagekit_image",
+    &format!("TEXT=persisted\n{WRITE}"),
+    opening(&url, OpenConfigurationMode::ReadWrite),
+    "written",
+  );
+
+  assert_eq!(
+    run_guest(
+      "a_guest_reads_back_a_diskimagekit_image",
+      READ,
+      opening(&url, OpenConfigurationMode::ReadOnly),
+      "read:"
+    ),
+    "read:persisted"
+  );
+}
+
+#[test]
+fn a_guest_writes_a_stacked_image_to_its_top_layer() {
+  let base_url = new_file_url("a_guest_writes_a_stacked_image_base.asif");
+  let overlay_url = new_file_url("a_guest_writes_a_stacked_image_overlay.asif");
+  DiskImage::new(&ASIFCreationConfiguration::asif(&base_url, 2048, DiskImageBlockSize::Bytes512).unwrap()).unwrap();
+
+  run_guest(
+    "a_guest_writes_a_stacked_image_base",
+    &format!("TEXT=the+base!\n{WRITE}"),
+    opening(&base_url, OpenConfigurationMode::ReadWrite),
+    "written",
+  );
+
+  assert_eq!(
+    run_guest(
+      "a_guest_writes_a_stacked_image",
+      &format!("{READ}\nTEXT=overlaid\n{WRITE}"),
+      || {
+        let overlay =
+          ASIFLayerCreationConfiguration::asif_layer(&overlay_url, &DiskImageLayerType::overlay().unwrap()).unwrap();
+
+        opening(&base_url, OpenConfigurationMode::ReadOnly)()
+          .appending_configuration(&overlay)
+          .unwrap()
+          .into()
+      },
+      "read:"
+    ),
+    "read:the+base!"
+  );
+
+  assert_eq!(
+    run_guest(
+      "a_guest_reads_a_stacked_image_base",
+      READ,
+      opening(&base_url, OpenConfigurationMode::ReadOnly),
+      "read:"
+    ),
+    "read:the+base!"
+  );
 }
 
 #[test]

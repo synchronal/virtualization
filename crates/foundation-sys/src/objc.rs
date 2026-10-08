@@ -20,7 +20,7 @@ use objc2::AllocAnyThread;
 pub use objc2::rc::Retained;
 pub use objc2::runtime::{AnyObject, NSObject};
 use objc2_foundation::NSString;
-pub use objc2_foundation::{NSArray, NSError, NSFileHandle, NSURL, NSUUID};
+pub use objc2_foundation::{NSArray, NSData, NSError, NSFileHandle, NSURL, NSUUID};
 
 /// A Foundation object, lent to Swift for one call.
 pub fn borrowed<T: objc2::Message>(object: &T) -> *const c_void {
@@ -63,6 +63,16 @@ pub fn ns_array<T: objc2::Message>(objects: &[&T]) -> Retained<NSArray<T>> {
 /// An `NSArray`'s objects, in order.
 pub fn ns_array_objects<T: objc2::Message>(array: &NSArray<T>) -> Vec<Retained<T>> {
   array.to_vec()
+}
+
+/// An `NSData` of a copy of `bytes`.
+pub fn ns_data(bytes: &[u8]) -> Retained<NSData> {
+  NSData::with_bytes(bytes)
+}
+
+/// A copy of an `NSData`'s bytes.
+pub fn ns_data_bytes(data: &NSData) -> Vec<u8> {
+  data.to_vec()
 }
 
 /// [`NSURL(string:)`](https://developer.apple.com/documentation/foundation/nsurl/init(string:)).

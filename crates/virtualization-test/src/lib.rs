@@ -1,7 +1,7 @@
 //! What the integration suites assume, which Virtualization does not: files
-//! to attach, a kernel to boot, and the values chosen for them.
+//! to attach, a kernel and userland to boot, and the values chosen for them.
 
-use std::io::PipeReader;
+use std::io::{BufRead, BufReader, Lines, PipeReader, PipeWriter};
 use std::os::fd::OwnedFd;
 use std::path::PathBuf;
 use std::sync::mpsc;
@@ -10,7 +10,7 @@ use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::url::Url;
 use virtualization::{
   Error, FileHandleSerialPortAttachment, LinuxBootLoader, SerialPortConfiguration,
-  VirtioConsoleDeviceSerialPortConfiguration, VirtualMachineConfiguration,
+  VirtioConsoleDeviceSerialPortConfiguration, VirtualMachine, VirtualMachineConfiguration,
 };
 
 /// A path in the suites' scratch directory, named for the test that uses it.
@@ -64,92 +64,147 @@ pub fn linux_configuration(name: &str) -> VirtualMachineConfiguration {
   configuration
 }
 
-/// A Linux machine's configuration that boots the kernel
-/// `bin/dev/prepare-integration` downloaded, with `initial_ramdisk` and no
-/// root filesystem: 1 CPU, 512 MiB, and a virtio console, `hvc0`, writing to
-/// the pipe returned.
-pub fn booting_configuration(initial_ramdisk: Option<&Url>) -> (VirtualMachineConfiguration, PipeReader) {
-  let kernel = std::env::var("VZ_TEST_KERNEL").expect("VZ_TEST_KERNEL: run under nextest, which sets it");
-  let boot_loader = LinuxBootLoader::new(&Url::from_file_path(kernel).unwrap()).unwrap();
-  let (reader, writer) = std::io::pipe().unwrap();
-  let console = VirtioConsoleDeviceSerialPortConfiguration::new().unwrap();
-  let configuration = VirtualMachineConfiguration::new().unwrap();
+/// A machine booting the kernel `bin/dev/prepare-integration` downloaded,
+/// made on its own queue, with `initial_ramdisk` and no root filesystem: 1
+/// CPU, 512 MiB, and a virtio console, `hvc0`. `configure` adds to the
+/// configuration before the machine is made from it.
+pub fn booting_machine(
+  name: &str,
+  initial_ramdisk: Option<&Url>,
+  configure: impl FnOnce(&VirtualMachineConfiguration) + Send,
+) -> (DispatchRetained<DispatchQueue>, VirtualMachine, Console) {
+  let queue = serial_queue(name);
+  let (machine, console) = on_queue(&queue, || {
+    let kernel = std::env::var("VZ_TEST_KERNEL").expect("VZ_TEST_KERNEL: run under nextest, which sets it");
+    let boot_loader = LinuxBootLoader::new(&Url::from_file_path(kernel).unwrap()).unwrap();
+    let (output, guest_output) = std::io::pipe().unwrap();
+    let (guest_input, input) = std::io::pipe().unwrap();
+    let serial_port = VirtioConsoleDeviceSerialPortConfiguration::new().unwrap();
+    let configuration = VirtualMachineConfiguration::new().unwrap();
 
-  boot_loader.set_command_line("console=hvc0");
-  boot_loader
-    .set_initial_ramdisk_url(initial_ramdisk)
-    .unwrap();
-  console.set_attachment(Some(
-    &FileHandleSerialPortAttachment::new(None, Some(OwnedFd::from(writer))).unwrap(),
-  ));
-  configuration.set_boot_loader(Some(&boot_loader));
-  configuration.set_cpu_count(1);
-  configuration.set_memory_size(512 * 1024 * 1024);
-  configuration.set_serial_ports(&[&console]);
+    boot_loader.set_command_line("console=hvc0 quiet");
+    boot_loader
+      .set_initial_ramdisk_url(initial_ramdisk)
+      .unwrap();
+    serial_port.set_attachment(Some(
+      &FileHandleSerialPortAttachment::new(Some(OwnedFd::from(guest_input)), Some(OwnedFd::from(guest_output)))
+        .unwrap(),
+    ));
+    configuration.set_boot_loader(Some(&boot_loader));
+    configuration.set_cpu_count(1);
+    configuration.set_memory_size(512 * 1024 * 1024);
+    configuration.set_serial_ports(&[&serial_port]);
+    configure(&configuration);
 
-  (configuration, reader)
+    let machine = VirtualMachine::with_queue(&configuration, &queue).unwrap();
+
+    (
+      machine,
+      Console {
+        output: BufReader::new(output).lines(),
+        input,
+      },
+    )
+  });
+
+  (queue, machine, console)
 }
 
-/// An initial ramdisk whose `/init` powers the machine off: a newc cpio
-/// archive holding one static aarch64 executable, assembled here so the
-/// suites need no cross toolchain.
-pub fn power_off_initial_ramdisk(name: &str) -> Url {
+/// Starts `machine` on `queue`, and waits for it to have started.
+pub fn start(queue: &DispatchQueue, machine: &VirtualMachine) {
+  completed(queue, |completion_handler| machine.start(completion_handler)).unwrap();
+}
+
+/// Stops `machine` on `queue`, and waits for it to have stopped.
+pub fn stop(queue: &DispatchQueue, machine: &VirtualMachine) {
+  completed(queue, |completion_handler| machine.stop(completion_handler)).unwrap();
+}
+
+/// A guest's console, `hvc0`.
+pub struct Console {
+  output: Lines<BufReader<PipeReader>>,
+  /// What the guest reads.
+  pub input: PipeWriter,
+}
+
+impl Console {
+  /// Reads what the guest writes until a line containing `text`, and returns
+  /// that line. Panics if the console closes first.
+  pub fn read_until(&mut self, text: &str) -> String {
+    self
+      .output
+      .by_ref()
+      .map_while(Result::ok)
+      .find(|line| line.contains(text))
+      .unwrap_or_else(|| panic!("the console closed before {text:?}"))
+  }
+}
+
+/// An initial ramdisk whose `/init` is busybox's shell running `script`,
+/// after installing busybox's applets in `/bin` and mounting `/proc`, `/sys`,
+/// and `/dev`. Its stdin and stdout are the console. When `script` ends, init
+/// exits and the kernel panics: end with `poweroff -f` to stop the machine.
+pub fn initial_ramdisk(name: &str, script: &str) -> Url {
+  let busybox = std::env::var("VZ_TEST_BUSYBOX").expect("VZ_TEST_BUSYBOX: run under nextest, which sets it");
+  let init = format!(
+    "#!/bin/busybox sh\n/bin/busybox --install -s /bin\nexport PATH=/bin\nmount -t proc proc /proc\nmount -t sysfs \
+     sysfs /sys\nmount -t devtmpfs devtmpfs /dev\n{script}\n"
+  );
+  let directory = 0o040_755;
+  let executable = 0o100_755;
+
   file(
     &format!("{name}.cpio"),
-    &cpio(&[("init", 0o100_755, &power_off_executable()), ("TRAILER!!!", 0, &[])]),
+    &cpio(&[
+      CpioEntry::new("bin", directory, &[]),
+      CpioEntry::new("bin/busybox", executable, &std::fs::read(busybox).unwrap()),
+      CpioEntry::new("dev", directory, &[]),
+      CpioEntry {
+        device: (5, 1),
+        ..CpioEntry::new("dev/console", 0o020_600, &[])
+      },
+      CpioEntry::new("init", executable, init.as_bytes()),
+      CpioEntry::new("proc", directory, &[]),
+      CpioEntry::new("sys", directory, &[]),
+      CpioEntry::new("TRAILER!!!", 0, &[]),
+    ]),
   )
 }
 
-/// An ELF executable that calls `reboot(LINUX_REBOOT_CMD_POWER_OFF)`.
-fn power_off_executable() -> Vec<u8> {
-  const BASE: u64 = 0x40_0000;
-  const HEADERS: u64 = 64 + 56;
-  let code: [u32; 9] = [
-    0xd2bf_dc20, // movz x0, #0xfee1, lsl #16
-    0xf29b_d5a0, // movk x0, #0xdead: LINUX_REBOOT_MAGIC1
-    0xd2a5_0241, // movz x1, #0x2812, lsl #16
-    0xf283_2d21, // movk x1, #0x1969: LINUX_REBOOT_MAGIC2
-    0xd2a8_6422, // movz x2, #0x4321, lsl #16
-    0xf29f_db82, // movk x2, #0xfedc: LINUX_REBOOT_CMD_POWER_OFF
-    0xd280_11c8, // movz x8, #142: reboot
-    0xd400_0001, // svc #0
-    0x1400_0000, // b .
-  ];
-  let size = HEADERS + 4 * code.len() as u64;
-  let mut elf = Vec::new();
-
-  // The ELF header: 64-bit, little-endian, an executable for AArch64.
-  elf.extend_from_slice(b"\x7fELF\x02\x01\x01\0\0\0\0\0\0\0\0\0");
-  elf.extend_from_slice(&2u16.to_le_bytes());
-  elf.extend_from_slice(&183u16.to_le_bytes());
-  elf.extend_from_slice(&1u32.to_le_bytes());
-  elf.extend_from_slice(&(BASE + HEADERS).to_le_bytes());
-  elf.extend_from_slice(&64u64.to_le_bytes());
-  elf.extend_from_slice(&0u64.to_le_bytes());
-  elf.extend_from_slice(&0u32.to_le_bytes());
-  for half in [64u16, 56, 1, 0, 0, 0] {
-    elf.extend_from_slice(&half.to_le_bytes());
-  }
-
-  // One program header, loading the whole file readable and executable.
-  elf.extend_from_slice(&1u32.to_le_bytes());
-  elf.extend_from_slice(&5u32.to_le_bytes());
-  for word in [0, BASE, BASE, size, size, 0x1000] {
-    elf.extend_from_slice(&word.to_le_bytes());
-  }
-
-  for instruction in code {
-    elf.extend_from_slice(&instruction.to_le_bytes());
-  }
-
-  elf
+/// A file in a cpio archive.
+struct CpioEntry<'a> {
+  name: &'a str,
+  mode: u32,
+  /// The major and minor number of the device a device file is.
+  device: (u32, u32),
+  contents: &'a [u8],
 }
 
-/// A newc cpio archive of `(name, mode, contents)` entries.
-fn cpio(entries: &[(&str, u32, &[u8])]) -> Vec<u8> {
+impl<'a> CpioEntry<'a> {
+  fn new(name: &'a str, mode: u32, contents: &'a [u8]) -> Self {
+    Self {
+      name,
+      mode,
+      device: (0, 0),
+      contents,
+    }
+  }
+}
+
+/// A newc cpio archive of `entries`.
+fn cpio(entries: &[CpioEntry<'_>]) -> Vec<u8> {
   let mut archive = Vec::new();
 
-  for (inode, (name, mode, contents)) in entries.iter().enumerate() {
+  for (
+    inode,
+    CpioEntry {
+      name,
+      mode,
+      device,
+      contents,
+    },
+  ) in entries.iter().enumerate()
+  {
     let fields = [
       inode as u32 + 1,
       *mode,
@@ -160,8 +215,8 @@ fn cpio(entries: &[(&str, u32, &[u8])]) -> Vec<u8> {
       contents.len() as u32,
       0,
       0,
-      0,
-      0,
+      device.0,
+      device.1,
       name.len() as u32 + 1,
       0,
     ];
