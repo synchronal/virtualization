@@ -1,5 +1,11 @@
 experimental = ["setup-scripts"]
 
+# Under booting guests' load, a test's output can close more than nextest's
+# default 100ms after it exits. A real leak (a process holding it open)
+# still outlasts 1s.
+[profile.default]
+leak-timeout = "1s"
+
 # Downloads the kernel the booting suites start, and tells them where it is.
 [scripts.setup.prepare-integration]
 command = { command-line = "bin/dev/prepare-integration", relative-to = "workspace-root" }
