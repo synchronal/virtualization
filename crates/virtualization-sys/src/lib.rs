@@ -55,13 +55,15 @@ use foundation_sys::objc::{
 pub use self::ffi::{
   BridgedNil, BridgedThrown, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
   VZDiskImageSynchronizationMode, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment,
-  VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader, VZNetworkDevice,
-  VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtualMachine,
+  VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader, VZMACAddress,
+  VZNATNetworkDeviceAttachment, VZNetworkDevice, VZVirtioBlockDeviceConfiguration,
+  VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioNetworkDeviceConfiguration, VZVirtualMachine,
   VZVirtualMachineConfiguration, VZVirtualMachineState, vz_generic_machine_identifier_init,
   vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
+  vz_mac_address_random_locally_administered, vz_nat_network_device_attachment_init,
   vz_virtio_block_device_configuration_validate_block_device_identifier,
-  vz_virtio_console_device_serial_port_configuration_init, vz_virtual_machine_configuration_init,
-  vz_virtual_machine_configuration_maximum_allowed_cpu_count,
+  vz_virtio_console_device_serial_port_configuration_init, vz_virtio_network_device_configuration_init,
+  vz_virtual_machine_configuration_init, vz_virtual_machine_configuration_maximum_allowed_cpu_count,
   vz_virtual_machine_configuration_maximum_allowed_memory_size,
   vz_virtual_machine_configuration_minimum_allowed_cpu_count,
   vz_virtual_machine_configuration_minimum_allowed_memory_size, vz_virtual_machine_is_supported,
@@ -313,6 +315,39 @@ mod ffi {
     fn vz_generic_machine_identifier_data_representation(this: VZGenericMachineIdentifier) -> *mut c_void;
   }
 
+  // Network/MACAddress.swift
+
+  extern "Swift" {
+    type VZMACAddress;
+
+    fn vz_mac_address_init_ethernet_address(ethernet_address: u64) -> VZMACAddress;
+    fn vz_mac_address_init_string(string: &str) -> Result<VZMACAddress, BridgedNil>;
+    fn vz_mac_address_random_locally_administered() -> VZMACAddress;
+    fn bridge_retained(self: &VZMACAddress) -> VZMACAddress;
+    fn ns_description(self: &VZMACAddress) -> String;
+    fn bridge_ethernet_address(self: &VZMACAddress) -> u64;
+    fn vz_string(self: &VZMACAddress) -> String;
+    fn vz_is_broadcast_address(self: &VZMACAddress) -> bool;
+    fn vz_is_multicast_address(self: &VZMACAddress) -> bool;
+    fn vz_is_unicast_address(self: &VZMACAddress) -> bool;
+    fn vz_is_locally_administered_address(self: &VZMACAddress) -> bool;
+    fn vz_is_universally_administered_address(self: &VZMACAddress) -> bool;
+  }
+
+  // Network/NATNetworkDeviceAttachment.swift
+
+  extern "Swift" {
+    type VZNATNetworkDeviceAttachment;
+
+    fn vz_nat_network_device_attachment_init() -> VZNATNetworkDeviceAttachment;
+    fn bridge_retained(self: &VZNATNetworkDeviceAttachment) -> VZNATNetworkDeviceAttachment;
+    fn bridge_borrowed(self: &VZNATNetworkDeviceAttachment) -> *const c_void;
+    fn vz_nat_network_device_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZNATNetworkDeviceAttachment, BridgedNil>;
+    fn ns_description(self: &VZNATNetworkDeviceAttachment) -> String;
+  }
+
   // Network/NetworkDevice.swift
 
   extern "Swift" {
@@ -323,6 +358,29 @@ mod ffi {
     fn ns_description(self: &VZNetworkDevice) -> String;
     fn vz_network_device_attachment(this: VZNetworkDevice) -> usize;
     fn vz_network_device_set_attachment(this: VZNetworkDevice, attachment: usize);
+  }
+
+  // Network/NetworkDeviceConfiguration.swift
+
+  extern "Swift" {
+    fn vz_network_device_configuration_mac_address(this: *const c_void) -> VZMACAddress;
+    fn vz_network_device_configuration_set_mac_address(this: *const c_void, mac_address: VZMACAddress);
+    fn vz_network_device_configuration_attachment(this: *const c_void) -> usize;
+    fn vz_network_device_configuration_set_attachment(this: *const c_void, attachment: usize);
+  }
+
+  // Network/VirtioNetworkDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioNetworkDeviceConfiguration;
+
+    fn vz_virtio_network_device_configuration_init() -> VZVirtioNetworkDeviceConfiguration;
+    fn bridge_retained(self: &VZVirtioNetworkDeviceConfiguration) -> VZVirtioNetworkDeviceConfiguration;
+    fn bridge_borrowed(self: &VZVirtioNetworkDeviceConfiguration) -> *const c_void;
+    fn vz_virtio_network_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioNetworkDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioNetworkDeviceConfiguration) -> String;
   }
 
   // SerialPort/FileHandleSerialPortAttachment.swift
@@ -1032,6 +1090,42 @@ impl VZGenericMachineIdentifier {
   }
 }
 
+// Network/MACAddress.swift
+
+/// `ether_addr_t` is its six octets.
+pub fn vz_mac_address_init_ethernet_address(ethernet_address: [u8; 6]) -> VZMACAddress {
+  let mut packed = [0; 8];
+
+  packed[..6].copy_from_slice(&ethernet_address);
+  ffi::vz_mac_address_init_ethernet_address(u64::from_le_bytes(packed))
+}
+
+pub fn vz_mac_address_init_string(string: &str) -> Option<VZMACAddress> {
+  ffi::vz_mac_address_init_string(string).ok()
+}
+
+impl VZMACAddress {
+  /// `ether_addr_t` is its six octets.
+  pub fn vz_ethernet_address(&self) -> [u8; 6] {
+    let packed = self.bridge_ethernet_address().to_le_bytes();
+
+    [packed[0], packed[1], packed[2], packed[3], packed[4], packed[5]]
+  }
+}
+
+// Network/NATNetworkDeviceAttachment.swift
+
+pub fn vz_nat_network_device_attachment_bridge_cast(object: &NSObject) -> Option<VZNATNetworkDeviceAttachment> {
+  ffi::vz_nat_network_device_attachment_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZNATNetworkDeviceAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
 // Network/NetworkDevice.swift
 
 impl VZNetworkDevice {
@@ -1044,6 +1138,46 @@ impl VZNetworkDevice {
   /// `attachment` is any `VZNetworkDeviceAttachment`.
   pub fn vz_set_attachment(&self, attachment: Option<&NSObject>) {
     ffi::vz_network_device_set_attachment(self.bridge_retained(), borrowed_or_nil(attachment));
+  }
+}
+
+// Network/NetworkDeviceConfiguration.swift
+
+/// `this` is any `VZNetworkDeviceConfiguration`.
+pub fn vz_network_device_configuration_mac_address(this: &NSObject) -> VZMACAddress {
+  ffi::vz_network_device_configuration_mac_address(borrowed(this))
+}
+
+/// `this` is any `VZNetworkDeviceConfiguration`.
+pub fn vz_network_device_configuration_set_mac_address(this: &NSObject, mac_address: &VZMACAddress) {
+  ffi::vz_network_device_configuration_set_mac_address(borrowed(this), mac_address.bridge_retained());
+}
+
+/// `this` is any `VZNetworkDeviceConfiguration`; the attachment, any
+/// `VZNetworkDeviceAttachment`.
+pub fn vz_network_device_configuration_attachment(this: &NSObject) -> Option<Retained<NSObject>> {
+  // SAFETY: `attachment`, a retained `VZNetworkDeviceAttachment` or `nil`.
+  unsafe { retained_or_nil(ffi::vz_network_device_configuration_attachment(borrowed(this))) }
+}
+
+/// `this` is any `VZNetworkDeviceConfiguration`; `attachment`, any
+/// `VZNetworkDeviceAttachment`.
+pub fn vz_network_device_configuration_set_attachment(this: &NSObject, attachment: Option<&NSObject>) {
+  ffi::vz_network_device_configuration_set_attachment(borrowed(this), borrowed_or_nil(attachment));
+}
+
+// Network/VirtioNetworkDeviceConfiguration.swift
+
+pub fn vz_virtio_network_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioNetworkDeviceConfiguration> {
+  ffi::vz_virtio_network_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioNetworkDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
   }
 }
 

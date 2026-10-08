@@ -55,7 +55,10 @@ pub use crate::graphics::{
   AudioDeviceConfiguration, GraphicsDevice, GraphicsDeviceConfiguration, KeyboardConfiguration,
   PointingDeviceConfiguration,
 };
-pub use crate::network::{NetworkDevice, NetworkDeviceAttachment, NetworkDeviceConfiguration};
+pub use crate::network::{
+  MACAddress, NATNetworkDeviceAttachment, NetworkDevice, NetworkDeviceAttachment, NetworkDeviceConfiguration,
+  VirtioNetworkDeviceConfiguration,
+};
 pub use crate::other_devices::{
   EntropyDeviceConfiguration, MemoryBalloonDevice, MemoryBalloonDeviceConfiguration, USBController,
   USBControllerConfiguration,
