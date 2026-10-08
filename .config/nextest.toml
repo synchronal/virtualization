@@ -1,1 +1,20 @@
-# Per-suite limits go here once integration suites boot VMs.
+experimental = ["setup-scripts"]
+
+# Downloads the kernel the booting suites start, and tells them where it is.
+[scripts.setup.prepare-integration]
+command = { command-line = "bin/dev/prepare-integration", relative-to = "workspace-root" }
+slow-timeout = { period = "120s", terminate-after = 5 }
+
+[[profile.default.scripts]]
+filter = 'binary(virtual_machine)'
+setup = 'prepare-integration'
+
+# A VM per test: too many at once starves the guests, and a starved guest
+# looks like a hang.
+[test-groups]
+machines = { max-threads = 4 }
+
+[[profile.default.overrides]]
+filter = 'binary(virtual_machine)'
+test-group = 'machines'
+slow-timeout = { period = "30s", terminate-after = 2 }

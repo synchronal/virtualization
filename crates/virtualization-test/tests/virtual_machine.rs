@@ -1,9 +1,14 @@
+use std::io::{BufRead, BufReader, PipeReader};
 use std::ptr::NonNull;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, mpsc};
 
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
+use virtualization::url::Url;
 use virtualization::{Error, VirtualMachine, VirtualMachineDelegate, VirtualMachineState};
-use virtualization_test::{completed, linux_configuration, new_file_url, on_queue, serial_queue};
+use virtualization_test::{
+  booting_configuration, completed, linux_configuration, new_file_url, on_queue, power_off_initial_ramdisk,
+  serial_queue,
+};
 
 struct Delegate;
 
@@ -16,6 +21,20 @@ fn linux_machine(name: &str) -> (DispatchRetained<DispatchQueue>, VirtualMachine
   });
 
   (queue, machine)
+}
+
+fn booting_machine(
+  name: &str,
+  initial_ramdisk: Option<&Url>,
+) -> (DispatchRetained<DispatchQueue>, VirtualMachine, PipeReader) {
+  let queue = serial_queue(name);
+  let (machine, console) = on_queue(&queue, || {
+    let (configuration, console) = booting_configuration(initial_ramdisk);
+
+    (VirtualMachine::with_queue(&configuration, &queue).unwrap(), console)
+  });
+
+  (queue, machine, console)
 }
 
 fn ns_error(result: Result<(), Error>) -> Box<virtualization::NSError> {
@@ -185,6 +204,53 @@ fn fails_as_virtualization_does_to_restore_from_a_missing_file() {
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 12, "{error:#?}");
+  assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Stopped);
+}
+
+#[test]
+fn boots_linux_to_its_console() {
+  let (queue, machine, console) = booting_machine("boots_linux_to_its_console", None);
+
+  completed(&queue, |completion_handler| machine.start(completion_handler)).unwrap();
+
+  assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Running);
+  assert!(
+    BufReader::new(console)
+      .lines()
+      .map_while(Result::ok)
+      .any(|line| line.contains("Kernel panic - not syncing: VFS: Unable to mount root fs")),
+    "the console closed before the kernel found no root filesystem"
+  );
+
+  completed(&queue, |completion_handler| machine.stop(completion_handler)).unwrap();
+
+  assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Stopped);
+}
+
+/// Sends what stopped the machine.
+struct Stops(Mutex<mpsc::Sender<Result<(), Error>>>);
+
+impl VirtualMachineDelegate for Stops {
+  fn guest_did_stop(&self, _virtual_machine: &VirtualMachine) {
+    self.0.lock().unwrap().send(Ok(())).unwrap();
+  }
+
+  fn virtual_machine_did_stop_with_error(&self, _virtual_machine: &VirtualMachine, error: Error) {
+    self.0.lock().unwrap().send(Err(error)).unwrap();
+  }
+}
+
+#[test]
+fn tells_its_delegate_when_the_guest_stops() {
+  let name = "tells_its_delegate_when_the_guest_stops";
+  let (queue, machine, _console) = booting_machine(name, Some(&power_off_initial_ramdisk(name)));
+  let (sender, receiver) = mpsc::channel();
+  let delegate: Arc<dyn VirtualMachineDelegate> = Arc::new(Stops(Mutex::new(sender)));
+
+  on_queue(&queue, || machine.set_delegate(Some(&delegate)));
+  completed(&queue, |completion_handler| machine.start(completion_handler)).unwrap();
+
+  receiver.recv().unwrap().unwrap();
   assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Stopped);
 }
 
