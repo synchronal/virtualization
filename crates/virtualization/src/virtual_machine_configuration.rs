@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::platform::{self, ffi};
-use crate::sealed::Sealed;
+use crate::sealed::{bridge_cast_each, bridge_objects};
 use crate::{
   AudioDeviceConfiguration, BootLoader, ConsoleDeviceConfiguration, DirectorySharingDeviceConfiguration,
   EntropyDeviceConfiguration, Error, GraphicsDeviceConfiguration, KeyboardConfiguration,
@@ -16,23 +16,7 @@ use crate::{
 /// out, each element is cast to the subclass given, as Swift's `as? T`:
 /// `None` where an element isn't a `T`.
 pub struct VirtualMachineConfiguration {
-  inner: ffi::VZVirtualMachineConfiguration,
-}
-
-/// Each element as its abstract class.
-fn bridge_objects<'a, T: Sealed + ?Sized>(elements: &[&'a T]) -> Vec<&'a ffi::NSObject> {
-  elements
-    .iter()
-    .map(|element| element.bridge_object())
-    .collect()
-}
-
-/// Each element `as? T`.
-fn bridge_cast_each<T: Sealed>(elements: Vec<ffi::Retained<ffi::NSObject>>) -> Vec<Option<T>> {
-  elements
-    .iter()
-    .map(|element| T::bridge_cast(element))
-    .collect()
+  pub(crate) inner: ffi::VZVirtualMachineConfiguration,
 }
 
 impl VirtualMachineConfiguration {

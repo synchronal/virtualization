@@ -2,8 +2,11 @@
 //! to attach, and the values chosen for them.
 
 use std::path::PathBuf;
+use std::sync::mpsc;
 
+use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::url::Url;
+use virtualization::{Error, LinuxBootLoader, VirtualMachineConfiguration};
 
 /// A path in the suites' scratch directory, named for the test that uses it.
 pub fn scratch_path(name: &str) -> PathBuf {
@@ -40,4 +43,47 @@ pub fn file(name: &str, contents: &[u8]) -> Url {
 /// A file URL for `path`, which need not exist.
 pub fn file_url(path: &str) -> Url {
   Url::from_file_path(path).unwrap()
+}
+
+/// A Linux machine's configuration that validates: 1 CPU, 512 MiB, and a
+/// placeholder kernel, which doesn't boot.
+pub fn linux_configuration(name: &str) -> VirtualMachineConfiguration {
+  let configuration = VirtualMachineConfiguration::new().unwrap();
+
+  configuration.set_boot_loader(Some(
+    &LinuxBootLoader::new(&file(&format!("{name}.kernel"), b"kernel")).unwrap(),
+  ));
+  configuration.set_cpu_count(1);
+  configuration.set_memory_size(512 * 1024 * 1024);
+
+  configuration
+}
+
+/// A serial queue for one machine.
+pub fn serial_queue(name: &str) -> DispatchRetained<DispatchQueue> {
+  DispatchQueue::new(name, None)
+}
+
+/// Runs `work` on `queue`, and returns what it did.
+pub fn on_queue<T: Send>(queue: &DispatchQueue, work: impl FnOnce() -> T + Send) -> T {
+  let mut result = None;
+
+  queue.exec_sync(|| result = Some(work()));
+
+  result.unwrap()
+}
+
+/// Calls `operation` on `queue` with a completion handler, and waits for
+/// what it is called with.
+pub fn completed(
+  queue: &DispatchQueue,
+  operation: impl FnOnce(Box<dyn FnOnce(Result<(), Error>) + Send>) + Send,
+) -> Result<(), Error> {
+  let (sender, receiver) = mpsc::channel();
+
+  on_queue(queue, || {
+    operation(Box::new(move |result| sender.send(result).unwrap()));
+  });
+
+  receiver.recv().unwrap()
 }

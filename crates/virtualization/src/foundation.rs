@@ -17,5 +17,15 @@ pub(crate) fn url(ns_url: &ffi::NSURL) -> Result<Url, Error> {
 
 /// What a throwing call threw.
 pub(crate) fn thrown(_thrown: ffi::BridgedThrown) -> Error {
-  Error::NSError(Box::new((&*ffi::bridge_take_thrown_error()).into()))
+  error(&ffi::bridge_take_thrown_error())
+}
+
+/// An `NSError` Virtualization failed with.
+pub(crate) fn error(error: &ffi::NSError) -> Error {
+  Error::NSError(Box::new(error.into()))
+}
+
+/// What a completion handler was called with: an error, or `nil` for success.
+pub(crate) fn completed(error: Option<ffi::Retained<ffi::NSError>>) -> Result<(), Error> {
+  error.map_or(Ok(()), |error| Err(self::error(&error)))
 }

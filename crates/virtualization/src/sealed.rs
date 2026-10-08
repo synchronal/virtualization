@@ -13,3 +13,19 @@ pub trait Sealed {
   where
     Self: Sized;
 }
+
+/// Each element as its abstract class.
+pub(crate) fn bridge_objects<'a, T: Sealed + ?Sized>(elements: &[&'a T]) -> Vec<&'a ffi::NSObject> {
+  elements
+    .iter()
+    .map(|element| element.bridge_object())
+    .collect()
+}
+
+/// Each element `as? T`.
+pub(crate) fn bridge_cast_each<T: Sealed>(elements: Vec<ffi::Retained<ffi::NSObject>>) -> Vec<Option<T>> {
+  elements
+    .iter()
+    .map(|element| T::bridge_cast(element))
+    .collect()
+}

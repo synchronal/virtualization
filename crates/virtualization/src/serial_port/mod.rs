@@ -8,3 +8,9 @@ pub trait ConsoleDeviceConfiguration: Sealed {}
 
 /// [`VZSocketDeviceConfiguration`](https://developer.apple.com/documentation/virtualization/vzsocketdeviceconfiguration)
 pub trait SocketDeviceConfiguration: Sealed {}
+
+/// [`VZConsoleDevice`](https://developer.apple.com/documentation/virtualization/vzconsoledevice)
+pub trait ConsoleDevice: Sealed {}
+
+/// [`VZSocketDevice`](https://developer.apple.com/documentation/virtualization/vzsocketdevice)
+pub trait SocketDevice: Sealed {}

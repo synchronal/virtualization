@@ -28,6 +28,7 @@ version = "0.1.0"
 
 [workspace.dependencies]
 disk-image-kit = { path = "crates/disk-image-kit", version = "0.1.0" }
+dispatch2 = { version = "0.3.1", default-features = false, features = ["std"] }
 disk-image-kit-sys = { path = "crates/disk-image-kit-sys", version = "0.1.0" }
 foundation-sys = { path = "crates/foundation-sys", version = "0.1.0" }
 objc2 = { version = "0.6.4", default-features = false, features = ["std"] }

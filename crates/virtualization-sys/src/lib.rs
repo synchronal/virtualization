@@ -36,14 +36,19 @@
 //!
 //! [Virtualization]: https://developer.apple.com/documentation/virtualization
 
+use std::any::Any;
 use std::ffi::c_void;
+use std::ptr::{self, NonNull};
+use std::sync::Arc;
 
+use dispatch2::{DispatchQueue, DispatchRetained};
 use foundation_sys::objc::{NSArray, borrowed, borrowed_or_nil, ns_array, ns_array_objects, retained, retained_or_nil};
 pub use foundation_sys::objc::{NSError, NSObject, NSURL, Retained, ns_url_absolute_string, ns_url_init_string};
 
 pub use self::ffi::{
   BridgedNil, BridgedThrown, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
-  VZDiskImageSynchronizationMode, VZLinuxBootLoader, VZVirtioBlockDeviceConfiguration, VZVirtualMachineConfiguration,
+  VZDiskImageSynchronizationMode, VZLinuxBootLoader, VZNetworkDevice, VZVirtioBlockDeviceConfiguration,
+  VZVirtualMachine, VZVirtualMachineConfiguration, VZVirtualMachineState,
   vz_virtio_block_device_configuration_validate_block_device_identifier, vz_virtual_machine_configuration_init,
   vz_virtual_machine_configuration_maximum_allowed_cpu_count,
   vz_virtual_machine_configuration_maximum_allowed_memory_size,
@@ -74,8 +79,87 @@ mod ffi {
 
   // VirtualMachine.swift
 
+  #[swift_bridge(swift_name = "BridgedVZVirtualMachineState")]
+  enum VZVirtualMachineState {
+    Stopped,
+    Running,
+    Paused,
+    Error,
+    Starting,
+    Pausing,
+    Resuming,
+    Stopping,
+    Saving,
+    Restoring,
+    Unknown(isize),
+  }
+
   extern "Swift" {
+    type VZVirtualMachine;
+
+    fn vz_virtual_machine_init(configuration: VZVirtualMachineConfiguration) -> VZVirtualMachine;
+    fn vz_virtual_machine_init_queue(
+      configuration: VZVirtualMachineConfiguration,
+      queue: *const c_void,
+    ) -> VZVirtualMachine;
+    fn bridge_retained(self: &VZVirtualMachine) -> VZVirtualMachine;
+    fn ns_description(self: &VZVirtualMachine) -> String;
     fn vz_virtual_machine_is_supported() -> bool;
+    fn vz_virtual_machine_queue(this: VZVirtualMachine) -> *mut c_void;
+    fn vz_state(self: &VZVirtualMachine) -> VZVirtualMachineState;
+    fn vz_virtual_machine_delegate(this: VZVirtualMachine) -> usize;
+    fn vz_virtual_machine_set_delegate(this: VZVirtualMachine, delegate: VZVirtualMachineDelegateBridge);
+    fn bridge_set_delegate_nil(self: &VZVirtualMachine);
+    fn vz_can_start(self: &VZVirtualMachine) -> bool;
+    fn vz_can_stop(self: &VZVirtualMachine) -> bool;
+    fn vz_can_pause(self: &VZVirtualMachine) -> bool;
+    fn vz_can_resume(self: &VZVirtualMachine) -> bool;
+    fn vz_can_request_stop(self: &VZVirtualMachine) -> bool;
+    fn vz_virtual_machine_console_devices(this: VZVirtualMachine) -> *mut c_void;
+    fn vz_virtual_machine_directory_sharing_devices(this: VZVirtualMachine) -> *mut c_void;
+    fn vz_virtual_machine_graphics_devices(this: VZVirtualMachine) -> *mut c_void;
+    fn vz_virtual_machine_memory_balloon_devices(this: VZVirtualMachine) -> *mut c_void;
+    fn vz_virtual_machine_network_devices(this: VZVirtualMachine) -> *mut c_void;
+    fn vz_virtual_machine_socket_devices(this: VZVirtualMachine) -> *mut c_void;
+    fn vz_virtual_machine_usb_controllers(this: VZVirtualMachine) -> *mut c_void;
+    fn vz_virtual_machine_start(this: VZVirtualMachine, completion_handler: Box<dyn FnOnce(usize)>);
+    fn vz_virtual_machine_start_options(
+      this: VZVirtualMachine,
+      options: *const c_void,
+      completion_handler: Box<dyn FnOnce(usize)>,
+    );
+    fn vz_virtual_machine_stop(this: VZVirtualMachine, completion_handler: Box<dyn FnOnce(usize)>);
+    fn vz_virtual_machine_pause(this: VZVirtualMachine, completion_handler: Box<dyn FnOnce(usize)>);
+    fn vz_virtual_machine_resume(this: VZVirtualMachine, completion_handler: Box<dyn FnOnce(usize)>);
+    fn vz_request_stop(self: &VZVirtualMachine) -> Result<(), BridgedThrown>;
+    fn vz_virtual_machine_restore_machine_state_from(
+      this: VZVirtualMachine,
+      url: *const c_void,
+      completion_handler: Box<dyn FnOnce(usize)>,
+    );
+    fn vz_virtual_machine_save_machine_state_to(
+      this: VZVirtualMachine,
+      url: *const c_void,
+      completion_handler: Box<dyn FnOnce(usize)>,
+    );
+  }
+
+  extern "Rust" {
+    type VZVirtualMachineDelegateBridge;
+
+    fn bridge_retained(self: &VZVirtualMachineDelegateBridge) -> usize;
+    fn guest_did_stop(self: &VZVirtualMachineDelegateBridge, virtual_machine: VZVirtualMachine);
+    fn virtual_machine_did_stop_with_error(
+      self: &VZVirtualMachineDelegateBridge,
+      virtual_machine: VZVirtualMachine,
+      error: *mut c_void,
+    );
+    fn virtual_machine_network_device_attachment_was_disconnected_with_error(
+      self: &VZVirtualMachineDelegateBridge,
+      virtual_machine: VZVirtualMachine,
+      network_device: VZNetworkDevice,
+      error: *mut c_void,
+    );
   }
 
   // VirtualMachineConfiguration.swift
@@ -184,6 +268,18 @@ mod ffi {
     fn vz_linux_boot_loader_set_initial_ramdisk_url(this: VZLinuxBootLoader, initial_ramdisk_url: usize);
   }
 
+  // Network/NetworkDevice.swift
+
+  extern "Swift" {
+    type VZNetworkDevice;
+
+    fn vz_network_device_bridge_from(object: *const c_void) -> VZNetworkDevice;
+    fn bridge_retained(self: &VZNetworkDevice) -> VZNetworkDevice;
+    fn ns_description(self: &VZNetworkDevice) -> String;
+    fn vz_network_device_attachment(this: VZNetworkDevice) -> usize;
+    fn vz_network_device_set_attachment(this: VZNetworkDevice, attachment: usize);
+  }
+
   // Storage/DiskImageStorageDeviceAttachment.swift
 
   #[swift_bridge(swift_name = "BridgedVZDiskImageCachingMode")]
@@ -287,6 +383,222 @@ unsafe fn bridge_objects(pointer: *mut c_void) -> Vec<Retained<NSObject>> {
 pub fn bridge_take_thrown_error() -> Retained<NSError> {
   // SAFETY: `bridge_take_thrown_error` returns a retained `NSError`.
   unsafe { retained(ffi::bridge_take_thrown_error()) }
+}
+
+// VirtualMachine.swift
+
+pub fn vz_virtual_machine_init(configuration: &VZVirtualMachineConfiguration) -> VZVirtualMachine {
+  ffi::vz_virtual_machine_init(configuration.bridge_retained())
+}
+
+pub fn vz_virtual_machine_init_queue(
+  configuration: &VZVirtualMachineConfiguration,
+  queue: &DispatchQueue,
+) -> VZVirtualMachine {
+  ffi::vz_virtual_machine_init_queue(configuration.bridge_retained(), ptr::from_ref(queue).cast())
+}
+
+// SAFETY: Virtualization takes every call on a machine on its queue, and
+// dispatch runs that queue on any thread, so a machine must move between them.
+// Calling it off that queue is the caller's to avoid, as in Swift.
+unsafe impl Send for VZVirtualMachine {}
+
+// SAFETY: as for `Send`: the machine's queue, not Rust, serializes its calls.
+unsafe impl Sync for VZVirtualMachine {}
+
+/// A completion handler as Swift calls it: with what failed by address, `0`
+/// for success.
+fn bridge_completion_handler(
+  completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+) -> Box<dyn FnOnce(usize)> {
+  Box::new(move |error| {
+    // SAFETY: `bridging(retainedError:)`, a retained `NSError` or `nil`.
+    completion_handler(unsafe { retained_or_nil(error) })
+  })
+}
+
+impl VZVirtualMachine {
+  pub fn vz_queue(&self) -> DispatchRetained<DispatchQueue> {
+    let queue = ffi::vz_virtual_machine_queue(self.bridge_retained());
+
+    // SAFETY: `queue`, a retained `dispatch_queue_t`, never `nil`.
+    unsafe { DispatchRetained::from_raw(NonNull::new_unchecked(queue.cast())) }
+  }
+
+  /// The delegate set with [`Self::vz_set_delegate`].
+  pub fn vz_delegate(&self) -> Option<Arc<dyn VZVirtualMachineDelegate>> {
+    let address = ffi::vz_virtual_machine_delegate(self.bridge_retained());
+
+    // SAFETY: `VZVirtualMachineDelegateBridge::bridge_retained`'s address,
+    // taken once, or `0` for none.
+    (address != 0).then(|| *unsafe { Box::from_raw(address as *mut Arc<dyn VZVirtualMachineDelegate>) })
+  }
+
+  pub fn vz_set_delegate(&self, delegate: Option<Arc<dyn VZVirtualMachineDelegate>>) {
+    match delegate {
+      Some(delegate) => {
+        ffi::vz_virtual_machine_set_delegate(self.bridge_retained(), VZVirtualMachineDelegateBridge { delegate });
+      }
+      None => self.bridge_set_delegate_nil(),
+    }
+  }
+
+  /// Each any `VZConsoleDevice`.
+  pub fn vz_console_devices(&self) -> Vec<Retained<NSObject>> {
+    // SAFETY: `consoleDevices`, a retained `NSArray`.
+    unsafe { bridge_objects(ffi::vz_virtual_machine_console_devices(self.bridge_retained())) }
+  }
+
+  /// Each any `VZDirectorySharingDevice`.
+  pub fn vz_directory_sharing_devices(&self) -> Vec<Retained<NSObject>> {
+    // SAFETY: `directorySharingDevices`, a retained `NSArray`.
+    unsafe {
+      bridge_objects(ffi::vz_virtual_machine_directory_sharing_devices(
+        self.bridge_retained(),
+      ))
+    }
+  }
+
+  /// Each any `VZGraphicsDevice`.
+  pub fn vz_graphics_devices(&self) -> Vec<Retained<NSObject>> {
+    // SAFETY: `graphicsDevices`, a retained `NSArray`.
+    unsafe { bridge_objects(ffi::vz_virtual_machine_graphics_devices(self.bridge_retained())) }
+  }
+
+  /// Each any `VZMemoryBalloonDevice`.
+  pub fn vz_memory_balloon_devices(&self) -> Vec<Retained<NSObject>> {
+    // SAFETY: `memoryBalloonDevices`, a retained `NSArray`.
+    unsafe { bridge_objects(ffi::vz_virtual_machine_memory_balloon_devices(self.bridge_retained())) }
+  }
+
+  pub fn vz_network_devices(&self) -> Vec<VZNetworkDevice> {
+    // SAFETY: `networkDevices`, a retained `NSArray`.
+    unsafe { bridge_objects(ffi::vz_virtual_machine_network_devices(self.bridge_retained())) }
+      .iter()
+      .map(|device| ffi::vz_network_device_bridge_from(borrowed(&**device)))
+      .collect()
+  }
+
+  /// Each any `VZSocketDevice`.
+  pub fn vz_socket_devices(&self) -> Vec<Retained<NSObject>> {
+    // SAFETY: `socketDevices`, a retained `NSArray`.
+    unsafe { bridge_objects(ffi::vz_virtual_machine_socket_devices(self.bridge_retained())) }
+  }
+
+  /// Each any `VZUSBController`.
+  pub fn vz_usb_controllers(&self) -> Vec<Retained<NSObject>> {
+    // SAFETY: `usbControllers`, a retained `NSArray`.
+    unsafe { bridge_objects(ffi::vz_virtual_machine_usb_controllers(self.bridge_retained())) }
+  }
+
+  pub fn vz_start(&self, completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static) {
+    ffi::vz_virtual_machine_start(self.bridge_retained(), bridge_completion_handler(completion_handler));
+  }
+
+  /// `options` is any `VZVirtualMachineStartOptions`.
+  pub fn vz_start_options(
+    &self,
+    options: &NSObject,
+    completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    ffi::vz_virtual_machine_start_options(
+      self.bridge_retained(),
+      borrowed(options),
+      bridge_completion_handler(completion_handler),
+    );
+  }
+
+  pub fn vz_stop(&self, completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static) {
+    ffi::vz_virtual_machine_stop(self.bridge_retained(), bridge_completion_handler(completion_handler));
+  }
+
+  pub fn vz_pause(&self, completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static) {
+    ffi::vz_virtual_machine_pause(self.bridge_retained(), bridge_completion_handler(completion_handler));
+  }
+
+  pub fn vz_resume(&self, completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static) {
+    ffi::vz_virtual_machine_resume(self.bridge_retained(), bridge_completion_handler(completion_handler));
+  }
+
+  pub fn vz_restore_machine_state_from(
+    &self,
+    url: &NSURL,
+    completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    ffi::vz_virtual_machine_restore_machine_state_from(
+      self.bridge_retained(),
+      borrowed(url),
+      bridge_completion_handler(completion_handler),
+    );
+  }
+
+  pub fn vz_save_machine_state_to(
+    &self,
+    url: &NSURL,
+    completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    ffi::vz_virtual_machine_save_machine_state_to(
+      self.bridge_retained(),
+      borrowed(url),
+      bridge_completion_handler(completion_handler),
+    );
+  }
+}
+
+/// `VZVirtualMachineDelegate`, which Rust implements. Virtualization calls it
+/// on the machine's queue.
+pub trait VZVirtualMachineDelegate: Any + Send + Sync {
+  fn guest_did_stop(&self, virtual_machine: VZVirtualMachine);
+
+  fn virtual_machine_did_stop_with_error(&self, virtual_machine: VZVirtualMachine, error: Retained<NSError>);
+
+  fn virtual_machine_network_device_attachment_was_disconnected_with_error(
+    &self,
+    virtual_machine: VZVirtualMachine,
+    network_device: VZNetworkDevice,
+    error: Retained<NSError>,
+  );
+}
+
+/// A [`VZVirtualMachineDelegate`] as Swift holds it.
+pub struct VZVirtualMachineDelegateBridge {
+  delegate: Arc<dyn VZVirtualMachineDelegate>,
+}
+
+impl VZVirtualMachineDelegateBridge {
+  /// Another reference to the delegate, for [`VZVirtualMachine::vz_delegate`]
+  /// to take, by address. (swift-bridge's code for returning this type by
+  /// value fails clippy.)
+  fn bridge_retained(&self) -> usize {
+    Box::into_raw(Box::new(Arc::clone(&self.delegate))) as usize
+  }
+
+  fn guest_did_stop(&self, virtual_machine: VZVirtualMachine) {
+    self.delegate.guest_did_stop(virtual_machine);
+  }
+
+  fn virtual_machine_did_stop_with_error(&self, virtual_machine: VZVirtualMachine, error: *mut c_void) {
+    // SAFETY: `error`, a retained `NSError`.
+    let error = unsafe { retained(error) };
+
+    self
+      .delegate
+      .virtual_machine_did_stop_with_error(virtual_machine, error);
+  }
+
+  fn virtual_machine_network_device_attachment_was_disconnected_with_error(
+    &self,
+    virtual_machine: VZVirtualMachine,
+    network_device: VZNetworkDevice,
+    error: *mut c_void,
+  ) {
+    // SAFETY: `error`, a retained `NSError`.
+    let error = unsafe { retained(error) };
+
+    self
+      .delegate
+      .virtual_machine_network_device_attachment_was_disconnected_with_error(virtual_machine, network_device, error);
+  }
 }
 
 // VirtualMachineConfiguration.swift
@@ -575,6 +887,21 @@ impl VZLinuxBootLoader {
 
   pub fn vz_set_initial_ramdisk_url(&self, initial_ramdisk_url: Option<&NSURL>) {
     ffi::vz_linux_boot_loader_set_initial_ramdisk_url(self.bridge_retained(), borrowed_or_nil(initial_ramdisk_url));
+  }
+}
+
+// Network/NetworkDevice.swift
+
+impl VZNetworkDevice {
+  /// Any `VZNetworkDeviceAttachment`.
+  pub fn vz_attachment(&self) -> Option<Retained<NSObject>> {
+    // SAFETY: `attachment`, a retained `VZNetworkDeviceAttachment` or `nil`.
+    unsafe { retained_or_nil(ffi::vz_network_device_attachment(self.bridge_retained())) }
+  }
+
+  /// `attachment` is any `VZNetworkDeviceAttachment`.
+  pub fn vz_set_attachment(&self, attachment: Option<&NSObject>) {
+    ffi::vz_network_device_set_attachment(self.bridge_retained(), borrowed_or_nil(attachment));
   }
 }
 

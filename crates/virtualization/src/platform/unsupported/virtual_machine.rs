@@ -1,8 +1,166 @@
-use super::{BridgedThrown, GUARDED, NSObject, Never, Retained};
+use std::any::Any;
+use std::sync::Arc;
+
+use dispatch2::{DispatchQueue, DispatchRetained};
+
+use super::{BridgedThrown, GUARDED, NSError, NSObject, NSURL, Never, Retained, VZNetworkDevice};
+
+pub(crate) enum VZVirtualMachineState {
+  Stopped,
+  Running,
+  Paused,
+  Error,
+  Starting,
+  Pausing,
+  Resuming,
+  Stopping,
+  Saving,
+  Restoring,
+  Unknown(isize),
+}
+
+pub(crate) struct VZVirtualMachine {
+  never: Never,
+}
+
+pub(crate) fn vz_virtual_machine_init(_configuration: &VZVirtualMachineConfiguration) -> VZVirtualMachine {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_virtual_machine_init_queue(
+  _configuration: &VZVirtualMachineConfiguration,
+  _queue: &DispatchQueue,
+) -> VZVirtualMachine {
+  unreachable!("{GUARDED}")
+}
 
 pub(crate) fn vz_virtual_machine_is_supported() -> bool {
   unreachable!("{GUARDED}")
 }
+
+impl VZVirtualMachine {
+  pub(crate) fn bridge_retained(&self) -> VZVirtualMachine {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_queue(&self) -> DispatchRetained<DispatchQueue> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_state(&self) -> VZVirtualMachineState {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_delegate(&self) -> Option<Arc<dyn VZVirtualMachineDelegate>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_delegate(&self, _delegate: Option<Arc<dyn VZVirtualMachineDelegate>>) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_can_start(&self) -> bool {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_can_stop(&self) -> bool {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_can_pause(&self) -> bool {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_can_resume(&self) -> bool {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_can_request_stop(&self) -> bool {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_console_devices(&self) -> Vec<Retained<NSObject>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_directory_sharing_devices(&self) -> Vec<Retained<NSObject>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_graphics_devices(&self) -> Vec<Retained<NSObject>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_memory_balloon_devices(&self) -> Vec<Retained<NSObject>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_network_devices(&self) -> Vec<VZNetworkDevice> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_socket_devices(&self) -> Vec<Retained<NSObject>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_usb_controllers(&self) -> Vec<Retained<NSObject>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_start(&self, _completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_start_options(
+    &self,
+    _options: &NSObject,
+    _completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_stop(&self, _completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_pause(&self, _completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_resume(&self, _completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_request_stop(&self) -> Result<(), BridgedThrown> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_restore_machine_state_from(
+    &self,
+    _url: &NSURL,
+    _completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_save_machine_state_to(
+    &self,
+    _url: &NSURL,
+    _completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    match self.never {}
+  }
+}
+
+/// Only Swift calls a delegate, so here it has no methods, and anything is
+/// one.
+pub(crate) trait VZVirtualMachineDelegate: Any + Send + Sync {}
+
+impl<T: Any + Send + Sync> VZVirtualMachineDelegate for T {}
 
 pub(crate) struct VZVirtualMachineConfiguration {
   never: Never,

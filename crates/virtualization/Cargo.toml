@@ -12,6 +12,7 @@ version.workspace = true
 
 [dependencies]
 disk-image-kit.workspace = true
+dispatch2.workspace = true
 foundation-sys.workspace = true
 url.workspace = true
 

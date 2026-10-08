@@ -51,6 +51,22 @@ func bridging(retainedAddress object: AnyObject?) -> UInt {
   UInt(bitPattern: object.map { bridging(retained: $0) })
 }
 
+/// What a completion handler failed with, for Rust, by address: `0` is
+/// success.
+func bridging(retainedError error: (any Error)?) -> UInt {
+  bridging(retainedAddress: error.map { $0 as NSError })
+}
+
+/// What a completion handler's `Result` failed with, for Rust, by address: `0`
+/// is success.
+func bridging(retainedError result: Result<Void, any Error>) -> UInt {
+  guard case .failure(let error) = result else {
+    return 0
+  }
+
+  return bridging(retainedError: error)
+}
+
 extension BridgedNil: @unchecked Sendable, Error {}
 
 /// A Swift optional of an opaque type, as swift-bridge can return it.

@@ -11,3 +11,6 @@ pub trait PointingDeviceConfiguration: Sealed {}
 
 /// [`VZAudioDeviceConfiguration`](https://developer.apple.com/documentation/virtualization/vzaudiodeviceconfiguration)
 pub trait AudioDeviceConfiguration: Sealed {}
+
+/// [`VZGraphicsDevice`](https://developer.apple.com/documentation/virtualization/vzgraphicsdevice)
+pub trait GraphicsDevice: Sealed {}
