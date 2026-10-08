@@ -44,8 +44,8 @@ use std::sync::Arc;
 
 use dispatch2::{DispatchQueue, DispatchRetained};
 use foundation_sys::objc::{
-  NSArray, NSData, borrowed, borrowed_or_nil, ns_array, ns_array_objects, ns_data, ns_data_bytes, retained,
-  retained_or_nil,
+  NSArray, NSData, NSDictionary, NSString, borrowed, borrowed_or_nil, ns_array, ns_array_objects, ns_data,
+  ns_data_bytes, ns_dictionary, ns_dictionary_entries, retained, retained_or_nil,
 };
 pub use foundation_sys::objc::{NSError, NSObject, NSURL, Retained, ns_url_absolute_string, ns_url_init_string};
 use foundation_sys::objc::{
@@ -56,13 +56,17 @@ pub use self::ffi::{
   BridgedNil, BridgedThrown, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
   VZDiskImageSynchronizationMode, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment,
   VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader, VZMACAddress,
-  VZNATNetworkDeviceAttachment, VZNetworkDevice, VZVirtioBlockDeviceConfiguration,
-  VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioNetworkDeviceConfiguration, VZVirtualMachine,
+  VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
+  VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioFileSystemDevice,
+  VZVirtioFileSystemDeviceConfiguration, VZVirtioNetworkDeviceConfiguration, VZVirtualMachine,
   VZVirtualMachineConfiguration, VZVirtualMachineState, vz_generic_machine_identifier_init,
   vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
-  vz_mac_address_random_locally_administered, vz_nat_network_device_attachment_init,
+  vz_mac_address_random_locally_administered, vz_multiple_directory_share_canonicalized_name,
+  vz_multiple_directory_share_init, vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
   vz_virtio_block_device_configuration_validate_block_device_identifier,
-  vz_virtio_console_device_serial_port_configuration_init, vz_virtio_network_device_configuration_init,
+  vz_virtio_console_device_serial_port_configuration_init, vz_virtio_file_system_device_configuration_init,
+  vz_virtio_file_system_device_configuration_macos_guest_automount_tag,
+  vz_virtio_file_system_device_configuration_validate_tag, vz_virtio_network_device_configuration_init,
   vz_virtual_machine_configuration_init, vz_virtual_machine_configuration_maximum_allowed_cpu_count,
   vz_virtual_machine_configuration_maximum_allowed_memory_size,
   vz_virtual_machine_configuration_minimum_allowed_cpu_count,
@@ -313,6 +317,83 @@ mod ffi {
     fn ns_description(self: &VZGenericMachineIdentifier) -> String;
     fn ns_is_equal(self: &VZGenericMachineIdentifier, object: VZGenericMachineIdentifier) -> bool;
     fn vz_generic_machine_identifier_data_representation(this: VZGenericMachineIdentifier) -> *mut c_void;
+  }
+
+  // DirectorySharing/MultipleDirectoryShare.swift
+
+  extern "Swift" {
+    type VZMultipleDirectoryShare;
+
+    fn vz_multiple_directory_share_init() -> VZMultipleDirectoryShare;
+    fn vz_multiple_directory_share_init_directories(directories: *const c_void) -> VZMultipleDirectoryShare;
+    fn bridge_retained(self: &VZMultipleDirectoryShare) -> VZMultipleDirectoryShare;
+    fn bridge_borrowed(self: &VZMultipleDirectoryShare) -> *const c_void;
+    fn vz_multiple_directory_share_bridge_cast(object: *const c_void) -> Result<VZMultipleDirectoryShare, BridgedNil>;
+    fn ns_description(self: &VZMultipleDirectoryShare) -> String;
+    fn vz_multiple_directory_share_validate_name(name: &str) -> Result<(), BridgedThrown>;
+    fn vz_multiple_directory_share_canonicalized_name(name: &str) -> Option<String>;
+    fn vz_multiple_directory_share_directories(this: VZMultipleDirectoryShare) -> *mut c_void;
+  }
+
+  // DirectorySharing/SharedDirectory.swift
+
+  extern "Swift" {
+    type VZSharedDirectory;
+
+    fn vz_shared_directory_init(url: *const c_void, read_only: bool) -> VZSharedDirectory;
+    fn vz_shared_directory_bridge_from(object: *const c_void) -> VZSharedDirectory;
+    fn bridge_retained(self: &VZSharedDirectory) -> VZSharedDirectory;
+    fn bridge_borrowed(self: &VZSharedDirectory) -> *const c_void;
+    fn ns_description(self: &VZSharedDirectory) -> String;
+    fn vz_shared_directory_url(this: VZSharedDirectory) -> *mut c_void;
+    fn vz_is_read_only(self: &VZSharedDirectory) -> bool;
+  }
+
+  // DirectorySharing/SingleDirectoryShare.swift
+
+  extern "Swift" {
+    type VZSingleDirectoryShare;
+
+    fn vz_single_directory_share_init(directory: VZSharedDirectory) -> VZSingleDirectoryShare;
+    fn bridge_retained(self: &VZSingleDirectoryShare) -> VZSingleDirectoryShare;
+    fn bridge_borrowed(self: &VZSingleDirectoryShare) -> *const c_void;
+    fn vz_single_directory_share_bridge_cast(object: *const c_void) -> Result<VZSingleDirectoryShare, BridgedNil>;
+    fn ns_description(self: &VZSingleDirectoryShare) -> String;
+    fn vz_directory(self: &VZSingleDirectoryShare) -> VZSharedDirectory;
+  }
+
+  // DirectorySharing/VirtioFileSystemDevice.swift
+
+  extern "Swift" {
+    type VZVirtioFileSystemDevice;
+
+    fn bridge_retained(self: &VZVirtioFileSystemDevice) -> VZVirtioFileSystemDevice;
+    fn bridge_borrowed(self: &VZVirtioFileSystemDevice) -> *const c_void;
+    fn vz_virtio_file_system_device_bridge_cast(object: *const c_void) -> Result<VZVirtioFileSystemDevice, BridgedNil>;
+    fn ns_description(self: &VZVirtioFileSystemDevice) -> String;
+    fn vz_tag(self: &VZVirtioFileSystemDevice) -> String;
+    fn vz_virtio_file_system_device_share(this: VZVirtioFileSystemDevice) -> usize;
+    fn vz_virtio_file_system_device_set_share(this: VZVirtioFileSystemDevice, share: usize);
+  }
+
+  // DirectorySharing/VirtioFileSystemDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioFileSystemDeviceConfiguration;
+
+    fn vz_virtio_file_system_device_configuration_init(tag: &str) -> VZVirtioFileSystemDeviceConfiguration;
+    fn bridge_retained(self: &VZVirtioFileSystemDeviceConfiguration) -> VZVirtioFileSystemDeviceConfiguration;
+    fn bridge_borrowed(self: &VZVirtioFileSystemDeviceConfiguration) -> *const c_void;
+    fn vz_virtio_file_system_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioFileSystemDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioFileSystemDeviceConfiguration) -> String;
+    fn vz_virtio_file_system_device_configuration_validate_tag(tag: &str) -> Result<(), BridgedThrown>;
+    fn vz_virtio_file_system_device_configuration_macos_guest_automount_tag() -> String;
+    fn vz_tag(self: &VZVirtioFileSystemDeviceConfiguration) -> String;
+    fn vz_set_tag(self: &VZVirtioFileSystemDeviceConfiguration, tag: &str);
+    fn vz_virtio_file_system_device_configuration_share(this: VZVirtioFileSystemDeviceConfiguration) -> usize;
+    fn vz_virtio_file_system_device_configuration_set_share(this: VZVirtioFileSystemDeviceConfiguration, share: usize);
   }
 
   // Network/MACAddress.swift
@@ -1087,6 +1168,134 @@ impl VZGenericMachineIdentifier {
     };
 
     ns_data_bytes(&data)
+  }
+}
+
+// DirectorySharing/MultipleDirectoryShare.swift
+
+/// `[String: VZSharedDirectory]` is each name with its directory.
+pub fn vz_multiple_directory_share_init_directories(
+  directories: &[(&str, &VZSharedDirectory)],
+) -> VZMultipleDirectoryShare {
+  let entries: Vec<_> = directories
+    .iter()
+    .map(|(name, directory)| (*name, directory.bridge_object()))
+    .collect();
+
+  ffi::vz_multiple_directory_share_init_directories(borrowed(&*ns_dictionary(&entries)))
+}
+
+pub fn vz_multiple_directory_share_bridge_cast(object: &NSObject) -> Option<VZMultipleDirectoryShare> {
+  ffi::vz_multiple_directory_share_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMultipleDirectoryShare {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// `[String: VZSharedDirectory]` is each name with its directory, in no
+  /// particular order.
+  pub fn vz_directories(&self) -> Vec<(String, VZSharedDirectory)> {
+    // SAFETY: `directories`, a retained `NSDictionary` of `NSString`s to
+    // `VZSharedDirectory`s.
+    let directories: Retained<NSDictionary<NSString, NSObject>> =
+      unsafe { retained(ffi::vz_multiple_directory_share_directories(self.bridge_retained())) };
+
+    ns_dictionary_entries(&directories)
+      .into_iter()
+      .map(|(name, directory)| (name, ffi::vz_shared_directory_bridge_from(borrowed(&*directory))))
+      .collect()
+  }
+}
+
+// DirectorySharing/SharedDirectory.swift
+
+pub fn vz_shared_directory_init(url: &NSURL, read_only: bool) -> VZSharedDirectory {
+  ffi::vz_shared_directory_init(borrowed(url), read_only)
+}
+
+impl VZSharedDirectory {
+  fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  pub fn vz_url(&self) -> Retained<NSURL> {
+    // SAFETY: `url`, a retained `NSURL`.
+    unsafe { retained(ffi::vz_shared_directory_url(self.bridge_retained())) }
+  }
+}
+
+// DirectorySharing/SingleDirectoryShare.swift
+
+pub fn vz_single_directory_share_init(directory: &VZSharedDirectory) -> VZSingleDirectoryShare {
+  ffi::vz_single_directory_share_init(directory.bridge_retained())
+}
+
+pub fn vz_single_directory_share_bridge_cast(object: &NSObject) -> Option<VZSingleDirectoryShare> {
+  ffi::vz_single_directory_share_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZSingleDirectoryShare {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// DirectorySharing/VirtioFileSystemDevice.swift
+
+pub fn vz_virtio_file_system_device_bridge_cast(object: &NSObject) -> Option<VZVirtioFileSystemDevice> {
+  ffi::vz_virtio_file_system_device_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioFileSystemDevice {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// Any `VZDirectoryShare`.
+  pub fn vz_share(&self) -> Option<Retained<NSObject>> {
+    // SAFETY: `share`, a retained `VZDirectoryShare` or `nil`.
+    unsafe { retained_or_nil(ffi::vz_virtio_file_system_device_share(self.bridge_retained())) }
+  }
+
+  /// `share` is any `VZDirectoryShare`.
+  pub fn vz_set_share(&self, share: Option<&NSObject>) {
+    ffi::vz_virtio_file_system_device_set_share(self.bridge_retained(), borrowed_or_nil(share));
+  }
+}
+
+// DirectorySharing/VirtioFileSystemDeviceConfiguration.swift
+
+pub fn vz_virtio_file_system_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioFileSystemDeviceConfiguration> {
+  ffi::vz_virtio_file_system_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioFileSystemDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// Any `VZDirectoryShare`.
+  pub fn vz_share(&self) -> Option<Retained<NSObject>> {
+    // SAFETY: `share`, a retained `VZDirectoryShare` or `nil`.
+    unsafe {
+      retained_or_nil(ffi::vz_virtio_file_system_device_configuration_share(
+        self.bridge_retained(),
+      ))
+    }
+  }
+
+  /// `share` is any `VZDirectoryShare`.
+  pub fn vz_set_share(&self, share: Option<&NSObject>) {
+    ffi::vz_virtio_file_system_device_configuration_set_share(self.bridge_retained(), borrowed_or_nil(share));
   }
 }
 

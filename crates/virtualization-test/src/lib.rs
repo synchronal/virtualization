@@ -31,6 +31,19 @@ pub fn new_file_url(name: &str) -> Url {
   Url::from_file_path(path).unwrap()
 }
 
+/// A fresh scratch directory holding each file with its contents.
+pub fn directory(name: &str, files: &[(&str, &str)]) -> PathBuf {
+  let path = scratch_path(name);
+  let _ = std::fs::remove_dir_all(&path);
+
+  std::fs::create_dir(&path).unwrap();
+  for (file, contents) in files {
+    std::fs::write(path.join(file), contents).unwrap();
+  }
+
+  path
+}
+
 /// A raw disk image: 1 MiB of zeroes.
 pub fn disk_image(name: &str) -> Url {
   file(&format!("{name}.img"), &vec![0u8; 1024 * 1024])

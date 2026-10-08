@@ -34,6 +34,12 @@ func bridging<T>(borrowedArray pointer: UnsafeRawPointer) -> [T] {
   (bridging(borrowed: pointer) as NSArray) as! [T]
 }
 
+/// A dictionary Rust lends for the call, as an `NSDictionary` of `String`s to
+/// `T`s.
+func bridging<T>(borrowedDictionary pointer: UnsafeRawPointer) -> [String: T] {
+  (bridging(borrowed: pointer) as NSDictionary) as! [String: T]
+}
+
 /// A Foundation object for Rust, which takes over this reference.
 func bridging(retained object: AnyObject) -> UnsafeMutableRawPointer {
   Unmanaged.passRetained(object).toOpaque()

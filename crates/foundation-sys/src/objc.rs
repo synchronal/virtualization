@@ -12,6 +12,9 @@
 //! - `bridging(borrowedArray:)`: an array Rust lends, made here with
 //!   [`ns_array`] and lent with [`borrowed`]. Swift returns one as an
 //!   `NSArray`, read here with [`ns_array_objects`].
+//! - `bridging(borrowedDictionary:)`: a `[String: T]` Rust lends, made here
+//!   with [`ns_dictionary`]. Swift returns one as an `NSDictionary`, read here
+//!   with [`ns_dictionary_entries`].
 
 use std::ffi::c_void;
 use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
@@ -19,8 +22,7 @@ use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use objc2::AllocAnyThread;
 pub use objc2::rc::Retained;
 pub use objc2::runtime::{AnyObject, NSObject};
-use objc2_foundation::NSString;
-pub use objc2_foundation::{NSArray, NSData, NSError, NSFileHandle, NSURL, NSUUID};
+pub use objc2_foundation::{NSArray, NSData, NSDictionary, NSError, NSFileHandle, NSString, NSURL, NSUUID};
 
 /// A Foundation object, lent to Swift for one call.
 pub fn borrowed<T: objc2::Message>(object: &T) -> *const c_void {
@@ -63,6 +65,30 @@ pub fn ns_array<T: objc2::Message>(objects: &[&T]) -> Retained<NSArray<T>> {
 /// An `NSArray`'s objects, in order.
 pub fn ns_array_objects<T: objc2::Message>(array: &NSArray<T>) -> Vec<Retained<T>> {
   array.to_vec()
+}
+
+/// An `NSDictionary` of each name to its object, as Swift bridges a
+/// `[String: T]`.
+pub fn ns_dictionary<T: objc2::Message>(entries: &[(&str, &T)]) -> Retained<NSDictionary<NSString, T>> {
+  let keys: Vec<_> = entries
+    .iter()
+    .map(|(key, _)| NSString::from_str(key))
+    .collect();
+  let keys: Vec<_> = keys.iter().map(|key| &**key).collect();
+  let objects: Vec<_> = entries.iter().map(|(_, object)| *object).collect();
+
+  NSDictionary::from_slices(&keys, &objects)
+}
+
+/// An `NSDictionary`'s names and objects, in no particular order.
+pub fn ns_dictionary_entries<T: objc2::Message>(dictionary: &NSDictionary<NSString, T>) -> Vec<(String, Retained<T>)> {
+  let (keys, objects) = dictionary.to_vecs();
+
+  keys
+    .iter()
+    .map(|key| key.to_string())
+    .zip(objects)
+    .collect()
 }
 
 /// An `NSData` of a copy of `bytes`.
