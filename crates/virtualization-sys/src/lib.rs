@@ -61,7 +61,8 @@ pub use self::ffi::{
   VZVirtioConsoleDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort,
   VZVirtioConsolePortArray, VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray,
   VZVirtioEntropyDeviceConfiguration, VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration,
-  VZVirtioNetworkDeviceConfiguration, VZVirtioTraditionalMemoryBalloonDevice,
+  VZVirtioNetworkDeviceConfiguration, VZVirtioSocketConnection, VZVirtioSocketDevice,
+  VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener, VZVirtioTraditionalMemoryBalloonDevice,
   VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine, VZVirtualMachineConfiguration,
   VZVirtualMachineState, vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
   vz_generic_platform_configuration_is_nested_virtualization_supported, vz_mac_address_random_locally_administered,
@@ -73,6 +74,7 @@ pub use self::ffi::{
   vz_virtio_entropy_device_configuration_init, vz_virtio_file_system_device_configuration_init,
   vz_virtio_file_system_device_configuration_macos_guest_automount_tag,
   vz_virtio_file_system_device_configuration_validate_tag, vz_virtio_network_device_configuration_init,
+  vz_virtio_socket_device_configuration_init, vz_virtio_socket_listener_init,
   vz_virtio_traditional_memory_balloon_device_configuration_init, vz_virtual_machine_configuration_init,
   vz_virtual_machine_configuration_maximum_allowed_cpu_count,
   vz_virtual_machine_configuration_maximum_allowed_memory_size,
@@ -714,6 +716,80 @@ mod ffi {
       value: VZVirtioConsolePortConfiguration,
     );
     fn bridge_set_subscript_nil(self: &VZVirtioConsolePortConfigurationArray, port_index: isize);
+  }
+
+  // SerialPort/VirtioSocketConnection.swift
+
+  extern "Swift" {
+    type VZVirtioSocketConnection;
+
+    fn vz_virtio_socket_connection_bridge_from(object: *const c_void) -> VZVirtioSocketConnection;
+    fn bridge_retained(self: &VZVirtioSocketConnection) -> VZVirtioSocketConnection;
+    fn ns_description(self: &VZVirtioSocketConnection) -> String;
+    fn vz_destination_port(self: &VZVirtioSocketConnection) -> u32;
+    fn vz_source_port(self: &VZVirtioSocketConnection) -> u32;
+    fn vz_file_descriptor(self: &VZVirtioSocketConnection) -> i32;
+    fn vz_close(self: &VZVirtioSocketConnection);
+  }
+
+  // SerialPort/VirtioSocketDevice.swift
+
+  extern "Swift" {
+    type VZVirtioSocketDevice;
+
+    fn bridge_retained(self: &VZVirtioSocketDevice) -> VZVirtioSocketDevice;
+    fn bridge_borrowed(self: &VZVirtioSocketDevice) -> *const c_void;
+    fn vz_virtio_socket_device_bridge_cast(object: *const c_void) -> Result<VZVirtioSocketDevice, BridgedNil>;
+    fn ns_description(self: &VZVirtioSocketDevice) -> String;
+    fn vz_set_socket_listener(self: &VZVirtioSocketDevice, listener: VZVirtioSocketListener, port: u32);
+    fn vz_remove_socket_listener(self: &VZVirtioSocketDevice, port: u32);
+    fn vz_virtio_socket_device_connect(
+      this: VZVirtioSocketDevice,
+      port: u32,
+      completion_handler: Box<dyn FnOnce(usize, usize)>,
+    );
+  }
+
+  // SerialPort/VirtioSocketDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioSocketDeviceConfiguration;
+
+    fn vz_virtio_socket_device_configuration_init() -> VZVirtioSocketDeviceConfiguration;
+    fn bridge_retained(self: &VZVirtioSocketDeviceConfiguration) -> VZVirtioSocketDeviceConfiguration;
+    fn bridge_borrowed(self: &VZVirtioSocketDeviceConfiguration) -> *const c_void;
+    fn vz_virtio_socket_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioSocketDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioSocketDeviceConfiguration) -> String;
+  }
+
+  // SerialPort/VirtioSocketListener.swift
+
+  extern "Swift" {
+    type VZVirtioSocketListener;
+
+    fn vz_virtio_socket_listener_init() -> VZVirtioSocketListener;
+    fn bridge_retained(self: &VZVirtioSocketListener) -> VZVirtioSocketListener;
+    fn ns_description(self: &VZVirtioSocketListener) -> String;
+    fn vz_virtio_socket_listener_delegate(this: VZVirtioSocketListener) -> usize;
+    fn vz_virtio_socket_listener_set_delegate(
+      this: VZVirtioSocketListener,
+      delegate: VZVirtioSocketListenerDelegateBridge,
+    );
+    fn bridge_set_delegate_nil(self: &VZVirtioSocketListener);
+  }
+
+  extern "Rust" {
+    type VZVirtioSocketListenerDelegateBridge;
+
+    fn bridge_retained(self: &VZVirtioSocketListenerDelegateBridge) -> usize;
+    fn listener_should_accept_new_connection_from(
+      self: &VZVirtioSocketListenerDelegateBridge,
+      listener: VZVirtioSocketListener,
+      connection: VZVirtioSocketConnection,
+      socket_device: VZVirtioSocketDevice,
+    ) -> bool;
   }
 
   // Storage/DiskImageStorageDeviceAttachment.swift
@@ -1875,6 +1951,117 @@ impl VZVirtioConsolePortConfiguration {
   pub fn bridge_object(&self) -> &NSObject {
     // SAFETY: this one's own object.
     unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// SerialPort/VirtioSocketDevice.swift
+
+pub fn vz_virtio_socket_device_bridge_cast(object: &NSObject) -> Option<VZVirtioSocketDevice> {
+  ffi::vz_virtio_socket_device_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioSocketDevice {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  pub fn vz_connect(
+    &self,
+    port: u32,
+    completion_handler: impl FnOnce(Result<VZVirtioSocketConnection, Retained<NSError>>) + Send + 'static,
+  ) {
+    ffi::vz_virtio_socket_device_connect(
+      self.bridge_retained(),
+      port,
+      Box::new(move |connection, error| {
+        // SAFETY: `bridging(retainedAddress:)`, a retained
+        // `VZVirtioSocketConnection`, or `0` when it failed.
+        let connection: Option<Retained<NSObject>> = unsafe { retained_or_nil(connection) };
+
+        completion_handler(match connection {
+          Some(connection) => Ok(ffi::vz_virtio_socket_connection_bridge_from(borrowed(&*connection))),
+          // SAFETY: `bridging(retainedError:)`, a retained `NSError`.
+          None => Err(unsafe { retained_or_nil(error) }.expect("Swift passes a connection or an error")),
+        });
+      }),
+    );
+  }
+}
+
+// SerialPort/VirtioSocketDeviceConfiguration.swift
+
+pub fn vz_virtio_socket_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioSocketDeviceConfiguration> {
+  ffi::vz_virtio_socket_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioSocketDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// SerialPort/VirtioSocketListener.swift
+
+impl VZVirtioSocketListener {
+  /// The delegate set with [`Self::vz_set_delegate`].
+  pub fn vz_delegate(&self) -> Option<Arc<dyn VZVirtioSocketListenerDelegate>> {
+    let address = ffi::vz_virtio_socket_listener_delegate(self.bridge_retained());
+
+    // SAFETY: `VZVirtioSocketListenerDelegateBridge::bridge_retained`'s
+    // address, taken once, or `0` for none.
+    (address != 0).then(|| *unsafe { Box::from_raw(address as *mut Arc<dyn VZVirtioSocketListenerDelegate>) })
+  }
+
+  pub fn vz_set_delegate(&self, delegate: Option<Arc<dyn VZVirtioSocketListenerDelegate>>) {
+    match delegate {
+      Some(delegate) => {
+        ffi::vz_virtio_socket_listener_set_delegate(
+          self.bridge_retained(),
+          VZVirtioSocketListenerDelegateBridge { delegate },
+        );
+      }
+      None => self.bridge_set_delegate_nil(),
+    }
+  }
+}
+
+/// `VZVirtioSocketListenerDelegate`, which Rust implements. Virtualization
+/// calls it on the machine's queue.
+pub trait VZVirtioSocketListenerDelegate: Any + Send + Sync {
+  fn listener_should_accept_new_connection_from(
+    &self,
+    listener: VZVirtioSocketListener,
+    connection: VZVirtioSocketConnection,
+    socket_device: VZVirtioSocketDevice,
+  ) -> bool;
+}
+
+/// A [`VZVirtioSocketListenerDelegate`] as Swift holds it.
+pub struct VZVirtioSocketListenerDelegateBridge {
+  delegate: Arc<dyn VZVirtioSocketListenerDelegate>,
+}
+
+impl VZVirtioSocketListenerDelegateBridge {
+  /// Another reference to the delegate, for
+  /// [`VZVirtioSocketListener::vz_delegate`] to take, by address.
+  /// (swift-bridge's code for returning this type by value fails clippy.)
+  fn bridge_retained(&self) -> usize {
+    Box::into_raw(Box::new(Arc::clone(&self.delegate))) as usize
+  }
+
+  fn listener_should_accept_new_connection_from(
+    &self,
+    listener: VZVirtioSocketListener,
+    connection: VZVirtioSocketConnection,
+    socket_device: VZVirtioSocketDevice,
+  ) -> bool {
+    self
+      .delegate
+      .listener_should_accept_new_connection_from(listener, connection, socket_device)
   }
 }
 

@@ -173,6 +173,7 @@ Paravirtualized; moves data between guest and host without Ethernet or IP. Canno
 
 Listens on one or more ports of a `VZVirtioSocketDevice`; its delegate is used when a guest connects.
 
+- `init()`
 - `weak var delegate: (any VZVirtioSocketListenerDelegate)? { get set }`
 
 ## VZVirtioSocketListenerDelegate

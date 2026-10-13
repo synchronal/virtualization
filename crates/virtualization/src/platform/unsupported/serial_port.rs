@@ -2,7 +2,7 @@ use std::any::Any;
 use std::os::fd::{BorrowedFd, OwnedFd};
 use std::sync::Arc;
 
-use super::{BridgedNil, BridgedThrown, GUARDED, NSObject, NSURL, Never, Retained};
+use super::{BridgedNil, BridgedThrown, GUARDED, NSError, NSObject, NSURL, Never, Retained};
 
 pub(crate) fn vz_console_port_configuration_attachment(this: &NSObject) -> Option<Retained<NSObject>> {
   this.never()
@@ -358,3 +358,129 @@ impl VZVirtioConsolePortConfigurationArray {
     match self.never {}
   }
 }
+
+pub(crate) struct VZVirtioSocketConnection {
+  never: Never,
+}
+
+impl VZVirtioSocketConnection {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioSocketConnection {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_destination_port(&self) -> u32 {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_source_port(&self) -> u32 {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_file_descriptor(&self) -> i32 {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_close(&self) {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZVirtioSocketDevice {
+  never: Never,
+}
+
+pub(crate) fn vz_virtio_socket_device_bridge_cast(object: &NSObject) -> Option<VZVirtioSocketDevice> {
+  object.never()
+}
+
+impl VZVirtioSocketDevice {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioSocketDevice {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_socket_listener(&self, _listener: VZVirtioSocketListener, _port: u32) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_remove_socket_listener(&self, _port: u32) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_connect(
+    &self,
+    _port: u32,
+    _completion_handler: impl FnOnce(Result<VZVirtioSocketConnection, Retained<NSError>>) + Send + 'static,
+  ) {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZVirtioSocketDeviceConfiguration {
+  never: Never,
+}
+
+pub(crate) fn vz_virtio_socket_device_configuration_init() -> VZVirtioSocketDeviceConfiguration {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_virtio_socket_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioSocketDeviceConfiguration> {
+  object.never()
+}
+
+impl VZVirtioSocketDeviceConfiguration {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioSocketDeviceConfiguration {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZVirtioSocketListener {
+  never: Never,
+}
+
+pub(crate) fn vz_virtio_socket_listener_init() -> VZVirtioSocketListener {
+  unreachable!("{GUARDED}")
+}
+
+impl VZVirtioSocketListener {
+  pub(crate) fn bridge_retained(&self) -> VZVirtioSocketListener {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_delegate(&self) -> Option<Arc<dyn VZVirtioSocketListenerDelegate>> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_delegate(&self, _delegate: Option<Arc<dyn VZVirtioSocketListenerDelegate>>) {
+    match self.never {}
+  }
+}
+
+pub(crate) trait VZVirtioSocketListenerDelegate: Any + Send + Sync {}
+
+impl<T: Any + Send + Sync> VZVirtioSocketListenerDelegate for T {}

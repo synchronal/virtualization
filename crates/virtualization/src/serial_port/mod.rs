@@ -8,6 +8,10 @@ mod virtio_console_port;
 mod virtio_console_port_array;
 mod virtio_console_port_configuration;
 mod virtio_console_port_configuration_array;
+mod virtio_socket_connection;
+mod virtio_socket_device;
+mod virtio_socket_device_configuration;
+mod virtio_socket_listener;
 
 pub use self::file_handle_serial_port_attachment::FileHandleSerialPortAttachment;
 pub use self::file_serial_port_attachment::FileSerialPortAttachment;
@@ -19,6 +23,10 @@ pub use self::virtio_console_port::VirtioConsolePort;
 pub use self::virtio_console_port_array::VirtioConsolePortArray;
 pub use self::virtio_console_port_configuration::VirtioConsolePortConfiguration;
 pub use self::virtio_console_port_configuration_array::VirtioConsolePortConfigurationArray;
+pub use self::virtio_socket_connection::VirtioSocketConnection;
+pub use self::virtio_socket_device::VirtioSocketDevice;
+pub use self::virtio_socket_device_configuration::VirtioSocketDeviceConfiguration;
+pub use self::virtio_socket_listener::{VirtioSocketListener, VirtioSocketListenerDelegate};
 use crate::platform::ffi;
 use crate::sealed::Sealed;
 

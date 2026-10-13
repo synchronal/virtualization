@@ -72,7 +72,8 @@ pub use crate::serial_port::{
   FileSerialPortAttachment, SerialPortAttachment, SerialPortConfiguration, SocketDevice, SocketDeviceConfiguration,
   SpiceAgentPortAttachment, VirtioConsoleDevice, VirtioConsoleDeviceConfiguration, VirtioConsoleDeviceDelegate,
   VirtioConsoleDeviceSerialPortConfiguration, VirtioConsolePort, VirtioConsolePortArray,
-  VirtioConsolePortConfiguration, VirtioConsolePortConfigurationArray,
+  VirtioConsolePortConfiguration, VirtioConsolePortConfigurationArray, VirtioSocketConnection, VirtioSocketDevice,
+  VirtioSocketDeviceConfiguration, VirtioSocketListener, VirtioSocketListenerDelegate,
 };
 pub use crate::storage::{
   DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, StorageDeviceAttachment,
