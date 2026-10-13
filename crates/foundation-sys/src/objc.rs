@@ -22,7 +22,7 @@ use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use objc2::AllocAnyThread;
 pub use objc2::rc::Retained;
 pub use objc2::runtime::{AnyObject, NSObject};
-pub use objc2_foundation::{NSArray, NSData, NSDictionary, NSError, NSFileHandle, NSString, NSURL, NSUUID};
+pub use objc2_foundation::{NSArray, NSData, NSDictionary, NSError, NSFileHandle, NSNull, NSString, NSURL, NSUUID};
 
 /// A Foundation object, lent to Swift for one call.
 pub fn borrowed<T: objc2::Message>(object: &T) -> *const c_void {

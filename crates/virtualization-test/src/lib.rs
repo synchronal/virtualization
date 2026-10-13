@@ -5,14 +5,15 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, Lines, PipeReader, PipeWriter};
 use std::os::fd::OwnedFd;
 use std::path::PathBuf;
+use std::process::Command;
 use std::sync::mpsc;
 use std::time::Duration;
 
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::url::Url;
 use virtualization::{
-  Error, FileHandleSerialPortAttachment, LinuxBootLoader, SerialPortConfiguration,
-  VirtioConsoleDeviceSerialPortConfiguration, VirtioSocketConnection, VirtioSocketDevice,
+  EFIVariableStore, EFIVariableStoreInitializationOptions, Error, FileHandleSerialPortAttachment, LinuxBootLoader,
+  SerialPortConfiguration, VirtioConsoleDeviceSerialPortConfiguration, VirtioSocketConnection, VirtioSocketDevice,
   VirtioSocketDeviceConfiguration, VirtualMachine, VirtualMachineConfiguration,
 };
 
@@ -59,6 +60,31 @@ pub fn file(name: &str, contents: &[u8]) -> Url {
   std::fs::write(&path, contents).unwrap();
 
   Url::from_file_path(path).unwrap()
+}
+
+/// A self-signed X.509 certificate's DER bytes, as `/usr/bin/openssl` makes
+/// one for a new 2048-bit RSA key.
+pub fn certificate(name: &str) -> Vec<u8> {
+  let path = scratch_path(&format!("{name}.der"));
+  let made = Command::new("/usr/bin/openssl")
+    .args(["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", "/dev/null"])
+    .args(["-outform", "DER", "-days", "1", "-subj", &format!("/CN={name}"), "-out"])
+    .arg(&path)
+    .output()
+    .unwrap();
+
+  assert!(made.status.success(), "{}", String::from_utf8_lossy(&made.stderr));
+
+  std::fs::read(path).unwrap()
+}
+
+/// A new EFI variable store, in the scratch directory.
+pub fn variable_store(name: &str) -> EFIVariableStore {
+  EFIVariableStore::with_creating_variable_store_at_and_options(
+    &new_file_url(&format!("{name}.efivars")),
+    EFIVariableStoreInitializationOptions::new(0),
+  )
+  .unwrap()
 }
 
 /// A file URL for `path`, which need not exist.

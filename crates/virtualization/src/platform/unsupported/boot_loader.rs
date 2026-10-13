@@ -1,4 +1,4 @@
-use super::{GUARDED, NSObject, NSURL, Never, Retained};
+use super::{BridgedNil, BridgedThrown, GUARDED, NSObject, NSURL, Never, Retained, SecCertificate};
 
 pub(crate) struct VZLinuxBootLoader {
   never: Never,
@@ -46,6 +46,176 @@ impl VZLinuxBootLoader {
   }
 
   pub(crate) fn vz_set_initial_ramdisk_url(&self, _initial_ramdisk_url: Option<&NSURL>) {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZEFIBootLoader {
+  never: Never,
+}
+
+pub(crate) fn vz_efi_boot_loader_init() -> VZEFIBootLoader {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_efi_boot_loader_bridge_cast(object: &NSObject) -> Option<VZEFIBootLoader> {
+  object.never()
+}
+
+impl VZEFIBootLoader {
+  pub(crate) fn bridge_retained(&self) -> VZEFIBootLoader {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_variable_store(&self) -> Result<VZEFIVariableStore, BridgedNil> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_variable_store(&self, _variable_store: VZEFIVariableStore) {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_set_variable_store_nil(&self) {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZEFIVariableStore {
+  never: Never,
+}
+
+pub(crate) fn vz_efi_variable_store_init(_url: &NSURL) -> VZEFIVariableStore {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_efi_variable_store_init_creating_variable_store_at_options(
+  _url: &NSURL,
+  _options: usize,
+) -> Result<VZEFIVariableStore, BridgedThrown> {
+  unreachable!("{GUARDED}")
+}
+
+impl VZEFIVariableStore {
+  pub(crate) fn bridge_retained(&self) -> VZEFIVariableStore {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_url(&self) -> Retained<NSURL> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_enable_secure_boot_using_default_platform_key(&self) -> Result<(), BridgedThrown> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_enable_secure_boot(&self, _platform_key: &SecCertificate) -> Result<(), BridgedThrown> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_disable_secure_boot(&self) -> Result<(), BridgedThrown> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_reset_secure_boot(&self) -> Result<(), BridgedThrown> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_is_secure_boot_enabled(&self) -> Result<bool, BridgedThrown> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_enroll_default_secure_boot_signatures(&self) -> Result<(), BridgedThrown> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_enroll_secure_boot_signatures(
+    &self,
+    _signatures: VZEFISignatureDatabaseConfiguration,
+  ) -> Result<(), BridgedThrown> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_enrolled_secure_boot_signatures(
+    &self,
+  ) -> Result<VZEFISignatureDatabaseConfiguration, BridgedThrown> {
+    match self.never {}
+  }
+}
+
+pub(crate) enum VZEFISignature {
+  Sha256(Vec<u8>),
+  X509Certificate(SecCertificate),
+  Unknown,
+}
+
+pub(crate) struct VZEFISignatureList {
+  never: Never,
+}
+
+pub(crate) fn vz_efi_signature_list_init_contents_of(_url: &NSURL) -> Result<VZEFISignatureList, BridgedThrown> {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_efi_signature_list_init_signatures(_signatures: &[VZEFISignature]) -> VZEFISignatureList {
+  unreachable!("{GUARDED}")
+}
+
+impl VZEFISignatureList {
+  pub(crate) fn bridge_retained(&self) -> VZEFISignatureList {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_signatures(&self) -> Vec<VZEFISignature> {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZEFISignatureDatabaseConfiguration {
+  never: Never,
+}
+
+pub(crate) fn vz_efi_signature_database_configuration_init(
+  _key_exchange_keys: &[&VZEFISignatureList],
+  _db_signatures: &[&VZEFISignatureList],
+  _dbx_signatures: &[&VZEFISignatureList],
+) -> VZEFISignatureDatabaseConfiguration {
+  unreachable!("{GUARDED}")
+}
+
+impl VZEFISignatureDatabaseConfiguration {
+  pub(crate) fn bridge_retained(&self) -> VZEFISignatureDatabaseConfiguration {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_key_exchange_keys(&self) -> Vec<VZEFISignatureList> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_db_signatures(&self) -> Vec<VZEFISignatureList> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_dbx_signatures(&self) -> Vec<VZEFISignatureList> {
     match self.never {}
   }
 }

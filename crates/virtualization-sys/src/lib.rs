@@ -44,8 +44,8 @@ use std::sync::Arc;
 
 use dispatch2::{DispatchQueue, DispatchRetained};
 use foundation_sys::objc::{
-  NSArray, NSData, NSDictionary, NSString, borrowed, borrowed_or_nil, ns_array, ns_array_objects, ns_data,
-  ns_data_bytes, ns_dictionary, ns_dictionary_entries, retained, retained_or_nil,
+  AnyObject, NSArray, NSData, NSDictionary, NSNull, NSString, borrowed, borrowed_or_nil, ns_array, ns_array_objects,
+  ns_data, ns_data_bytes, ns_description, ns_dictionary, ns_dictionary_entries, retained, retained_or_nil,
 };
 pub use foundation_sys::objc::{NSError, NSObject, NSURL, Retained, ns_url_absolute_string, ns_url_init_string};
 use foundation_sys::objc::{
@@ -54,20 +54,20 @@ use foundation_sys::objc::{
 
 pub use self::ffi::{
   BridgedNil, BridgedThrown, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
-  VZDiskImageSynchronizationMode, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment,
-  VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader, VZMACAddress,
-  VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
-  VZSpiceAgentPortAttachment, VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice,
-  VZVirtioConsoleDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort,
-  VZVirtioConsolePortArray, VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray,
-  VZVirtioEntropyDeviceConfiguration, VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration,
-  VZVirtioNetworkDeviceConfiguration, VZVirtioSocketConnection, VZVirtioSocketDevice,
-  VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener, VZVirtioTraditionalMemoryBalloonDevice,
-  VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine, VZVirtualMachineConfiguration,
-  VZVirtualMachineState, vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
-  vz_generic_platform_configuration_is_nested_virtualization_supported, vz_mac_address_random_locally_administered,
-  vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
-  vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
+  VZDiskImageSynchronizationMode, VZEFIBootLoader, VZEFISignatureDatabaseConfiguration, VZEFISignatureList,
+  VZEFIVariableStore, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment, VZGenericMachineIdentifier,
+  VZGenericPlatformConfiguration, VZLinuxBootLoader, VZMACAddress, VZMultipleDirectoryShare,
+  VZNATNetworkDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare, VZSpiceAgentPortAttachment,
+  VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice, VZVirtioConsoleDeviceConfiguration,
+  VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort, VZVirtioConsolePortArray,
+  VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioEntropyDeviceConfiguration,
+  VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration, VZVirtioNetworkDeviceConfiguration,
+  VZVirtioSocketConnection, VZVirtioSocketDevice, VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener,
+  VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
+  VZVirtualMachineConfiguration, VZVirtualMachineState, vz_efi_boot_loader_init, vz_generic_machine_identifier_init,
+  vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
+  vz_mac_address_random_locally_administered, vz_multiple_directory_share_canonicalized_name,
+  vz_multiple_directory_share_init, vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
   vz_spice_agent_port_attachment_init, vz_spice_agent_port_attachment_spice_agent_port_name,
   vz_virtio_block_device_configuration_validate_block_device_identifier, vz_virtio_console_device_configuration_init,
   vz_virtio_console_device_serial_port_configuration_init, vz_virtio_console_port_configuration_init,
@@ -101,6 +101,13 @@ mod ffi {
 
   extern "Swift" {
     fn bridge_take_thrown_error() -> *mut c_void;
+  }
+
+  // Security.swift
+
+  extern "Swift" {
+    fn sec_certificate_create_with_data(data: *const c_void) -> usize;
+    fn sec_certificate_copy_data(certificate: *const c_void) -> *mut c_void;
   }
 
   // VirtualMachine.swift
@@ -292,6 +299,86 @@ mod ffi {
     fn vz_set_command_line(self: &VZLinuxBootLoader, command_line: &str);
     fn vz_linux_boot_loader_initial_ramdisk_url(this: VZLinuxBootLoader) -> usize;
     fn vz_linux_boot_loader_set_initial_ramdisk_url(this: VZLinuxBootLoader, initial_ramdisk_url: usize);
+  }
+
+  // BootLoader/EFIBootLoader.swift
+
+  extern "Swift" {
+    type VZEFIBootLoader;
+
+    fn vz_efi_boot_loader_init() -> VZEFIBootLoader;
+    fn bridge_retained(self: &VZEFIBootLoader) -> VZEFIBootLoader;
+    fn bridge_borrowed(self: &VZEFIBootLoader) -> *const c_void;
+    fn vz_efi_boot_loader_bridge_cast(object: *const c_void) -> Result<VZEFIBootLoader, BridgedNil>;
+    fn ns_description(self: &VZEFIBootLoader) -> String;
+    fn vz_variable_store(self: &VZEFIBootLoader) -> Result<VZEFIVariableStore, BridgedNil>;
+    fn vz_set_variable_store(self: &VZEFIBootLoader, variable_store: VZEFIVariableStore);
+    fn bridge_set_variable_store_nil(self: &VZEFIBootLoader);
+  }
+
+  // BootLoader/EFIVariableStore.swift
+
+  extern "Swift" {
+    type VZEFIVariableStore;
+
+    fn vz_efi_variable_store_init(url: *const c_void) -> VZEFIVariableStore;
+    fn vz_efi_variable_store_init_creating_variable_store_at_options(
+      url: *const c_void,
+      options: usize,
+    ) -> Result<VZEFIVariableStore, BridgedThrown>;
+    fn bridge_retained(self: &VZEFIVariableStore) -> VZEFIVariableStore;
+    fn ns_description(self: &VZEFIVariableStore) -> String;
+    fn vz_efi_variable_store_url(this: VZEFIVariableStore) -> *mut c_void;
+    fn vz_enable_secure_boot_using_default_platform_key(self: &VZEFIVariableStore) -> Result<(), BridgedThrown>;
+    fn vz_efi_variable_store_enable_secure_boot(
+      this: VZEFIVariableStore,
+      platform_key: *const c_void,
+    ) -> Result<(), BridgedThrown>;
+    fn vz_disable_secure_boot(self: &VZEFIVariableStore) -> Result<(), BridgedThrown>;
+    fn vz_reset_secure_boot(self: &VZEFIVariableStore) -> Result<(), BridgedThrown>;
+    fn vz_is_secure_boot_enabled(self: &VZEFIVariableStore) -> Result<bool, BridgedThrown>;
+    fn vz_enroll_default_secure_boot_signatures(self: &VZEFIVariableStore) -> Result<(), BridgedThrown>;
+    fn vz_enroll_secure_boot_signatures(
+      self: &VZEFIVariableStore,
+      signatures: VZEFISignatureDatabaseConfiguration,
+    ) -> Result<(), BridgedThrown>;
+    fn vz_enrolled_secure_boot_signatures(
+      self: &VZEFIVariableStore,
+    ) -> Result<VZEFISignatureDatabaseConfiguration, BridgedThrown>;
+  }
+
+  // BootLoader/EFISignatureList.swift
+
+  extern "Swift" {
+    type VZEFISignatureList;
+
+    fn vz_efi_signature_list_init_contents_of(url: *const c_void) -> Result<VZEFISignatureList, BridgedThrown>;
+    fn vz_efi_signature_list_init_signatures(signatures: *const c_void) -> VZEFISignatureList;
+    fn vz_efi_signature_list_bridge_from(object: *const c_void) -> VZEFISignatureList;
+    fn bridge_retained(self: &VZEFISignatureList) -> VZEFISignatureList;
+    fn bridge_borrowed(self: &VZEFISignatureList) -> *const c_void;
+    fn ns_description(self: &VZEFISignatureList) -> String;
+    fn vz_efi_signature_list_signatures(this: VZEFISignatureList) -> *mut c_void;
+  }
+
+  // BootLoader/EFISignatureDatabaseConfiguration.swift
+
+  extern "Swift" {
+    type VZEFISignatureDatabaseConfiguration;
+
+    fn vz_efi_signature_database_configuration_init(
+      key_exchange_keys: *const c_void,
+      db_signatures: *const c_void,
+      dbx_signatures: *const c_void,
+    ) -> VZEFISignatureDatabaseConfiguration;
+    fn bridge_retained(self: &VZEFISignatureDatabaseConfiguration) -> VZEFISignatureDatabaseConfiguration;
+    fn ns_description(self: &VZEFISignatureDatabaseConfiguration) -> String;
+    fn vz_efi_signature_database_configuration_key_exchange_keys(
+      this: VZEFISignatureDatabaseConfiguration,
+    ) -> *mut c_void;
+    fn vz_efi_signature_database_configuration_db_signatures(this: VZEFISignatureDatabaseConfiguration) -> *mut c_void;
+    fn vz_efi_signature_database_configuration_dbx_signatures(this: VZEFISignatureDatabaseConfiguration)
+    -> *mut c_void;
   }
 
   // BootLoader/GenericPlatformConfiguration.swift
@@ -897,6 +984,51 @@ pub fn bridge_take_thrown_error() -> Retained<NSError> {
   unsafe { retained(ffi::bridge_take_thrown_error()) }
 }
 
+// Security.swift
+
+/// [`SecCertificate`](https://developer.apple.com/documentation/security/seccertificate),
+/// which Virtualization's Secure Boot members take and return. An objc2
+/// object, not an opaque Swift type: an array holds one beside an `NSData`.
+pub struct SecCertificate {
+  object: Retained<AnyObject>,
+}
+
+// SAFETY: a certificate never changes, and Apple's `VZEFISignature`, which
+// carries one, is `Sendable`.
+unsafe impl Send for SecCertificate {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for SecCertificate {}
+
+/// [`SecCertificateCreateWithData(_:_:)`](https://developer.apple.com/documentation/security/seccertificatecreatewithdata(_:_:)),
+/// with the default allocator. `Data` is its bytes.
+pub fn sec_certificate_create_with_data(data: &[u8]) -> Option<SecCertificate> {
+  // SAFETY: a retained `SecCertificate`, or `nil`.
+  unsafe { retained_or_nil(ffi::sec_certificate_create_with_data(borrowed(&*ns_data(data)))) }
+    .map(|object| SecCertificate { object })
+}
+
+impl SecCertificate {
+  pub fn bridge_retained(&self) -> Self {
+    Self {
+      object: self.object.clone(),
+    }
+  }
+
+  pub fn ns_description(&self) -> String {
+    ns_description(&self.object)
+  }
+
+  /// [`SecCertificateCopyData(_:)`](https://developer.apple.com/documentation/security/seccertificatecopydata(_:)).
+  /// `Data` is its bytes.
+  pub fn sec_certificate_copy_data(&self) -> Vec<u8> {
+    // SAFETY: a retained `NSData`.
+    let data: Retained<NSData> = unsafe { retained(ffi::sec_certificate_copy_data(borrowed(&*self.object))) };
+
+    ns_data_bytes(&data)
+  }
+}
+
 // VirtualMachine.swift
 
 pub fn vz_virtual_machine_init(configuration: &VZVirtualMachineConfiguration) -> VZVirtualMachine {
@@ -1399,6 +1531,190 @@ impl VZLinuxBootLoader {
 
   pub fn vz_set_initial_ramdisk_url(&self, initial_ramdisk_url: Option<&NSURL>) {
     ffi::vz_linux_boot_loader_set_initial_ramdisk_url(self.bridge_retained(), borrowed_or_nil(initial_ramdisk_url));
+  }
+}
+
+// BootLoader/EFIBootLoader.swift
+
+pub fn vz_efi_boot_loader_bridge_cast(object: &NSObject) -> Option<VZEFIBootLoader> {
+  ffi::vz_efi_boot_loader_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZEFIBootLoader {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// BootLoader/EFIVariableStore.swift
+
+pub fn vz_efi_variable_store_init(url: &NSURL) -> VZEFIVariableStore {
+  ffi::vz_efi_variable_store_init(borrowed(url))
+}
+
+/// `options` is a `VZEFIVariableStore.InitializationOptions`' raw value.
+pub fn vz_efi_variable_store_init_creating_variable_store_at_options(
+  url: &NSURL,
+  options: usize,
+) -> Result<VZEFIVariableStore, BridgedThrown> {
+  ffi::vz_efi_variable_store_init_creating_variable_store_at_options(borrowed(url), options)
+}
+
+impl VZEFIVariableStore {
+  pub fn vz_url(&self) -> Retained<NSURL> {
+    // SAFETY: `url`, a retained `NSURL`.
+    unsafe { retained(ffi::vz_efi_variable_store_url(self.bridge_retained())) }
+  }
+
+  pub fn vz_enable_secure_boot(&self, platform_key: &SecCertificate) -> Result<(), BridgedThrown> {
+    ffi::vz_efi_variable_store_enable_secure_boot(self.bridge_retained(), borrowed(&*platform_key.object))
+  }
+}
+
+// BootLoader/EFISignatureList.swift
+
+/// [`VZEFISignature`](https://developer.apple.com/documentation/virtualization/vzefisignature).
+/// `Data` is its bytes. `Unknown` is a case newer than this crate; passing it
+/// to Virtualization stops the process.
+pub enum VZEFISignature {
+  Sha256(Vec<u8>),
+  X509Certificate(SecCertificate),
+  Unknown,
+}
+
+impl VZEFISignature {
+  /// What crosses for it: its hash as `NSData`, its certificate, or `NSNull`
+  /// for `Unknown`.
+  fn bridge_object(&self) -> Retained<AnyObject> {
+    match self {
+      Self::Sha256(data) => Retained::into_super(Retained::into_super(ns_data(data))),
+      Self::X509Certificate(certificate) => certificate.object.clone(),
+      Self::Unknown => Retained::into_super(Retained::into_super(NSNull::null())),
+    }
+  }
+
+  fn bridge_from(object: Retained<AnyObject>) -> Self {
+    let object = match object.downcast::<NSData>() {
+      Ok(data) => return Self::Sha256(ns_data_bytes(&data)),
+      Err(object) => object,
+    };
+
+    match object.downcast::<NSNull>() {
+      Ok(_) => Self::Unknown,
+      Err(object) => Self::X509Certificate(SecCertificate { object }),
+    }
+  }
+}
+
+// SAFETY: Apple declares `VZEFISignatureList` `Sendable`.
+unsafe impl Send for VZEFISignatureList {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for VZEFISignatureList {}
+
+pub fn vz_efi_signature_list_init_contents_of(url: &NSURL) -> Result<VZEFISignatureList, BridgedThrown> {
+  ffi::vz_efi_signature_list_init_contents_of(borrowed(url))
+}
+
+pub fn vz_efi_signature_list_init_signatures(signatures: &[VZEFISignature]) -> VZEFISignatureList {
+  let objects: Vec<_> = signatures
+    .iter()
+    .map(VZEFISignature::bridge_object)
+    .collect();
+  let objects: Vec<_> = objects.iter().map(|object| &**object).collect();
+
+  ffi::vz_efi_signature_list_init_signatures(borrowed(&*ns_array(&objects)))
+}
+
+impl VZEFISignatureList {
+  fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  pub fn vz_signatures(&self) -> Vec<VZEFISignature> {
+    // SAFETY: `signatures`, a retained `NSArray` of what each crosses as.
+    let signatures: Retained<NSArray<AnyObject>> =
+      unsafe { retained(ffi::vz_efi_signature_list_signatures(self.bridge_retained())) };
+
+    ns_array_objects(&signatures)
+      .into_iter()
+      .map(VZEFISignature::bridge_from)
+      .collect()
+  }
+}
+
+// BootLoader/EFISignatureDatabaseConfiguration.swift
+
+/// An `NSArray` of `signature_lists`.
+fn signature_lists(signature_lists: &[&VZEFISignatureList]) -> Retained<NSArray<NSObject>> {
+  let objects: Vec<_> = signature_lists
+    .iter()
+    .map(|signature_list| signature_list.bridge_object())
+    .collect();
+
+  ns_array(&objects)
+}
+
+/// The signature lists of an array Swift handed over.
+///
+/// # Safety
+///
+/// `pointer` is what `bridging(retained:)` returned for an `NSArray` of
+/// `VZEFISignatureList`s, taken once.
+unsafe fn bridge_signature_lists(pointer: *mut c_void) -> Vec<VZEFISignatureList> {
+  // SAFETY: the caller's.
+  unsafe { bridge_objects(pointer) }
+    .iter()
+    .map(|signature_list| ffi::vz_efi_signature_list_bridge_from(borrowed(&**signature_list)))
+    .collect()
+}
+
+// SAFETY: Apple declares `VZEFISignatureDatabaseConfiguration` `Sendable`.
+unsafe impl Send for VZEFISignatureDatabaseConfiguration {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for VZEFISignatureDatabaseConfiguration {}
+
+pub fn vz_efi_signature_database_configuration_init(
+  key_exchange_keys: &[&VZEFISignatureList],
+  db_signatures: &[&VZEFISignatureList],
+  dbx_signatures: &[&VZEFISignatureList],
+) -> VZEFISignatureDatabaseConfiguration {
+  ffi::vz_efi_signature_database_configuration_init(
+    borrowed(&*signature_lists(key_exchange_keys)),
+    borrowed(&*signature_lists(db_signatures)),
+    borrowed(&*signature_lists(dbx_signatures)),
+  )
+}
+
+impl VZEFISignatureDatabaseConfiguration {
+  pub fn vz_key_exchange_keys(&self) -> Vec<VZEFISignatureList> {
+    // SAFETY: `keyExchangeKeys`, a retained `NSArray` of `VZEFISignatureList`s.
+    unsafe {
+      bridge_signature_lists(ffi::vz_efi_signature_database_configuration_key_exchange_keys(
+        self.bridge_retained(),
+      ))
+    }
+  }
+
+  pub fn vz_db_signatures(&self) -> Vec<VZEFISignatureList> {
+    // SAFETY: `dbSignatures`, a retained `NSArray` of `VZEFISignatureList`s.
+    unsafe {
+      bridge_signature_lists(ffi::vz_efi_signature_database_configuration_db_signatures(
+        self.bridge_retained(),
+      ))
+    }
+  }
+
+  pub fn vz_dbx_signatures(&self) -> Vec<VZEFISignatureList> {
+    // SAFETY: `dbxSignatures`, a retained `NSArray` of `VZEFISignatureList`s.
+    unsafe {
+      bridge_signature_lists(ffi::vz_efi_signature_database_configuration_dbx_signatures(
+        self.bridge_retained(),
+      ))
+    }
   }
 }
 

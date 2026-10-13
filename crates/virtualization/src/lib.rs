@@ -7,8 +7,8 @@
 //!
 //! - Objects are shared references, as in Swift: [`Clone`] is the same
 //!   object, setters take `&self`, and nothing is `Send` or `Sync` but
-//!   [`VirtualMachine`], which moves onto its queue. [`Debug`] is the
-//!   object's `description`.
+//!   [`VirtualMachine`], which moves onto its queue, and what Apple declares
+//!   `Sendable`. [`Debug`] is the object's `description`.
 //! - An abstract class is a sealed trait, implemented by its subclasses. A
 //!   member that returns one takes the subclass to cast it to, as Swift's
 //!   `as?`, and returns `None` when it is another. An array of one is a slice
@@ -20,7 +20,9 @@
 //! - A completion handler is a closure, called on the queue Virtualization
 //!   calls Swift's on. A delegate is a trait object, held as weakly as Swift
 //!   holds its delegate.
-//! - DiskImageKit's types are [`disk_image_kit`]'s, re-exported.
+//! - DiskImageKit's types are [`disk_image_kit`]'s, re-exported. Security's
+//!   `SecCertificate` is [`SecCertificate`], made from and read as its DER
+//!   bytes.
 //! - An enum has an `Unknown(rawValue)` case, for one newer than this crate.
 //! - Initializers, class members, throwing members, and members that take or
 //!   return a URL return `Result<_, Error>`.
@@ -39,6 +41,7 @@ mod network;
 mod other_devices;
 mod platform;
 mod sealed;
+mod security;
 mod serial_port;
 mod storage;
 mod virtual_machine;
@@ -47,7 +50,9 @@ mod virtual_machine_configuration;
 pub use {disk_image_kit, dispatch2, url};
 
 pub use crate::boot_loader::{
-  BootLoader, GenericMachineIdentifier, GenericPlatformConfiguration, LinuxBootLoader, PlatformConfiguration,
+  BootLoader, EFIBootLoader, EFISignature, EFISignatureDatabaseConfiguration, EFISignatureList, EFIVariableStore,
+  EFIVariableStoreInitializationOptions, GenericMachineIdentifier, GenericPlatformConfiguration, LinuxBootLoader,
+  PlatformConfiguration,
 };
 pub use crate::directory_sharing::{
   DirectoryShare, DirectorySharingDevice, DirectorySharingDeviceConfiguration, MultipleDirectoryShare, SharedDirectory,
@@ -67,6 +72,7 @@ pub use crate::other_devices::{
   USBControllerConfiguration, VirtioEntropyDeviceConfiguration, VirtioTraditionalMemoryBalloonDevice,
   VirtioTraditionalMemoryBalloonDeviceConfiguration,
 };
+pub use crate::security::SecCertificate;
 pub use crate::serial_port::{
   ConsoleDevice, ConsoleDeviceConfiguration, ConsolePortConfiguration, FileHandleSerialPortAttachment,
   FileSerialPortAttachment, SerialPortAttachment, SerialPortConfiguration, SocketDevice, SocketDeviceConfiguration,

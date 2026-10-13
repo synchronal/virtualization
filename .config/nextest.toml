@@ -21,6 +21,6 @@ setup = 'prepare-integration'
 machines = { max-threads = 4 }
 
 [[profile.default.overrides]]
-filter = 'binary(virtual_machine) | binary(virtio_block_device_configuration) | binary(disk_image_storage_device_attachment) | binary(virtio_network_device_configuration) | binary(network_device) | binary(virtio_file_system_device_configuration) | binary(virtio_file_system_device) | binary(virtio_entropy_device_configuration) | binary(virtio_traditional_memory_balloon_device) | binary(virtio_console_device_configuration) | binary(virtio_console_device) | binary(virtio_console_port) | binary(virtio_socket_device_configuration) | binary(virtio_socket_device) | binary(virtio_socket_listener) | binary(virtio_socket_connection)'
+filter = 'binary(virtual_machine) | binary(virtio_block_device_configuration) | binary(disk_image_storage_device_attachment) | binary(virtio_network_device_configuration) | binary(network_device) | binary(virtio_file_system_device_configuration) | binary(virtio_file_system_device) | binary(virtio_entropy_device_configuration) | binary(virtio_traditional_memory_balloon_device) | binary(virtio_console_device_configuration) | binary(virtio_console_device) | binary(virtio_console_port) | binary(virtio_socket_device_configuration) | binary(virtio_socket_device) | binary(virtio_socket_listener) | binary(virtio_socket_connection) | binary(efi_boot_loader)'
 test-group = 'machines'
 slow-timeout = { period = "30s", terminate-after = 2 }
