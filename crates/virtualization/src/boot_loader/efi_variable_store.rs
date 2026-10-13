@@ -132,12 +132,18 @@ pub struct EFIVariableStoreInitializationOptions {
 }
 
 impl EFIVariableStoreInitializationOptions {
-  /// [`allowOverwrite`](https://developer.apple.com/documentation/virtualization/vzefivariablestore/initializationoptions/allowoverwrite)
-  pub const ALLOW_OVERWRITE: Self = Self { raw_value: 1 << 0 };
-
   /// [`init(rawValue:)`](https://developer.apple.com/documentation/virtualization/vzefivariablestore/initializationoptions/init(rawvalue:))
   pub fn new(raw_value: usize) -> Self {
     Self { raw_value }
+  }
+
+  /// [`allowOverwrite`](https://developer.apple.com/documentation/virtualization/vzefivariablestore/initializationoptions/allowoverwrite)
+  pub fn allow_overwrite() -> Result<Self, Error> {
+    platform::supported()?;
+
+    Ok(Self {
+      raw_value: ffi::vz_efi_variable_store_initialization_options_allow_overwrite(),
+    })
   }
 }
 
@@ -146,16 +152,8 @@ mod tests {
   use super::*;
 
   #[test]
-  fn allow_overwrite_is_apples_raw_value() {
-    assert_eq!(EFIVariableStoreInitializationOptions::ALLOW_OVERWRITE.raw_value, 1);
-  }
-
-  #[test]
   fn has_the_raw_value_it_was_made_with() {
-    assert_eq!(
-      EFIVariableStoreInitializationOptions::new(1),
-      EFIVariableStoreInitializationOptions::ALLOW_OVERWRITE
-    );
+    assert_eq!(EFIVariableStoreInitializationOptions::new(1).raw_value, 1);
   }
 
   #[cfg(not(target_os = "macos"))]
@@ -163,6 +161,10 @@ mod tests {
   fn is_unsupported_off_macos() {
     let url = Url::parse("file:///nowhere/efi-variable-store").unwrap();
 
+    assert!(matches!(
+      EFIVariableStoreInitializationOptions::allow_overwrite(),
+      Err(Error::Unsupported)
+    ));
     assert!(matches!(EFIVariableStore::new(&url), Err(Error::Unsupported)));
     assert!(matches!(
       EFIVariableStore::with_creating_variable_store_at_and_options(

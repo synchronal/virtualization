@@ -103,6 +103,10 @@ pub(crate) fn vz_efi_variable_store_init_creating_variable_store_at_options(
   unreachable!("{GUARDED}")
 }
 
+pub(crate) fn vz_efi_variable_store_initialization_options_allow_overwrite() -> usize {
+  unreachable!("{GUARDED}")
+}
+
 impl VZEFIVariableStore {
   pub(crate) fn bridge_retained(&self) -> VZEFIVariableStore {
     match self.never {}

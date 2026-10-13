@@ -21,6 +21,10 @@ func vz_efi_variable_store_init_creating_variable_store_at_options(url: UnsafeRa
   }
 }
 
+func vz_efi_variable_store_initialization_options_allow_overwrite() -> UInt {
+  VZEFIVariableStore.InitializationOptions.allowOverwrite.rawValue
+}
+
 func vz_efi_variable_store_url(this: VZEFIVariableStore) -> UnsafeMutableRawPointer {
   bridging(retained: this.url as NSURL)
 }

@@ -64,7 +64,8 @@ pub use self::ffi::{
   VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration, VZVirtioNetworkDeviceConfiguration,
   VZVirtioSocketConnection, VZVirtioSocketDevice, VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener,
   VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
-  VZVirtualMachineConfiguration, VZVirtualMachineState, vz_efi_boot_loader_init, vz_generic_machine_identifier_init,
+  VZVirtualMachineConfiguration, VZVirtualMachineState, vz_efi_boot_loader_init,
+  vz_efi_variable_store_initialization_options_allow_overwrite, vz_generic_machine_identifier_init,
   vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
   vz_mac_address_random_locally_administered, vz_multiple_directory_share_canonicalized_name,
   vz_multiple_directory_share_init, vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
@@ -326,6 +327,7 @@ mod ffi {
       url: *const c_void,
       options: usize,
     ) -> Result<VZEFIVariableStore, BridgedThrown>;
+    fn vz_efi_variable_store_initialization_options_allow_overwrite() -> usize;
     fn bridge_retained(self: &VZEFIVariableStore) -> VZEFIVariableStore;
     fn ns_description(self: &VZEFIVariableStore) -> String;
     fn vz_efi_variable_store_url(this: VZEFIVariableStore) -> *mut c_void;

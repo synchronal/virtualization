@@ -46,11 +46,21 @@ fn overwrites_a_file_when_allowed() {
 
   let store = EFIVariableStore::with_creating_variable_store_at_and_options(
     &url,
-    EFIVariableStoreInitializationOptions::ALLOW_OVERWRITE,
+    EFIVariableStoreInitializationOptions::allow_overwrite().unwrap(),
   )
   .unwrap();
 
   assert_eq!(store.url().unwrap(), url);
+}
+
+#[test]
+fn allows_overwriting_with_its_first_bit() {
+  assert_eq!(
+    EFIVariableStoreInitializationOptions::allow_overwrite()
+      .unwrap()
+      .raw_value,
+    1 << 0
+  );
 }
 
 #[test]
