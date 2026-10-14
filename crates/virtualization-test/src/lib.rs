@@ -3,7 +3,7 @@
 
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines, PipeReader, PipeWriter, Read, Write};
-use std::net::{Shutdown, TcpListener, TcpStream};
+use std::net::{Ipv4Addr, Shutdown, TcpListener, TcpStream};
 use std::os::fd::OwnedFd;
 use std::path::PathBuf;
 use std::process::Command;
@@ -12,11 +12,13 @@ use std::time::Duration;
 
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::url::Url;
+use virtualization::vmnet::{Mode, Network, NetworkConfiguration};
 use virtualization::{
   DiskImageStorageDeviceAttachment, EFIVariableStore, EFIVariableStoreInitializationOptions, Error,
-  FileHandleSerialPortAttachment, LinuxBootLoader, SerialPortConfiguration, USBMassStorageDevice,
-  USBMassStorageDeviceConfiguration, VirtioConsoleDeviceSerialPortConfiguration, VirtioSocketConnection,
-  VirtioSocketDevice, VirtioSocketDeviceConfiguration, VirtualMachine, VirtualMachineConfiguration, XHCIController,
+  FileHandleSerialPortAttachment, LinuxBootLoader, NetworkDeviceConfiguration, SerialPortConfiguration,
+  USBMassStorageDevice, USBMassStorageDeviceConfiguration, VirtioConsoleDeviceSerialPortConfiguration,
+  VirtioNetworkDeviceConfiguration, VirtioSocketConnection, VirtioSocketDevice, VirtioSocketDeviceConfiguration,
+  VirtualMachine, VirtualMachineConfiguration, VmnetNetworkDeviceAttachment, XHCIController,
 };
 
 /// A path in the suites' scratch directory, named for the test that uses it.
@@ -381,6 +383,59 @@ pub fn booting_machine(
   });
 
   (queue, machine, console)
+}
+
+/// What a guest found on a vmnet network: the address a DHCP lease gave
+/// `eth0`, if one came within five seconds, and `eth0`'s MTU.
+pub struct GuestNetwork {
+  pub lease: Option<Ipv4Addr>,
+  pub mtu: u32,
+  /// The network's `subnet` and `mask`.
+  pub subnet: (Ipv4Addr, Ipv4Addr),
+}
+
+/// Boots a guest with a Virtio network device on a host-mode vmnet network,
+/// and reports what it found. `configure` adds to the network's configuration
+/// and the device's.
+pub fn guest_network(
+  name: &str,
+  configure: impl FnOnce(&NetworkConfiguration, &VirtioNetworkDeviceConfiguration) + Send,
+) -> GuestNetwork {
+  let script = "printf '#!/bin/sh\\n[ \"$1\" = bound ] && echo \"lease:$ip\"\\n' > /bin/lease\nchmod +x \
+                /bin/lease\nip link set eth0 up\nudhcpc -i eth0 -n -q -t 5 -T 1 -s /bin/lease || echo \
+                lease:none\necho \"mtu:$(cat /sys/class/net/eth0/mtu)\"\npoweroff -f";
+  let mut subnet = (Ipv4Addr::UNSPECIFIED, Ipv4Addr::UNSPECIFIED);
+  let (queue, machine, mut console) = booting_machine(name, Some(&initial_ramdisk(name, script)), |configuration| {
+    let network_configuration = NetworkConfiguration::new(Mode::Host).unwrap();
+    let device = VirtioNetworkDeviceConfiguration::new().unwrap();
+
+    configure(&network_configuration, &device);
+    let network = Network::new(&network_configuration).unwrap();
+
+    subnet = network.ipv4_subnet();
+    device.set_attachment(Some(&VmnetNetworkDeviceAttachment::new(&network).unwrap()));
+    configuration.set_network_devices(&[&device]);
+  });
+
+  start(&queue, &machine);
+  let lease = console.read_until("lease:");
+  let mtu = console.read_until("mtu:");
+
+  GuestNetwork {
+    lease: lease
+      .trim_end()
+      .strip_prefix("lease:")
+      .unwrap()
+      .parse()
+      .ok(),
+    mtu: mtu
+      .trim_end()
+      .strip_prefix("mtu:")
+      .unwrap()
+      .parse()
+      .unwrap(),
+    subnet,
+  }
 }
 
 /// An attachment of a pipe each way, and the host's ends of them.

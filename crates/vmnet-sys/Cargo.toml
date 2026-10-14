@@ -1,0 +1,30 @@
+[package]
+build = "build.rs"
+categories.workspace = true
+description = "FFI to Apple's vmnet framework, through swift-bridge. Use the `vmnet` crate instead."
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+links = "VmnetBridge"
+name = "vmnet-sys"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+# The Swift package is an input to the build script, not a cargo target, so it
+# ships whole. Naming the sources keeps the tarball the same whatever is lying
+# around a working tree.
+include = [
+  "/LICENSE",
+  "/build.rs",
+  "/src/**/*.rs",
+  "/swift/Package.swift",
+  "/swift/Sources/**/*.h",
+  "/swift/Sources/**/*.swift",
+]
+
+[dependencies]
+swift-bridge.workspace = true
+
+[build-dependencies]
+swift-bridge-build.workspace = true

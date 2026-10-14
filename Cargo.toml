@@ -6,6 +6,8 @@ members = [
   "crates/virtualization",
   "crates/virtualization-sys",
   "crates/virtualization-test",
+  "crates/vmnet",
+  "crates/vmnet-sys",
 ]
 # The integration suites run only signed, through bin/dev/test-integration.
 default-members = [
@@ -14,6 +16,8 @@ default-members = [
   "crates/foundation-sys",
   "crates/virtualization",
   "crates/virtualization-sys",
+  "crates/vmnet",
+  "crates/vmnet-sys",
 ]
 resolver = "3"
 
@@ -52,3 +56,5 @@ url = "2"
 uuid = { version = "1", default-features = false }
 virtualization = { path = "crates/virtualization", version = "0.1.0" }
 virtualization-sys = { path = "crates/virtualization-sys", version = "0.1.0" }
+vmnet = { path = "crates/vmnet", version = "0.1.0" }
+vmnet-sys = { path = "crates/vmnet-sys", version = "0.1.0" }

@@ -484,6 +484,7 @@ dependencies = [
  "url",
  "uuid",
  "virtualization-sys",
+ "vmnet",
 ]
 
 [[package]]
@@ -495,6 +496,7 @@ dependencies = [
  "foundation-sys",
  "swift-bridge",
  "swift-bridge-build",
+ "vmnet-sys",
 ]
 
 [[package]]
@@ -502,6 +504,21 @@ name = "virtualization-test"
 version = "0.1.0"
 dependencies = [
  "virtualization",
+]
+
+[[package]]
+name = "vmnet"
+version = "0.1.0"
+dependencies = [
+ "vmnet-sys",
+]
+
+[[package]]
+name = "vmnet-sys"
+version = "0.1.0"
+dependencies = [
+ "swift-bridge",
+ "swift-bridge-build",
 ]
 
 [[package]]

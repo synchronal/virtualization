@@ -21,7 +21,8 @@
 //! - A completion handler is a closure, called on the queue Virtualization
 //!   calls Swift's on. A delegate is a trait object, held as weakly as Swift
 //!   holds its delegate.
-//! - DiskImageKit's types are [`disk_image_kit`]'s, re-exported. Security's
+//! - DiskImageKit's types are [`disk_image_kit`]'s, and vmnet's are
+//!   [`vmnet`]'s, re-exported. Security's
 //!   `SecCertificate` is [`SecCertificate`], made from and read as its DER
 //!   bytes.
 //! - An enum has an `Unknown(rawValue)` case, for one newer than this crate.
@@ -48,7 +49,7 @@ mod storage;
 mod virtual_machine;
 mod virtual_machine_configuration;
 
-pub use {disk_image_kit, dispatch2, url, uuid};
+pub use {disk_image_kit, dispatch2, url, uuid, vmnet};
 
 pub use crate::boot_loader::{
   BootLoader, EFIBootLoader, EFISignature, EFISignatureDatabaseConfiguration, EFISignatureList, EFIVariableStore,
@@ -67,7 +68,7 @@ pub use crate::graphics::{
 pub use crate::network::{
   BridgedNetworkDeviceAttachment, BridgedNetworkInterface, FileHandleNetworkDeviceAttachment, MACAddress,
   NATNetworkDeviceAttachment, NetworkDevice, NetworkDeviceAttachment, NetworkDeviceConfiguration,
-  VirtioNetworkDeviceConfiguration,
+  VirtioNetworkDeviceConfiguration, VmnetNetworkDeviceAttachment,
 };
 pub use crate::other_devices::{
   EntropyDeviceConfiguration, MemoryBalloonDevice, MemoryBalloonDeviceConfiguration, USBController,

@@ -249,3 +249,35 @@ impl VZVirtioNetworkDeviceConfiguration {
     match self.never {}
   }
 }
+
+pub(crate) struct VZVmnetNetworkDeviceAttachment {
+  never: Never,
+}
+
+pub(crate) fn vz_vmnet_network_device_attachment_init(_network: &vmnet::Network) -> VZVmnetNetworkDeviceAttachment {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_vmnet_network_device_attachment_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVmnetNetworkDeviceAttachment> {
+  object.never()
+}
+
+impl VZVmnetNetworkDeviceAttachment {
+  pub(crate) fn bridge_retained(&self) -> VZVmnetNetworkDeviceAttachment {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_network(&self) -> vmnet::Network {
+    match self.never {}
+  }
+}

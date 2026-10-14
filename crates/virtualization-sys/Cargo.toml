@@ -28,6 +28,7 @@ disk-image-kit-sys.workspace = true
 dispatch2.workspace = true
 foundation-sys.workspace = true
 swift-bridge.workspace = true
+vmnet-sys.workspace = true
 
 [build-dependencies]
 swift-bridge-build.workspace = true

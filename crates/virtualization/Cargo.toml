@@ -16,6 +16,7 @@ dispatch2.workspace = true
 foundation-sys.workspace = true
 url.workspace = true
 uuid.workspace = true
+vmnet.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 virtualization-sys.workspace = true

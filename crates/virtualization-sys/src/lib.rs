@@ -70,8 +70,8 @@ pub use self::ffi::{
   VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration, VZVirtioNetworkDeviceConfiguration,
   VZVirtioSocketConnection, VZVirtioSocketDevice, VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener,
   VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
-  VZVirtualMachineConfiguration, VZVirtualMachineState, VZXHCIController, VZXHCIControllerConfiguration,
-  vz_efi_boot_loader_init, vz_efi_variable_store_initialization_options_allow_overwrite,
+  VZVirtualMachineConfiguration, VZVirtualMachineState, VZVmnetNetworkDeviceAttachment, VZXHCIController,
+  VZXHCIControllerConfiguration, vz_efi_boot_loader_init, vz_efi_variable_store_initialization_options_allow_overwrite,
   vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
   vz_generic_platform_configuration_is_nested_virtualization_supported, vz_mac_address_random_locally_administered,
   vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
@@ -616,6 +616,21 @@ mod ffi {
       object: *const c_void,
     ) -> Result<VZVirtioNetworkDeviceConfiguration, BridgedNil>;
     fn ns_description(self: &VZVirtioNetworkDeviceConfiguration) -> String;
+  }
+
+  // Network/VmnetNetworkDeviceAttachment.swift
+
+  extern "Swift" {
+    type VZVmnetNetworkDeviceAttachment;
+
+    fn vz_vmnet_network_device_attachment_init(network: *const c_void) -> VZVmnetNetworkDeviceAttachment;
+    fn bridge_retained(self: &VZVmnetNetworkDeviceAttachment) -> VZVmnetNetworkDeviceAttachment;
+    fn bridge_borrowed(self: &VZVmnetNetworkDeviceAttachment) -> *const c_void;
+    fn vz_vmnet_network_device_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVmnetNetworkDeviceAttachment, BridgedNil>;
+    fn ns_description(self: &VZVmnetNetworkDeviceAttachment) -> String;
+    fn vz_vmnet_network_device_attachment_network(this: VZVmnetNetworkDeviceAttachment) -> *const c_void;
   }
 
   // OtherDevices/USBController.swift
@@ -2274,6 +2289,32 @@ impl VZVirtioNetworkDeviceConfiguration {
   pub fn bridge_object(&self) -> &NSObject {
     // SAFETY: this one's own object.
     unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Network/VmnetNetworkDeviceAttachment.swift
+
+/// `network` crosses from vmnet-sys's bridge, lent for the call.
+pub fn vz_vmnet_network_device_attachment_init(network: &vmnet_sys::VmnetNetwork) -> VZVmnetNetworkDeviceAttachment {
+  ffi::vz_vmnet_network_device_attachment_init(network.bridge_borrowed())
+}
+
+pub fn vz_vmnet_network_device_attachment_bridge_cast(object: &NSObject) -> Option<VZVmnetNetworkDeviceAttachment> {
+  ffi::vz_vmnet_network_device_attachment_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVmnetNetworkDeviceAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// `network`, crossing back to vmnet-sys's bridge.
+  pub fn vz_network(&self) -> vmnet_sys::VmnetNetwork {
+    // SAFETY: the attachment's `network`, which `self` holds through the call.
+    unsafe {
+      vmnet_sys::vmnet_network_bridge_from(ffi::vz_vmnet_network_device_attachment_network(self.bridge_retained()))
+    }
   }
 }
 

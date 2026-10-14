@@ -24,6 +24,7 @@ let package = Package(
       swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])],
       linkerSettings: [
         .linkedFramework("Virtualization"), .linkedFramework("DiskImageKit"), .linkedFramework("Security"),
+        .linkedFramework("vmnet"),
       ]
     )
   ]

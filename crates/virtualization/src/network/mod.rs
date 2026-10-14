@@ -5,6 +5,7 @@ mod mac_address;
 mod nat_network_device_attachment;
 mod network_device;
 mod virtio_network_device_configuration;
+mod vmnet_network_device_attachment;
 
 pub use self::bridged_network_device_attachment::BridgedNetworkDeviceAttachment;
 pub use self::bridged_network_interface::BridgedNetworkInterface;
@@ -13,6 +14,7 @@ pub use self::mac_address::MACAddress;
 pub use self::nat_network_device_attachment::NATNetworkDeviceAttachment;
 pub use self::network_device::NetworkDevice;
 pub use self::virtio_network_device_configuration::VirtioNetworkDeviceConfiguration;
+pub use self::vmnet_network_device_attachment::VmnetNetworkDeviceAttachment;
 use crate::platform::ffi;
 use crate::sealed::Sealed;
 
