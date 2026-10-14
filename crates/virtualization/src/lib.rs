@@ -65,7 +65,8 @@ pub use crate::graphics::{
   PointingDeviceConfiguration,
 };
 pub use crate::network::{
-  MACAddress, NATNetworkDeviceAttachment, NetworkDevice, NetworkDeviceAttachment, NetworkDeviceConfiguration,
+  BridgedNetworkDeviceAttachment, BridgedNetworkInterface, FileHandleNetworkDeviceAttachment, MACAddress,
+  NATNetworkDeviceAttachment, NetworkDevice, NetworkDeviceAttachment, NetworkDeviceConfiguration,
   VirtioNetworkDeviceConfiguration,
 };
 pub use crate::other_devices::{

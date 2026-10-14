@@ -1,4 +1,108 @@
+use std::os::fd::{BorrowedFd, OwnedFd};
+
 use super::{GUARDED, NSObject, Never, Retained};
+
+pub(crate) struct VZBridgedNetworkDeviceAttachment {
+  never: Never,
+}
+
+pub(crate) fn vz_bridged_network_device_attachment_init(
+  interface: &VZBridgedNetworkInterface,
+) -> VZBridgedNetworkDeviceAttachment {
+  match interface.never {}
+}
+
+pub(crate) fn vz_bridged_network_device_attachment_bridge_cast(
+  object: &NSObject,
+) -> Option<VZBridgedNetworkDeviceAttachment> {
+  object.never()
+}
+
+impl VZBridgedNetworkDeviceAttachment {
+  pub(crate) fn bridge_retained(&self) -> VZBridgedNetworkDeviceAttachment {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_interface(&self) -> VZBridgedNetworkInterface {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZBridgedNetworkInterface {
+  never: Never,
+}
+
+pub(crate) fn vz_bridged_network_interface_network_interfaces() -> Vec<VZBridgedNetworkInterface> {
+  unreachable!("{GUARDED}")
+}
+
+impl VZBridgedNetworkInterface {
+  pub(crate) fn bridge_retained(&self) -> VZBridgedNetworkInterface {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_identifier(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_localized_display_name(&self) -> Option<String> {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZFileHandleNetworkDeviceAttachment {
+  never: Never,
+}
+
+pub(crate) fn vz_file_handle_network_device_attachment_init(
+  _file_handle: OwnedFd,
+) -> VZFileHandleNetworkDeviceAttachment {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_file_handle_network_device_attachment_bridge_cast(
+  object: &NSObject,
+) -> Option<VZFileHandleNetworkDeviceAttachment> {
+  object.never()
+}
+
+impl VZFileHandleNetworkDeviceAttachment {
+  pub(crate) fn bridge_retained(&self) -> VZFileHandleNetworkDeviceAttachment {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_file_handle(&self) -> BorrowedFd<'_> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_maximum_transmission_unit(&self) -> isize {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_maximum_transmission_unit(&self, _maximum_transmission_unit: isize) {
+    match self.never {}
+  }
+}
 
 pub(crate) struct VZMACAddress {
   never: Never,

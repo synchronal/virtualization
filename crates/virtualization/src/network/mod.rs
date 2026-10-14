@@ -1,8 +1,14 @@
+mod bridged_network_device_attachment;
+mod bridged_network_interface;
+mod file_handle_network_device_attachment;
 mod mac_address;
 mod nat_network_device_attachment;
 mod network_device;
 mod virtio_network_device_configuration;
 
+pub use self::bridged_network_device_attachment::BridgedNetworkDeviceAttachment;
+pub use self::bridged_network_interface::BridgedNetworkInterface;
+pub use self::file_handle_network_device_attachment::FileHandleNetworkDeviceAttachment;
 pub use self::mac_address::MACAddress;
 pub use self::nat_network_device_attachment::NATNetworkDeviceAttachment;
 pub use self::network_device::NetworkDevice;

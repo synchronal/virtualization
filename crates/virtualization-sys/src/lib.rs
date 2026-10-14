@@ -56,9 +56,10 @@ use foundation_sys::objc::{
 };
 
 pub use self::ffi::{
-  BridgedNil, BridgedThrown, VZDiskBlockDeviceStorageDeviceAttachment, VZDiskImageCachingMode,
-  VZDiskImageStorageDeviceAttachment, VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader,
-  VZEFISignatureDatabaseConfiguration, VZEFISignatureList, VZEFIVariableStore, VZFileHandleSerialPortAttachment,
+  BridgedNil, BridgedThrown, VZBridgedNetworkDeviceAttachment, VZBridgedNetworkInterface,
+  VZDiskBlockDeviceStorageDeviceAttachment, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
+  VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader, VZEFISignatureDatabaseConfiguration,
+  VZEFISignatureList, VZEFIVariableStore, VZFileHandleNetworkDeviceAttachment, VZFileHandleSerialPortAttachment,
   VZFileSerialPortAttachment, VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader,
   VZMACAddress, VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration,
   VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
@@ -499,6 +500,54 @@ mod ffi {
     fn vz_set_tag(self: &VZVirtioFileSystemDeviceConfiguration, tag: &str);
     fn vz_virtio_file_system_device_configuration_share(this: VZVirtioFileSystemDeviceConfiguration) -> usize;
     fn vz_virtio_file_system_device_configuration_set_share(this: VZVirtioFileSystemDeviceConfiguration, share: usize);
+  }
+
+  // Network/BridgedNetworkDeviceAttachment.swift
+
+  extern "Swift" {
+    type VZBridgedNetworkDeviceAttachment;
+
+    fn vz_bridged_network_device_attachment_init(
+      interface: VZBridgedNetworkInterface,
+    ) -> VZBridgedNetworkDeviceAttachment;
+    fn bridge_retained(self: &VZBridgedNetworkDeviceAttachment) -> VZBridgedNetworkDeviceAttachment;
+    fn bridge_borrowed(self: &VZBridgedNetworkDeviceAttachment) -> *const c_void;
+    fn vz_bridged_network_device_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZBridgedNetworkDeviceAttachment, BridgedNil>;
+    fn ns_description(self: &VZBridgedNetworkDeviceAttachment) -> String;
+    fn vz_interface(self: &VZBridgedNetworkDeviceAttachment) -> VZBridgedNetworkInterface;
+  }
+
+  // Network/BridgedNetworkInterface.swift
+
+  extern "Swift" {
+    type VZBridgedNetworkInterface;
+
+    fn vz_bridged_network_interface_bridge_from(object: *const c_void) -> VZBridgedNetworkInterface;
+    fn vz_bridged_network_interface_network_interfaces() -> *mut c_void;
+    fn bridge_retained(self: &VZBridgedNetworkInterface) -> VZBridgedNetworkInterface;
+    fn ns_description(self: &VZBridgedNetworkInterface) -> String;
+    fn vz_identifier(self: &VZBridgedNetworkInterface) -> String;
+    fn vz_localized_display_name(self: &VZBridgedNetworkInterface) -> Option<String>;
+  }
+
+  // Network/FileHandleNetworkDeviceAttachment.swift
+
+  extern "Swift" {
+    type VZFileHandleNetworkDeviceAttachment;
+
+    fn vz_file_handle_network_device_attachment_init(file_handle: *const c_void)
+    -> VZFileHandleNetworkDeviceAttachment;
+    fn bridge_retained(self: &VZFileHandleNetworkDeviceAttachment) -> VZFileHandleNetworkDeviceAttachment;
+    fn bridge_borrowed(self: &VZFileHandleNetworkDeviceAttachment) -> *const c_void;
+    fn vz_file_handle_network_device_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZFileHandleNetworkDeviceAttachment, BridgedNil>;
+    fn ns_description(self: &VZFileHandleNetworkDeviceAttachment) -> String;
+    fn vz_file_handle_network_device_attachment_file_handle(this: VZFileHandleNetworkDeviceAttachment) -> *mut c_void;
+    fn vz_maximum_transmission_unit(self: &VZFileHandleNetworkDeviceAttachment) -> isize;
+    fn vz_set_maximum_transmission_unit(self: &VZFileHandleNetworkDeviceAttachment, maximum_transmission_unit: isize);
   }
 
   // Network/MACAddress.swift
@@ -2068,6 +2117,72 @@ impl VZVirtioFileSystemDeviceConfiguration {
   /// `share` is any `VZDirectoryShare`.
   pub fn vz_set_share(&self, share: Option<&NSObject>) {
     ffi::vz_virtio_file_system_device_configuration_set_share(self.bridge_retained(), borrowed_or_nil(share));
+  }
+}
+
+// Network/BridgedNetworkDeviceAttachment.swift
+
+pub fn vz_bridged_network_device_attachment_init(
+  interface: &VZBridgedNetworkInterface,
+) -> VZBridgedNetworkDeviceAttachment {
+  ffi::vz_bridged_network_device_attachment_init(interface.bridge_retained())
+}
+
+pub fn vz_bridged_network_device_attachment_bridge_cast(object: &NSObject) -> Option<VZBridgedNetworkDeviceAttachment> {
+  ffi::vz_bridged_network_device_attachment_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZBridgedNetworkDeviceAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Network/BridgedNetworkInterface.swift
+
+pub fn vz_bridged_network_interface_network_interfaces() -> Vec<VZBridgedNetworkInterface> {
+  // SAFETY: `networkInterfaces`, a retained `NSArray`.
+  unsafe { bridge_objects(ffi::vz_bridged_network_interface_network_interfaces()) }
+    .iter()
+    .map(|interface| ffi::vz_bridged_network_interface_bridge_from(borrowed(&**interface)))
+    .collect()
+}
+
+// Network/FileHandleNetworkDeviceAttachment.swift
+
+/// The descriptor becomes a `FileHandle` that owns it.
+pub fn vz_file_handle_network_device_attachment_init(file_handle: OwnedFd) -> VZFileHandleNetworkDeviceAttachment {
+  ffi::vz_file_handle_network_device_attachment_init(borrowed(&*ns_file_handle_init_file_descriptor_close_on_dealloc(
+    file_handle,
+  )))
+}
+
+pub fn vz_file_handle_network_device_attachment_bridge_cast(
+  object: &NSObject,
+) -> Option<VZFileHandleNetworkDeviceAttachment> {
+  ffi::vz_file_handle_network_device_attachment_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZFileHandleNetworkDeviceAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// `fileHandle`'s descriptor, open as long as the attachment, which keeps
+  /// the handle.
+  pub fn vz_file_handle(&self) -> BorrowedFd<'_> {
+    // SAFETY: `fileHandle`, a retained `FileHandle`.
+    let handle: Retained<NSFileHandle> = unsafe {
+      retained(ffi::vz_file_handle_network_device_attachment_file_handle(
+        self.bridge_retained(),
+      ))
+    };
+
+    // SAFETY: the attachment's handle is fixed, and a handle's descriptor
+    // stays open while it lives.
+    unsafe { BorrowedFd::borrow_raw(ns_file_handle_file_descriptor(&handle)) }
   }
 }
 
