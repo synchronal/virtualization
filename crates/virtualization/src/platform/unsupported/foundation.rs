@@ -41,6 +41,18 @@ pub(crate) fn ns_url_absolute_string(url: &NSURL) -> String {
   match url.never {}
 }
 
+pub(crate) struct NSUUID {
+  never: Never,
+}
+
+pub(crate) fn ns_uuid_init_uuid_string(_string: &str) -> Option<Retained<NSUUID>> {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn ns_uuid_uuid_string(uuid: &NSUUID) -> String {
+  match uuid.never {}
+}
+
 pub(crate) struct NSError {
   never: Never,
 }

@@ -47,28 +47,34 @@ use foundation_sys::objc::{
   AnyObject, NSArray, NSData, NSDictionary, NSNull, NSString, borrowed, borrowed_or_nil, ns_array, ns_array_objects,
   ns_data, ns_data_bytes, ns_description, ns_dictionary, ns_dictionary_entries, retained, retained_or_nil,
 };
-pub use foundation_sys::objc::{NSError, NSObject, NSURL, Retained, ns_url_absolute_string, ns_url_init_string};
+pub use foundation_sys::objc::{
+  NSError, NSObject, NSURL, NSUUID, Retained, ns_url_absolute_string, ns_url_init_string, ns_uuid_init_uuid_string,
+  ns_uuid_uuid_string,
+};
 use foundation_sys::objc::{
   NSFileHandle, ns_file_handle_file_descriptor, ns_file_handle_init_file_descriptor_close_on_dealloc,
 };
 
 pub use self::ffi::{
-  BridgedNil, BridgedThrown, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
-  VZDiskImageSynchronizationMode, VZEFIBootLoader, VZEFISignatureDatabaseConfiguration, VZEFISignatureList,
-  VZEFIVariableStore, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment, VZGenericMachineIdentifier,
-  VZGenericPlatformConfiguration, VZLinuxBootLoader, VZMACAddress, VZMultipleDirectoryShare,
-  VZNATNetworkDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare, VZSpiceAgentPortAttachment,
+  BridgedNil, BridgedThrown, VZDiskBlockDeviceStorageDeviceAttachment, VZDiskImageCachingMode,
+  VZDiskImageStorageDeviceAttachment, VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader,
+  VZEFISignatureDatabaseConfiguration, VZEFISignatureList, VZEFIVariableStore, VZFileHandleSerialPortAttachment,
+  VZFileSerialPortAttachment, VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader,
+  VZMACAddress, VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration,
+  VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
+  VZSpiceAgentPortAttachment, VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration,
   VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice, VZVirtioConsoleDeviceConfiguration,
   VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort, VZVirtioConsolePortArray,
   VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioEntropyDeviceConfiguration,
   VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration, VZVirtioNetworkDeviceConfiguration,
   VZVirtioSocketConnection, VZVirtioSocketDevice, VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener,
   VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
-  VZVirtualMachineConfiguration, VZVirtualMachineState, vz_efi_boot_loader_init,
-  vz_efi_variable_store_initialization_options_allow_overwrite, vz_generic_machine_identifier_init,
-  vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
-  vz_mac_address_random_locally_administered, vz_multiple_directory_share_canonicalized_name,
-  vz_multiple_directory_share_init, vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
+  VZVirtualMachineConfiguration, VZVirtualMachineState, VZXHCIController, VZXHCIControllerConfiguration,
+  vz_efi_boot_loader_init, vz_efi_variable_store_initialization_options_allow_overwrite,
+  vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
+  vz_generic_platform_configuration_is_nested_virtualization_supported, vz_mac_address_random_locally_administered,
+  vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
+  vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
   vz_spice_agent_port_attachment_init, vz_spice_agent_port_attachment_spice_agent_port_name,
   vz_virtio_block_device_configuration_validate_block_device_identifier, vz_virtio_console_device_configuration_init,
   vz_virtio_console_device_serial_port_configuration_init, vz_virtio_console_port_configuration_init,
@@ -81,6 +87,7 @@ pub use self::ffi::{
   vz_virtual_machine_configuration_maximum_allowed_memory_size,
   vz_virtual_machine_configuration_minimum_allowed_cpu_count,
   vz_virtual_machine_configuration_minimum_allowed_memory_size, vz_virtual_machine_is_supported,
+  vz_xhci_controller_configuration_init,
 };
 
 // No doc comments inside the module: swift-bridge can't parse them. Shared
@@ -562,6 +569,35 @@ mod ffi {
     fn ns_description(self: &VZVirtioNetworkDeviceConfiguration) -> String;
   }
 
+  // OtherDevices/USBController.swift
+
+  extern "Swift" {
+    fn vz_usb_controller_attach(this: *const c_void, device: *const c_void, completion_handler: Box<dyn FnOnce(usize)>);
+    fn vz_usb_controller_detach(this: *const c_void, device: *const c_void, completion_handler: Box<dyn FnOnce(usize)>);
+    fn vz_usb_controller_usb_devices(this: *const c_void) -> *mut c_void;
+  }
+
+  // OtherDevices/USBControllerConfiguration.swift
+
+  extern "Swift" {
+    fn vz_usb_controller_configuration_usb_devices(this: *const c_void) -> *mut c_void;
+    fn vz_usb_controller_configuration_set_usb_devices(this: *const c_void, usb_devices: *const c_void);
+  }
+
+  // OtherDevices/USBDevice.swift
+
+  extern "Swift" {
+    fn vz_usb_device_usb_controller(this: *const c_void) -> usize;
+    fn vz_usb_device_uuid(this: *const c_void) -> *mut c_void;
+  }
+
+  // OtherDevices/USBDeviceConfiguration.swift
+
+  extern "Swift" {
+    fn vz_usb_device_configuration_uuid(this: *const c_void) -> *mut c_void;
+    fn vz_usb_device_configuration_set_uuid(this: *const c_void, uuid: *const c_void);
+  }
+
   // OtherDevices/VirtioEntropyDeviceConfiguration.swift
 
   extern "Swift" {
@@ -609,6 +645,31 @@ mod ffi {
       object: *const c_void,
     ) -> Result<VZVirtioTraditionalMemoryBalloonDeviceConfiguration, BridgedNil>;
     fn ns_description(self: &VZVirtioTraditionalMemoryBalloonDeviceConfiguration) -> String;
+  }
+
+  // OtherDevices/XHCIController.swift
+
+  extern "Swift" {
+    type VZXHCIController;
+
+    fn bridge_retained(self: &VZXHCIController) -> VZXHCIController;
+    fn bridge_borrowed(self: &VZXHCIController) -> *const c_void;
+    fn vz_xhci_controller_bridge_cast(object: *const c_void) -> Result<VZXHCIController, BridgedNil>;
+    fn ns_description(self: &VZXHCIController) -> String;
+  }
+
+  // OtherDevices/XHCIControllerConfiguration.swift
+
+  extern "Swift" {
+    type VZXHCIControllerConfiguration;
+
+    fn vz_xhci_controller_configuration_init() -> VZXHCIControllerConfiguration;
+    fn bridge_retained(self: &VZXHCIControllerConfiguration) -> VZXHCIControllerConfiguration;
+    fn bridge_borrowed(self: &VZXHCIControllerConfiguration) -> *const c_void;
+    fn vz_xhci_controller_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZXHCIControllerConfiguration, BridgedNil>;
+    fn ns_description(self: &VZXHCIControllerConfiguration) -> String;
   }
 
   // SerialPort/ConsolePortConfiguration.swift
@@ -881,6 +942,36 @@ mod ffi {
     ) -> bool;
   }
 
+  // Storage/DiskBlockDeviceStorageDeviceAttachment.swift
+
+  #[swift_bridge(swift_name = "BridgedVZDiskSynchronizationMode")]
+  enum VZDiskSynchronizationMode {
+    Full,
+    None,
+    Unknown(isize),
+  }
+
+  extern "Swift" {
+    type VZDiskBlockDeviceStorageDeviceAttachment;
+
+    fn vz_disk_block_device_storage_device_attachment_init(
+      file_handle: *const c_void,
+      read_only: bool,
+      synchronization_mode: VZDiskSynchronizationMode,
+    ) -> Result<VZDiskBlockDeviceStorageDeviceAttachment, BridgedThrown>;
+    fn bridge_retained(self: &VZDiskBlockDeviceStorageDeviceAttachment) -> VZDiskBlockDeviceStorageDeviceAttachment;
+    fn bridge_borrowed(self: &VZDiskBlockDeviceStorageDeviceAttachment) -> *const c_void;
+    fn vz_disk_block_device_storage_device_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZDiskBlockDeviceStorageDeviceAttachment, BridgedNil>;
+    fn ns_description(self: &VZDiskBlockDeviceStorageDeviceAttachment) -> String;
+    fn vz_disk_block_device_storage_device_attachment_file_handle(
+      this: VZDiskBlockDeviceStorageDeviceAttachment,
+    ) -> *mut c_void;
+    fn vz_is_read_only(self: &VZDiskBlockDeviceStorageDeviceAttachment) -> bool;
+    fn vz_synchronization_mode(self: &VZDiskBlockDeviceStorageDeviceAttachment) -> VZDiskSynchronizationMode;
+  }
+
   // Storage/DiskImageStorageDeviceAttachment.swift
 
   #[swift_bridge(swift_name = "BridgedVZDiskImageCachingMode")]
@@ -929,10 +1020,106 @@ mod ffi {
     fn vz_synchronization_mode(self: &VZDiskImageStorageDeviceAttachment) -> VZDiskImageSynchronizationMode;
   }
 
+  // Storage/NVMExpressControllerDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZNVMExpressControllerDeviceConfiguration;
+
+    fn vz_nvm_express_controller_device_configuration_init(
+      attachment: *const c_void,
+    ) -> VZNVMExpressControllerDeviceConfiguration;
+    fn bridge_retained(self: &VZNVMExpressControllerDeviceConfiguration) -> VZNVMExpressControllerDeviceConfiguration;
+    fn bridge_borrowed(self: &VZNVMExpressControllerDeviceConfiguration) -> *const c_void;
+    fn vz_nvm_express_controller_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZNVMExpressControllerDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZNVMExpressControllerDeviceConfiguration) -> String;
+  }
+
+  // Storage/NetworkBlockDeviceStorageDeviceAttachment.swift
+
+  extern "Swift" {
+    type VZNetworkBlockDeviceStorageDeviceAttachment;
+
+    fn vz_network_block_device_storage_device_attachment_init(
+      url: *const c_void,
+    ) -> Result<VZNetworkBlockDeviceStorageDeviceAttachment, BridgedThrown>;
+    fn vz_network_block_device_storage_device_attachment_init_timeout_is_forced_read_only_synchronization_mode(
+      url: *const c_void,
+      timeout: f64,
+      is_forced_read_only: bool,
+      synchronization_mode: VZDiskSynchronizationMode,
+    ) -> Result<VZNetworkBlockDeviceStorageDeviceAttachment, BridgedThrown>;
+    fn bridge_retained(
+      self: &VZNetworkBlockDeviceStorageDeviceAttachment,
+    ) -> VZNetworkBlockDeviceStorageDeviceAttachment;
+    fn bridge_borrowed(self: &VZNetworkBlockDeviceStorageDeviceAttachment) -> *const c_void;
+    fn vz_network_block_device_storage_device_attachment_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZNetworkBlockDeviceStorageDeviceAttachment, BridgedNil>;
+    fn ns_description(self: &VZNetworkBlockDeviceStorageDeviceAttachment) -> String;
+    fn vz_network_block_device_storage_device_attachment_validate(url: *const c_void) -> Result<(), BridgedThrown>;
+    fn vz_network_block_device_storage_device_attachment_url(
+      this: VZNetworkBlockDeviceStorageDeviceAttachment,
+    ) -> *mut c_void;
+    fn vz_timeout(self: &VZNetworkBlockDeviceStorageDeviceAttachment) -> f64;
+    fn vz_is_forced_read_only(self: &VZNetworkBlockDeviceStorageDeviceAttachment) -> bool;
+    fn vz_synchronization_mode(self: &VZNetworkBlockDeviceStorageDeviceAttachment) -> VZDiskSynchronizationMode;
+    fn vz_network_block_device_storage_device_attachment_delegate(
+      this: VZNetworkBlockDeviceStorageDeviceAttachment,
+    ) -> usize;
+    fn vz_network_block_device_storage_device_attachment_set_delegate(
+      this: VZNetworkBlockDeviceStorageDeviceAttachment,
+      delegate: VZNetworkBlockDeviceStorageDeviceAttachmentDelegateBridge,
+    );
+    fn bridge_set_delegate_nil(self: &VZNetworkBlockDeviceStorageDeviceAttachment);
+  }
+
+  extern "Rust" {
+    type VZNetworkBlockDeviceStorageDeviceAttachmentDelegateBridge;
+
+    fn bridge_retained(self: &VZNetworkBlockDeviceStorageDeviceAttachmentDelegateBridge) -> usize;
+    fn attachment_was_connected(
+      self: &VZNetworkBlockDeviceStorageDeviceAttachmentDelegateBridge,
+      attachment: VZNetworkBlockDeviceStorageDeviceAttachment,
+    );
+    fn attachment_did_encounter_error(
+      self: &VZNetworkBlockDeviceStorageDeviceAttachmentDelegateBridge,
+      attachment: VZNetworkBlockDeviceStorageDeviceAttachment,
+      error: *mut c_void,
+    );
+  }
+
   // Storage/StorageDeviceConfiguration.swift
 
   extern "Swift" {
     fn vz_storage_device_configuration_attachment(this: *const c_void) -> *mut c_void;
+  }
+
+  // Storage/USBMassStorageDevice.swift
+
+  extern "Swift" {
+    type VZUSBMassStorageDevice;
+
+    fn vz_usb_mass_storage_device_init(configuration: VZUSBMassStorageDeviceConfiguration) -> VZUSBMassStorageDevice;
+    fn bridge_retained(self: &VZUSBMassStorageDevice) -> VZUSBMassStorageDevice;
+    fn bridge_borrowed(self: &VZUSBMassStorageDevice) -> *const c_void;
+    fn vz_usb_mass_storage_device_bridge_cast(object: *const c_void) -> Result<VZUSBMassStorageDevice, BridgedNil>;
+    fn ns_description(self: &VZUSBMassStorageDevice) -> String;
+  }
+
+  // Storage/USBMassStorageDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZUSBMassStorageDeviceConfiguration;
+
+    fn vz_usb_mass_storage_device_configuration_init(attachment: *const c_void) -> VZUSBMassStorageDeviceConfiguration;
+    fn bridge_retained(self: &VZUSBMassStorageDeviceConfiguration) -> VZUSBMassStorageDeviceConfiguration;
+    fn bridge_borrowed(self: &VZUSBMassStorageDeviceConfiguration) -> *const c_void;
+    fn vz_usb_mass_storage_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZUSBMassStorageDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZUSBMassStorageDeviceConfiguration) -> String;
   }
 
   // Storage/VirtioBlockDeviceConfiguration.swift
@@ -1975,6 +2162,82 @@ impl VZVirtioNetworkDeviceConfiguration {
   }
 }
 
+// OtherDevices/USBController.swift
+
+/// `this` is any `VZUSBController`; `device`, any `VZUSBDevice`.
+pub fn vz_usb_controller_attach(
+  this: &NSObject,
+  device: &NSObject,
+  completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+) {
+  ffi::vz_usb_controller_attach(
+    borrowed(this),
+    borrowed(device),
+    bridge_completion_handler(completion_handler),
+  );
+}
+
+/// `this` is any `VZUSBController`; `device`, any `VZUSBDevice`.
+pub fn vz_usb_controller_detach(
+  this: &NSObject,
+  device: &NSObject,
+  completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+) {
+  ffi::vz_usb_controller_detach(
+    borrowed(this),
+    borrowed(device),
+    bridge_completion_handler(completion_handler),
+  );
+}
+
+/// `this` is any `VZUSBController`; each device, any `VZUSBDevice`.
+pub fn vz_usb_controller_usb_devices(this: &NSObject) -> Vec<Retained<NSObject>> {
+  // SAFETY: `usbDevices`, a retained `NSArray`.
+  unsafe { bridge_objects(ffi::vz_usb_controller_usb_devices(borrowed(this))) }
+}
+
+// OtherDevices/USBControllerConfiguration.swift
+
+/// `this` is any `VZUSBControllerConfiguration`; each device, any
+/// `VZUSBDeviceConfiguration`.
+pub fn vz_usb_controller_configuration_usb_devices(this: &NSObject) -> Vec<Retained<NSObject>> {
+  // SAFETY: `usbDevices`, a retained `NSArray`.
+  unsafe { bridge_objects(ffi::vz_usb_controller_configuration_usb_devices(borrowed(this))) }
+}
+
+/// `this` is any `VZUSBControllerConfiguration`; each device, any
+/// `VZUSBDeviceConfiguration`.
+pub fn vz_usb_controller_configuration_set_usb_devices(this: &NSObject, usb_devices: &[&NSObject]) {
+  ffi::vz_usb_controller_configuration_set_usb_devices(borrowed(this), borrowed(&*ns_array(usb_devices)));
+}
+
+// OtherDevices/USBDevice.swift
+
+/// `this` is any `VZUSBDevice`; the controller, any `VZUSBController`.
+pub fn vz_usb_device_usb_controller(this: &NSObject) -> Option<Retained<NSObject>> {
+  // SAFETY: `usbController`, a retained `VZUSBController` or `nil`.
+  unsafe { retained_or_nil(ffi::vz_usb_device_usb_controller(borrowed(this))) }
+}
+
+/// `this` is any `VZUSBDevice`.
+pub fn vz_usb_device_uuid(this: &NSObject) -> Retained<NSUUID> {
+  // SAFETY: `uuid`, a retained `NSUUID`.
+  unsafe { retained(ffi::vz_usb_device_uuid(borrowed(this))) }
+}
+
+// OtherDevices/USBDeviceConfiguration.swift
+
+/// `this` is any `VZUSBDeviceConfiguration`.
+pub fn vz_usb_device_configuration_uuid(this: &NSObject) -> Retained<NSUUID> {
+  // SAFETY: `uuid`, a retained `NSUUID`.
+  unsafe { retained(ffi::vz_usb_device_configuration_uuid(borrowed(this))) }
+}
+
+/// `this` is any `VZUSBDeviceConfiguration`.
+pub fn vz_usb_device_configuration_set_uuid(this: &NSObject, uuid: &NSUUID) {
+  ffi::vz_usb_device_configuration_set_uuid(borrowed(this), borrowed(uuid));
+}
+
 // OtherDevices/VirtioEntropyDeviceConfiguration.swift
 
 pub fn vz_virtio_entropy_device_configuration_bridge_cast(
@@ -2014,6 +2277,32 @@ pub fn vz_virtio_traditional_memory_balloon_device_configuration_bridge_cast(
 }
 
 impl VZVirtioTraditionalMemoryBalloonDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// OtherDevices/XHCIController.swift
+
+pub fn vz_xhci_controller_bridge_cast(object: &NSObject) -> Option<VZXHCIController> {
+  ffi::vz_xhci_controller_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZXHCIController {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// OtherDevices/XHCIControllerConfiguration.swift
+
+pub fn vz_xhci_controller_configuration_bridge_cast(object: &NSObject) -> Option<VZXHCIControllerConfiguration> {
+  ffi::vz_xhci_controller_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZXHCIControllerConfiguration {
   pub fn bridge_object(&self) -> &NSObject {
     // SAFETY: this one's own object.
     unsafe { bridge_object(self, self.bridge_borrowed()) }
@@ -2383,6 +2672,49 @@ impl VZVirtioSocketListenerDelegateBridge {
   }
 }
 
+// Storage/DiskBlockDeviceStorageDeviceAttachment.swift
+
+/// The descriptor becomes a `FileHandle` that owns it.
+pub fn vz_disk_block_device_storage_device_attachment_init(
+  file_handle: OwnedFd,
+  read_only: bool,
+  synchronization_mode: VZDiskSynchronizationMode,
+) -> Result<VZDiskBlockDeviceStorageDeviceAttachment, BridgedThrown> {
+  ffi::vz_disk_block_device_storage_device_attachment_init(
+    borrowed(&*ns_file_handle_init_file_descriptor_close_on_dealloc(file_handle)),
+    read_only,
+    synchronization_mode,
+  )
+}
+
+pub fn vz_disk_block_device_storage_device_attachment_bridge_cast(
+  object: &NSObject,
+) -> Option<VZDiskBlockDeviceStorageDeviceAttachment> {
+  ffi::vz_disk_block_device_storage_device_attachment_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZDiskBlockDeviceStorageDeviceAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// `fileHandle`'s descriptor, open as long as the attachment, which keeps
+  /// the handle.
+  pub fn vz_file_handle(&self) -> BorrowedFd<'_> {
+    // SAFETY: `fileHandle`, a retained `FileHandle`.
+    let handle: Retained<NSFileHandle> = unsafe {
+      retained(ffi::vz_disk_block_device_storage_device_attachment_file_handle(
+        self.bridge_retained(),
+      ))
+    };
+
+    // SAFETY: the attachment's handle is fixed, and a handle's descriptor
+    // stays open while it lives.
+    unsafe { BorrowedFd::borrow_raw(ns_file_handle_file_descriptor(&handle)) }
+  }
+}
+
 // Storage/DiskImageStorageDeviceAttachment.swift
 
 pub fn vz_disk_image_storage_device_attachment_init(
@@ -2437,6 +2769,144 @@ impl VZDiskImageStorageDeviceAttachment {
   }
 }
 
+// Storage/NVMExpressControllerDeviceConfiguration.swift
+
+/// `attachment` is any `VZStorageDeviceAttachment`.
+pub fn vz_nvm_express_controller_device_configuration_init(
+  attachment: &NSObject,
+) -> VZNVMExpressControllerDeviceConfiguration {
+  ffi::vz_nvm_express_controller_device_configuration_init(borrowed(attachment))
+}
+
+pub fn vz_nvm_express_controller_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZNVMExpressControllerDeviceConfiguration> {
+  ffi::vz_nvm_express_controller_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZNVMExpressControllerDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Storage/NetworkBlockDeviceStorageDeviceAttachment.swift
+
+pub fn vz_network_block_device_storage_device_attachment_init(
+  url: &NSURL,
+) -> Result<VZNetworkBlockDeviceStorageDeviceAttachment, BridgedThrown> {
+  ffi::vz_network_block_device_storage_device_attachment_init(borrowed(url))
+}
+
+/// `TimeInterval` is its seconds.
+pub fn vz_network_block_device_storage_device_attachment_init_timeout_is_forced_read_only_synchronization_mode(
+  url: &NSURL,
+  timeout: f64,
+  is_forced_read_only: bool,
+  synchronization_mode: VZDiskSynchronizationMode,
+) -> Result<VZNetworkBlockDeviceStorageDeviceAttachment, BridgedThrown> {
+  ffi::vz_network_block_device_storage_device_attachment_init_timeout_is_forced_read_only_synchronization_mode(
+    borrowed(url),
+    timeout,
+    is_forced_read_only,
+    synchronization_mode,
+  )
+}
+
+pub fn vz_network_block_device_storage_device_attachment_bridge_cast(
+  object: &NSObject,
+) -> Option<VZNetworkBlockDeviceStorageDeviceAttachment> {
+  ffi::vz_network_block_device_storage_device_attachment_bridge_cast(borrowed(object)).ok()
+}
+
+pub fn vz_network_block_device_storage_device_attachment_validate(url: &NSURL) -> Result<(), BridgedThrown> {
+  ffi::vz_network_block_device_storage_device_attachment_validate(borrowed(url))
+}
+
+impl VZNetworkBlockDeviceStorageDeviceAttachment {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  pub fn vz_url(&self) -> Retained<NSURL> {
+    // SAFETY: `url`, a retained `NSURL`.
+    unsafe {
+      retained(ffi::vz_network_block_device_storage_device_attachment_url(
+        self.bridge_retained(),
+      ))
+    }
+  }
+
+  /// The delegate set with [`Self::vz_set_delegate`].
+  pub fn vz_delegate(&self) -> Option<Arc<dyn VZNetworkBlockDeviceStorageDeviceAttachmentDelegate>> {
+    let address = ffi::vz_network_block_device_storage_device_attachment_delegate(self.bridge_retained());
+
+    // SAFETY: `VZNetworkBlockDeviceStorageDeviceAttachmentDelegateBridge::bridge_retained`'s
+    // address, taken once, or `0` for none.
+    (address != 0)
+      .then(|| *unsafe { Box::from_raw(address as *mut Arc<dyn VZNetworkBlockDeviceStorageDeviceAttachmentDelegate>) })
+  }
+
+  pub fn vz_set_delegate(&self, delegate: Option<Arc<dyn VZNetworkBlockDeviceStorageDeviceAttachmentDelegate>>) {
+    match delegate {
+      Some(delegate) => {
+        ffi::vz_network_block_device_storage_device_attachment_set_delegate(
+          self.bridge_retained(),
+          VZNetworkBlockDeviceStorageDeviceAttachmentDelegateBridge { delegate },
+        );
+      }
+      None => self.bridge_set_delegate_nil(),
+    }
+  }
+}
+
+/// `VZNetworkBlockDeviceStorageDeviceAttachmentDelegate`, which Rust
+/// implements.
+pub trait VZNetworkBlockDeviceStorageDeviceAttachmentDelegate: Any + Send + Sync {
+  fn attachment_was_connected(&self, attachment: VZNetworkBlockDeviceStorageDeviceAttachment);
+
+  fn attachment_did_encounter_error(
+    &self,
+    attachment: VZNetworkBlockDeviceStorageDeviceAttachment,
+    error: Retained<NSError>,
+  );
+}
+
+/// A [`VZNetworkBlockDeviceStorageDeviceAttachmentDelegate`] as Swift holds
+/// it.
+pub struct VZNetworkBlockDeviceStorageDeviceAttachmentDelegateBridge {
+  delegate: Arc<dyn VZNetworkBlockDeviceStorageDeviceAttachmentDelegate>,
+}
+
+impl VZNetworkBlockDeviceStorageDeviceAttachmentDelegateBridge {
+  /// Another reference to the delegate, for
+  /// [`VZNetworkBlockDeviceStorageDeviceAttachment::vz_delegate`] to take, by
+  /// address. (swift-bridge's code for returning this type by value fails
+  /// clippy.)
+  fn bridge_retained(&self) -> usize {
+    Box::into_raw(Box::new(Arc::clone(&self.delegate))) as usize
+  }
+
+  fn attachment_was_connected(&self, attachment: VZNetworkBlockDeviceStorageDeviceAttachment) {
+    self.delegate.attachment_was_connected(attachment);
+  }
+
+  fn attachment_did_encounter_error(
+    &self,
+    attachment: VZNetworkBlockDeviceStorageDeviceAttachment,
+    error: *mut c_void,
+  ) {
+    // SAFETY: `error`, a retained `NSError`.
+    let error = unsafe { retained(error) };
+
+    self
+      .delegate
+      .attachment_did_encounter_error(attachment, error);
+  }
+}
+
 // Storage/StorageDeviceConfiguration.swift
 
 /// `this` is any `VZStorageDeviceConfiguration`; the attachment, any
@@ -2444,6 +2914,43 @@ impl VZDiskImageStorageDeviceAttachment {
 pub fn vz_storage_device_configuration_attachment(this: &NSObject) -> Retained<NSObject> {
   // SAFETY: `attachment`, a retained `VZStorageDeviceAttachment`.
   unsafe { retained(ffi::vz_storage_device_configuration_attachment(borrowed(this))) }
+}
+
+// Storage/USBMassStorageDevice.swift
+
+pub fn vz_usb_mass_storage_device_init(configuration: &VZUSBMassStorageDeviceConfiguration) -> VZUSBMassStorageDevice {
+  ffi::vz_usb_mass_storage_device_init(configuration.bridge_retained())
+}
+
+pub fn vz_usb_mass_storage_device_bridge_cast(object: &NSObject) -> Option<VZUSBMassStorageDevice> {
+  ffi::vz_usb_mass_storage_device_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZUSBMassStorageDevice {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Storage/USBMassStorageDeviceConfiguration.swift
+
+/// `attachment` is any `VZStorageDeviceAttachment`.
+pub fn vz_usb_mass_storage_device_configuration_init(attachment: &NSObject) -> VZUSBMassStorageDeviceConfiguration {
+  ffi::vz_usb_mass_storage_device_configuration_init(borrowed(attachment))
+}
+
+pub fn vz_usb_mass_storage_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZUSBMassStorageDeviceConfiguration> {
+  ffi::vz_usb_mass_storage_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZUSBMassStorageDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
 }
 
 // Storage/VirtioBlockDeviceConfiguration.swift

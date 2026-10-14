@@ -13,8 +13,9 @@
 //!   member that returns one takes the subclass to cast it to, as Swift's
 //!   `as?`, and returns `None` when it is another. An array of one is a slice
 //!   of trait objects going in, and a `Vec` of each element cast coming out.
-//! - `URL` is [`url::Url`], re-exported as [`url`]; a dispatch queue is
-//!   [`dispatch2`]'s, re-exported. A `FileHandle` is its descriptor: an
+//! - `URL` is [`url::Url`] and `UUID` is [`uuid::Uuid`], re-exported as
+//!   [`url`] and [`uuid`]; a dispatch queue is [`dispatch2`]'s, re-exported.
+//!   A `TimeInterval` is its seconds, an `f64`. A `FileHandle` is its descriptor: an
 //!   [`OwnedFd`](std::os::fd::OwnedFd) going in, a
 //!   [`BorrowedFd`](std::os::fd::BorrowedFd) coming out.
 //! - A completion handler is a closure, called on the queue Virtualization
@@ -47,7 +48,7 @@ mod storage;
 mod virtual_machine;
 mod virtual_machine_configuration;
 
-pub use {disk_image_kit, dispatch2, url};
+pub use {disk_image_kit, dispatch2, url, uuid};
 
 pub use crate::boot_loader::{
   BootLoader, EFIBootLoader, EFISignature, EFISignatureDatabaseConfiguration, EFISignatureList, EFIVariableStore,
@@ -69,8 +70,9 @@ pub use crate::network::{
 };
 pub use crate::other_devices::{
   EntropyDeviceConfiguration, MemoryBalloonDevice, MemoryBalloonDeviceConfiguration, USBController,
-  USBControllerConfiguration, VirtioEntropyDeviceConfiguration, VirtioTraditionalMemoryBalloonDevice,
-  VirtioTraditionalMemoryBalloonDeviceConfiguration,
+  USBControllerConfiguration, USBDevice, USBDeviceConfiguration, VirtioEntropyDeviceConfiguration,
+  VirtioTraditionalMemoryBalloonDevice, VirtioTraditionalMemoryBalloonDeviceConfiguration, XHCIController,
+  XHCIControllerConfiguration,
 };
 pub use crate::security::SecCertificate;
 pub use crate::serial_port::{
@@ -82,8 +84,11 @@ pub use crate::serial_port::{
   VirtioSocketDeviceConfiguration, VirtioSocketListener, VirtioSocketListenerDelegate,
 };
 pub use crate::storage::{
-  DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, StorageDeviceAttachment,
-  StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
+  DiskBlockDeviceStorageDeviceAttachment, DiskImageCachingMode, DiskImageStorageDeviceAttachment,
+  DiskImageSynchronizationMode, DiskSynchronizationMode, NVMExpressControllerDeviceConfiguration,
+  NetworkBlockDeviceStorageDeviceAttachment, NetworkBlockDeviceStorageDeviceAttachmentDelegate, StorageDevice,
+  StorageDeviceAttachment, StorageDeviceConfiguration, USBMassStorageDevice, USBMassStorageDeviceConfiguration,
+  VirtioBlockDeviceConfiguration,
 };
 pub use crate::virtual_machine::{
   VirtualMachine, VirtualMachineDelegate, VirtualMachineStartOptions, VirtualMachineState,

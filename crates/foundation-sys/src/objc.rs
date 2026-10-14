@@ -127,6 +127,11 @@ pub fn ns_file_handle_file_descriptor(file_handle: &NSFileHandle) -> RawFd {
   file_handle.fileDescriptor()
 }
 
+/// [`NSUUID(uuidString:)`](https://developer.apple.com/documentation/foundation/nsuuid/init(uuidstring:)).
+pub fn ns_uuid_init_uuid_string(string: &str) -> Option<Retained<NSUUID>> {
+  NSUUID::initWithUUIDString(NSUUID::alloc(), &NSString::from_str(string))
+}
+
 /// [`uuidString`](https://developer.apple.com/documentation/foundation/nsuuid/uuidstring).
 /// (objc2's `as_bytes` fails its own check of `getUUIDBytes:`'s type encoding
 /// on macOS 27.)

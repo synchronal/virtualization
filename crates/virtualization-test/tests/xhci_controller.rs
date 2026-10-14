@@ -1,0 +1,151 @@
+use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
+use virtualization::uuid::Uuid;
+use virtualization::{
+  Error, USBController, USBControllerConfiguration, USBDevice, USBDeviceConfiguration, USBMassStorageDevice,
+  VirtualMachine, XHCIController, XHCIControllerConfiguration,
+};
+use virtualization_test::{
+  Console, booting_machine, completed, initial_ramdisk, on_queue, start, usb_mass_storage_device_configuration,
+  with_usb_mass_storage_device, xhci_controller,
+};
+
+/// The UUID of the device a machine's configuration gives its controller.
+const CONFIGURED: &str = "01234567-89ab-cdef-0123-456789abcdef";
+
+/// A machine with an XHCI controller, and a USB mass storage device on it,
+/// whose guest reports its PCI devices' classes and waits.
+fn machine(name: &str) -> (DispatchRetained<DispatchQueue>, VirtualMachine, Console) {
+  let script = "echo \"classes:$(cat /sys/bus/pci/devices/*/class | tr '\\n' ' ')\"\nread line";
+
+  booting_machine(name, Some(&initial_ramdisk(name, script)), |machine| {
+    let controller = XHCIControllerConfiguration::new().unwrap();
+    let device = usb_mass_storage_device_configuration(name);
+
+    device.set_uuid(&CONFIGURED.parse().unwrap());
+    controller.set_usb_devices(&[&device]);
+    machine.set_usb_controllers(&[&controller]);
+  })
+}
+
+/// The UUID of each device on `machine`'s controller.
+fn devices(queue: &DispatchQueue, machine: &VirtualMachine) -> Vec<Uuid> {
+  on_queue(queue, || {
+    xhci_controller(machine)
+      .usb_devices::<USBMassStorageDevice>()
+      .iter()
+      .map(|device| device.as_ref().unwrap().uuid())
+      .collect()
+  })
+}
+
+fn ns_error(result: Result<(), Error>) -> Box<virtualization::NSError> {
+  match result {
+    Err(Error::NSError(error)) => error,
+    other => panic!("expected Virtualization's error, got {other:?}"),
+  }
+}
+
+#[test]
+fn is_one_per_usb_controller_configuration() {
+  let name = "is_one_per_usb_controller_configuration";
+
+  let (queue, machine, _console) = booting_machine(name, None, |machine| {
+    machine.set_usb_controllers(&[
+      &XHCIControllerConfiguration::new().unwrap(),
+      &XHCIControllerConfiguration::new().unwrap(),
+    ]);
+  });
+
+  on_queue(&queue, || {
+    assert!(matches!(
+      machine.usb_controllers::<XHCIController>()[..],
+      [Some(_), Some(_)]
+    ));
+  });
+}
+
+/// Apple documents that they appear once the machine starts.
+#[test]
+fn has_the_devices_of_its_configuration_before_the_machine_starts() {
+  let (queue, machine, _console) = machine("has_the_devices_of_its_configuration_before_the_machine_starts");
+
+  assert_eq!(devices(&queue, &machine), [CONFIGURED.parse::<Uuid>().unwrap()]);
+}
+
+/// The suites' kernel has no USB drivers, so the guest has the controller, by
+/// its PCI class (serial bus, USB, XHCI), and no devices on it.
+#[test]
+fn a_guest_has_an_xhci_controller() {
+  let (queue, machine, mut console) = machine("a_guest_has_an_xhci_controller");
+
+  start(&queue, &machine);
+
+  assert!(console.read_until("classes:").contains("0x0c0330"));
+}
+
+/// Apple documents that a device ever attached to a controller fails to
+/// attach again. It attaches again once detached.
+#[test]
+fn attaches_and_detaches_a_device_while_running() {
+  let (queue, machine, mut console) = machine("attaches_and_detaches_a_device_while_running");
+  let configured: Uuid = CONFIGURED.parse().unwrap();
+  let attached = with_usb_mass_storage_device(USBDevice::uuid);
+  let attach = || {
+    completed(&queue, |completion_handler| {
+      with_usb_mass_storage_device(|device| xhci_controller(&machine).attach(device, completion_handler));
+    })
+  };
+  let detach = || {
+    completed(&queue, |completion_handler| {
+      with_usb_mass_storage_device(|device| xhci_controller(&machine).detach(device, completion_handler));
+    })
+  };
+
+  start(&queue, &machine);
+  console.read_until("classes:");
+
+  attach().unwrap();
+
+  assert_eq!(devices(&queue, &machine), [configured, attached]);
+
+  let error = ns_error(attach());
+
+  assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
+  assert_eq!(error.code, 30002, "{error:#?}");
+
+  detach().unwrap();
+
+  assert_eq!(devices(&queue, &machine), [configured]);
+
+  let error = ns_error(detach());
+
+  assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
+  assert_eq!(error.code, 30004, "{error:#?}");
+
+  attach().unwrap();
+
+  assert_eq!(devices(&queue, &machine), [configured, attached]);
+}
+
+#[test]
+fn a_clone_is_the_same_object() {
+  let (queue, machine, _console) = machine("xhci_controller_a_clone_is_the_same_object");
+
+  on_queue(&queue, || {
+    let controller = xhci_controller(&machine);
+    let clone = controller.clone();
+
+    drop(controller);
+
+    assert_eq!(clone.usb_devices::<USBMassStorageDevice>().len(), 1);
+  });
+}
+
+#[test]
+fn debugs_as_its_description() {
+  let (queue, machine, _console) = machine("xhci_controller_debugs_as_its_description");
+
+  on_queue(&queue, || {
+    assert!(format!("{:?}", xhci_controller(&machine)).starts_with("<VZXHCIController: 0x"));
+  });
+}

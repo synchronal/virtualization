@@ -482,6 +482,7 @@ dependencies = [
  "dispatch2",
  "foundation-sys",
  "url",
+ "uuid",
  "virtualization-sys",
 ]
 

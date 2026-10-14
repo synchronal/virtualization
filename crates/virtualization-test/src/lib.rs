@@ -2,19 +2,21 @@
 //! to attach, a kernel and userland to boot, and the values chosen for them.
 
 use std::fs::File;
-use std::io::{BufRead, BufReader, Lines, PipeReader, PipeWriter};
+use std::io::{BufRead, BufReader, Lines, PipeReader, PipeWriter, Read, Write};
+use std::net::{Shutdown, TcpListener, TcpStream};
 use std::os::fd::OwnedFd;
 use std::path::PathBuf;
 use std::process::Command;
-use std::sync::mpsc;
+use std::sync::{Arc, Mutex, mpsc};
 use std::time::Duration;
 
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::url::Url;
 use virtualization::{
-  EFIVariableStore, EFIVariableStoreInitializationOptions, Error, FileHandleSerialPortAttachment, LinuxBootLoader,
-  SerialPortConfiguration, VirtioConsoleDeviceSerialPortConfiguration, VirtioSocketConnection, VirtioSocketDevice,
-  VirtioSocketDeviceConfiguration, VirtualMachine, VirtualMachineConfiguration,
+  DiskImageStorageDeviceAttachment, EFIVariableStore, EFIVariableStoreInitializationOptions, Error,
+  FileHandleSerialPortAttachment, LinuxBootLoader, SerialPortConfiguration, USBMassStorageDevice,
+  USBMassStorageDeviceConfiguration, VirtioConsoleDeviceSerialPortConfiguration, VirtioSocketConnection,
+  VirtioSocketDevice, VirtioSocketDeviceConfiguration, VirtualMachine, VirtualMachineConfiguration, XHCIController,
 };
 
 /// A path in the suites' scratch directory, named for the test that uses it.
@@ -85,6 +87,247 @@ pub fn variable_store(name: &str) -> EFIVariableStore {
     EFIVariableStoreInitializationOptions::new(0),
   )
   .unwrap()
+}
+
+/// A disk the host attached from a raw image, which whoever attached it may
+/// open. Detached when dropped.
+pub struct BlockDevice {
+  /// Its raw device, `/dev/rdiskN`.
+  pub path: PathBuf,
+}
+
+/// A block device of 1 MiB starting with `contents`, as `/usr/bin/hdiutil`
+/// attaches a raw image without mounting it.
+pub fn block_device(name: &str, contents: &[u8]) -> BlockDevice {
+  let mut image = contents.to_vec();
+
+  image.resize(1024 * 1024, 0);
+
+  let image = file(&format!("{name}.img"), &image);
+  let attached = Command::new("/usr/bin/hdiutil")
+    .args(["attach", "-nomount", "-imagekey", "diskimage-class=CRawDiskImage"])
+    .arg(image.to_file_path().unwrap())
+    .output()
+    .unwrap();
+
+  assert!(
+    attached.status.success(),
+    "{}",
+    String::from_utf8_lossy(&attached.stderr)
+  );
+
+  let disk = String::from_utf8(attached.stdout).unwrap();
+  let disk = disk.split_whitespace().next().unwrap();
+
+  BlockDevice {
+    path: PathBuf::from(disk.replacen("/dev/disk", "/dev/rdisk", 1)),
+  }
+}
+
+impl BlockDevice {
+  /// A descriptor for the device, for reading and writing.
+  pub fn open(&self) -> OwnedFd {
+    OwnedFd::from(
+      File::options()
+        .read(true)
+        .write(true)
+        .open(&self.path)
+        .unwrap(),
+    )
+  }
+
+  /// The device's first sector: a raw device reads only whole ones.
+  pub fn first_sector(&self) -> [u8; 512] {
+    let mut sector = [0; 512];
+
+    File::from(self.open()).read_exact(&mut sector).unwrap();
+
+    sector
+  }
+}
+
+impl Drop for BlockDevice {
+  fn drop(&mut self) {
+    let _ = Command::new("/usr/bin/hdiutil")
+      .args(["detach", "-force"])
+      .arg(&self.path)
+      .output();
+  }
+}
+
+/// A network block device server on a loopback port, serving one export to
+/// any client under any export name, until it is stopped or the process
+/// exits.
+pub struct NbdServer {
+  /// Its `nbd` URL.
+  pub url: Url,
+  /// What it serves, shared, so a test reads what a guest wrote.
+  pub export: Arc<Mutex<Vec<u8>>>,
+  /// Its clients, until it is stopped.
+  clients: Arc<Mutex<Option<Vec<TcpStream>>>>,
+}
+
+impl NbdServer {
+  /// Hangs up on every client, and on any that connects from now on.
+  pub fn stop(&self) {
+    for client in self.clients.lock().unwrap().take().unwrap() {
+      client.shutdown(Shutdown::Both).unwrap();
+    }
+  }
+}
+
+/// A server of `export`.
+pub fn nbd_server(export: Vec<u8>) -> NbdServer {
+  let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+  let server = NbdServer {
+    url: Url::parse(&format!("nbd://127.0.0.1:{}/", listener.local_addr().unwrap().port())).unwrap(),
+    export: Arc::new(Mutex::new(export)),
+    clients: Arc::new(Mutex::new(Some(Vec::new()))),
+  };
+  let export = Arc::clone(&server.export);
+  let clients = Arc::clone(&server.clients);
+
+  std::thread::spawn(move || {
+    for client in listener.incoming() {
+      let client = client.unwrap();
+      let export = Arc::clone(&export);
+
+      // Stopped: dropping the client hangs up on it.
+      let Some(clients) = &mut *clients.lock().unwrap() else {
+        continue;
+      };
+
+      clients.push(client.try_clone().unwrap());
+      // A client that hangs up ends its own thread.
+      std::thread::spawn(move || nbd_serve(client, &export));
+    }
+  });
+
+  server
+}
+
+/// Replies to an NBD option.
+fn nbd_reply(client: &mut TcpStream, option: u32, reply: u32, data: &[u8]) -> std::io::Result<()> {
+  client.write_all(&0x0003_e889_0455_65a9_u64.to_be_bytes())?;
+  client.write_all(&option.to_be_bytes())?;
+  client.write_all(&reply.to_be_bytes())?;
+  client.write_all(&u32::try_from(data.len()).unwrap().to_be_bytes())?;
+  client.write_all(data)
+}
+
+/// The NBD protocol's fixed newstyle handshake, then its simple replies to
+/// reads, writes, and flushes, until the client disconnects.
+fn nbd_serve(mut client: TcpStream, export: &Mutex<Vec<u8>>) -> std::io::Result<()> {
+  // What the export sends: flags, and flush.
+  let transmission_flags = 0b101_u16.to_be_bytes();
+  let size = (export.lock().unwrap().len() as u64).to_be_bytes();
+  let mut word = [0; 4];
+
+  // Fixed newstyle, and no zeroes after an export's name.
+  client.write_all(b"NBDMAGICIHAVEOPT")?;
+  client.write_all(&0b11_u16.to_be_bytes())?;
+  client.read_exact(&mut word)?;
+
+  let no_zeroes = u32::from_be_bytes(word) & 0b10 != 0;
+
+  loop {
+    let mut header = [0; 16];
+
+    client.read_exact(&mut header)?;
+
+    let option = u32::from_be_bytes(header[8..12].try_into().unwrap());
+    let mut data = vec![0; u32::from_be_bytes(header[12..16].try_into().unwrap()) as usize];
+
+    client.read_exact(&mut data)?;
+
+    match option {
+      // NBD_OPT_EXPORT_NAME.
+      1 => {
+        client.write_all(&size)?;
+        client.write_all(&transmission_flags)?;
+        if !no_zeroes {
+          client.write_all(&[0; 124])?;
+        }
+
+        break;
+      }
+      // NBD_OPT_INFO, and NBD_OPT_GO, which starts transmission: NBD_REP_INFO
+      // with NBD_INFO_EXPORT, another with NBD_INFO_BLOCK_SIZE (512 bytes at
+      // least, 4 KiB preferred, 1 MiB at most), then NBD_REP_ACK.
+      6 | 7 => {
+        let block_sizes = [512_u32, 4096, 1024 * 1024].map(u32::to_be_bytes).concat();
+
+        nbd_reply(
+          &mut client,
+          option,
+          3,
+          &[&[0, 0], &size[..], &transmission_flags].concat(),
+        )?;
+        nbd_reply(&mut client, option, 3, &[&[0, 3], &block_sizes[..]].concat())?;
+        nbd_reply(&mut client, option, 1, &[])?;
+        if option == 7 {
+          break;
+        }
+      }
+      // NBD_REP_ERR_UNSUP.
+      _ => nbd_reply(&mut client, option, 0x8000_0001, &[])?,
+    }
+  }
+
+  loop {
+    let mut request = [0; 28];
+
+    client.read_exact(&mut request)?;
+
+    let command = u16::from_be_bytes(request[6..8].try_into().unwrap());
+    let offset = u64::from_be_bytes(request[16..24].try_into().unwrap()) as usize;
+    let length = u32::from_be_bytes(request[24..28].try_into().unwrap()) as usize;
+    let mut reply = [&0x6744_6698_u32.to_be_bytes(), &[0; 4], &request[8..16]].concat();
+
+    match command {
+      // NBD_CMD_READ.
+      0 => reply.extend_from_slice(&export.lock().unwrap()[offset..offset + length]),
+      // NBD_CMD_WRITE.
+      1 => client.read_exact(&mut export.lock().unwrap()[offset..offset + length])?,
+      // NBD_CMD_DISC.
+      2 => return Ok(()),
+      // NBD_CMD_FLUSH.
+      3 => {}
+      // EINVAL.
+      _ => reply[4..8].copy_from_slice(&22_u32.to_be_bytes()),
+    }
+
+    client.write_all(&reply)?;
+  }
+}
+
+/// A USB mass storage device's configuration, of a read-only disk image.
+pub fn usb_mass_storage_device_configuration(name: &str) -> USBMassStorageDeviceConfiguration {
+  USBMassStorageDeviceConfiguration::new(&DiskImageStorageDeviceAttachment::new(&disk_image(name), true).unwrap())
+    .unwrap()
+}
+
+thread_local! {
+  /// A device can't leave its thread, and a test needs the same one from one
+  /// call on its machine's queue to the next. Dispatch runs a block on the
+  /// thread that waits for it (`on_queue`), so the test's thread keeps it.
+  static USB_MASS_STORAGE_DEVICE: USBMassStorageDevice =
+    USBMassStorageDevice::new(&usb_mass_storage_device_configuration("usb_mass_storage_device")).unwrap();
+}
+
+/// Runs `work` with this thread's USB mass storage device, which no
+/// configuration made: one to attach to a running machine's controller.
+pub fn with_usb_mass_storage_device<T>(work: impl FnOnce(&USBMassStorageDevice) -> T) -> T {
+  USB_MASS_STORAGE_DEVICE.with(work)
+}
+
+/// The XHCI controller of a machine configured with one. Call it on the
+/// machine's queue.
+pub fn xhci_controller(machine: &VirtualMachine) -> XHCIController {
+  machine
+    .usb_controllers::<XHCIController>()
+    .remove(0)
+    .unwrap()
 }
 
 /// A file URL for `path`, which need not exist.
