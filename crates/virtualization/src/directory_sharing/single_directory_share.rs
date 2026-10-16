@@ -21,7 +21,9 @@ impl SingleDirectoryShare {
 
   /// [`directory`](https://developer.apple.com/documentation/virtualization/vzsingledirectoryshare/directory)
   pub fn directory(&self) -> SharedDirectory {
-    SharedDirectory::from_inner(self.inner.vz_directory())
+    SharedDirectory {
+      inner: self.inner.vz_directory(),
+    }
   }
 }
 

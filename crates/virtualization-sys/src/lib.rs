@@ -3034,7 +3034,7 @@ pub fn vz_disk_image_storage_device_attachment_init_caching_mode_synchronization
   )
 }
 
-/// `diskImage` crosses from disk-image-kit-sys's bridge, lent for the call.
+/// `disk_image` crosses from disk-image-kit-sys's bridge, lent for the call.
 pub fn vz_disk_image_storage_device_attachment_init_disk_image_caching_mode_synchronization_mode(
   disk_image: &disk_image_kit_sys::DiskImage,
   caching_mode: VZDiskImageCachingMode,

@@ -17,8 +17,8 @@
 //! - Enums keep Apple's cases, plus `Unknown` for a case newer than this
 //!   crate (`Unknown(rawValue)` for one with raw values).
 //!
-//! The glue's names differ from `virtualization-sys`'s: both link into one
-//! binary, and swift-bridge names symbols for each bridge's types.
+//! The glue's names differ from the other bridges': all link into one binary,
+//! and swift-bridge names symbols for each bridge's types.
 //!
 //! macOS only: the build fails elsewhere.
 //!

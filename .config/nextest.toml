@@ -6,7 +6,7 @@ experimental = ["setup-scripts"]
 [profile.default]
 leak-timeout = "1s"
 
-# Downloads the kernel the booting suites start, and tells them where it is.
+# Downloads the kernel and busybox (required by booting test suites).
 [scripts.setup.prepare-integration]
 command = { command-line = "bin/dev/prepare-integration", relative-to = "workspace-root" }
 slow-timeout = { period = "120s", terminate-after = 5 }

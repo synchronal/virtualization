@@ -2,9 +2,8 @@
 // The glue for crossing swift-bridge: vmnet's references, held as the
 // objects they are, and the C structs Rust passes as integers.
 //
-// Names here differ from VirtualizationBridge's and DiskImageKitBridge's: they
-// link into one binary, and swift-bridge's symbols are named for each bridge's
-// types.
+// Names here differ from the other bridges': all link into one binary, and
+// swift-bridge's symbols are named for each bridge's types.
 //===----------------------------------------------------------------------===//
 
 // Function names are Rust's, which are snake_case.

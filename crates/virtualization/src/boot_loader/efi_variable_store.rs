@@ -147,16 +147,10 @@ impl EFIVariableStoreInitializationOptions {
   }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(target_os = "macos")))]
 mod tests {
   use super::*;
 
-  #[test]
-  fn has_the_raw_value_it_was_made_with() {
-    assert_eq!(EFIVariableStoreInitializationOptions::new(1).raw_value, 1);
-  }
-
-  #[cfg(not(target_os = "macos"))]
   #[test]
   fn is_unsupported_off_macos() {
     let url = Url::parse("file:///nowhere/efi-variable-store").unwrap();

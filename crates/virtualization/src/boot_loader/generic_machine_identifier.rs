@@ -16,18 +16,16 @@ impl GenericMachineIdentifier {
   pub fn new() -> Result<Self, Error> {
     platform::supported()?;
 
-    Ok(Self::from_inner(ffi::vz_generic_machine_identifier_init()))
+    Ok(Self {
+      inner: ffi::vz_generic_machine_identifier_init(),
+    })
   }
 
   /// [`init(dataRepresentation:)`](https://developer.apple.com/documentation/virtualization/vzgenericmachineidentifier/init(datarepresentation:))
   pub fn with_data_representation(data_representation: &[u8]) -> Result<Option<Self>, Error> {
     platform::supported()?;
 
-    Ok(ffi::vz_generic_machine_identifier_init_data_representation(data_representation).map(Self::from_inner))
-  }
-
-  pub(crate) fn from_inner(inner: ffi::VZGenericMachineIdentifier) -> Self {
-    Self { inner }
+    Ok(ffi::vz_generic_machine_identifier_init_data_representation(data_representation).map(|inner| Self { inner }))
   }
 
   /// [`dataRepresentation`](https://developer.apple.com/documentation/virtualization/vzgenericmachineidentifier/datarepresentation)
@@ -38,7 +36,9 @@ impl GenericMachineIdentifier {
 
 impl Clone for GenericMachineIdentifier {
   fn clone(&self) -> Self {
-    Self::from_inner(self.inner.bridge_retained())
+    Self {
+      inner: self.inner.bridge_retained(),
+    }
   }
 }
 

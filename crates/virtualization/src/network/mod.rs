@@ -22,7 +22,9 @@ use crate::sealed::Sealed;
 pub trait NetworkDeviceConfiguration: Sealed {
   /// [`macAddress`](https://developer.apple.com/documentation/virtualization/vznetworkdeviceconfiguration/macaddress)
   fn mac_address(&self) -> MACAddress {
-    MACAddress::from_inner(ffi::vz_network_device_configuration_mac_address(self.bridge_object()))
+    MACAddress {
+      inner: ffi::vz_network_device_configuration_mac_address(self.bridge_object()),
+    }
   }
 
   /// [`macAddress`](https://developer.apple.com/documentation/virtualization/vznetworkdeviceconfiguration/macaddress)

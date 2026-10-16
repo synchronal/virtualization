@@ -30,7 +30,7 @@ fn fails_as_vmnet_does_in_a_mode_it_has_no_case_for() {
 }
 
 #[test]
-fn accepts_each_setting_and_leaves_checking_it_to_network_creation() {
+fn accepts_an_invalid_subnet_and_leaves_checking_it_to_network_creation() {
   let configuration = NetworkConfiguration::new(Mode::Host).unwrap();
 
   configuration

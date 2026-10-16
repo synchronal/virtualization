@@ -56,7 +56,16 @@ pub fn directory(name: &str, files: &[(&str, &str)]) -> PathBuf {
 
 /// A raw disk image: 1 MiB of zeroes.
 pub fn disk_image(name: &str) -> Url {
-  file(&format!("{name}.img"), &vec![0u8; 1024 * 1024])
+  raw_image(name, &[])
+}
+
+/// A raw disk image of 1 MiB starting with `contents`.
+pub fn raw_image(name: &str, contents: &[u8]) -> Url {
+  let mut image = contents.to_vec();
+
+  image.resize(1024 * 1024, 0);
+
+  file(&format!("{name}.img"), &image)
 }
 
 /// A file with `contents`.
@@ -103,11 +112,7 @@ pub struct BlockDevice {
 /// A block device of 1 MiB starting with `contents`, as `/usr/bin/hdiutil`
 /// attaches a raw image without mounting it.
 pub fn block_device(name: &str, contents: &[u8]) -> BlockDevice {
-  let mut image = contents.to_vec();
-
-  image.resize(1024 * 1024, 0);
-
-  let image = file(&format!("{name}.img"), &image);
+  let image = raw_image(name, contents);
   let attached = Command::new("/usr/bin/hdiutil")
     .args(["attach", "-nomount", "-imagekey", "diskimage-class=CRawDiskImage"])
     .arg(image.to_file_path().unwrap())

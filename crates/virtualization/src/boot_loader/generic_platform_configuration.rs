@@ -28,7 +28,9 @@ impl GenericPlatformConfiguration {
 
   /// [`machineIdentifier`](https://developer.apple.com/documentation/virtualization/vzgenericplatformconfiguration/machineidentifier)
   pub fn machine_identifier(&self) -> GenericMachineIdentifier {
-    GenericMachineIdentifier::from_inner(self.inner.vz_machine_identifier())
+    GenericMachineIdentifier {
+      inner: self.inner.vz_machine_identifier(),
+    }
   }
 
   /// [`machineIdentifier`](https://developer.apple.com/documentation/virtualization/vzgenericplatformconfiguration/machineidentifier)

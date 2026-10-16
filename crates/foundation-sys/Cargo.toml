@@ -1,6 +1,6 @@
 [package]
 categories.workspace = true
-description = "Foundation as the Apple framework sys crates share it: objc2's objects, the glue for passing them through swift-bridge, and `NSError` as plain Rust."
+description = "Foundation as the Apple framework sys crates share it: objc2's objects, the glue for passing them through swift-bridge, and `NSError`, `NSMutableData`, and `PropertyListValue` as plain Rust."
 edition.workspace = true
 keywords.workspace = true
 license.workspace = true

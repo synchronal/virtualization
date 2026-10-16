@@ -74,8 +74,8 @@ pub(crate) struct VZSingleDirectoryShare {
   never: Never,
 }
 
-pub(crate) fn vz_single_directory_share_init(directory: &VZSharedDirectory) -> VZSingleDirectoryShare {
-  match directory.never {}
+pub(crate) fn vz_single_directory_share_init(_directory: &VZSharedDirectory) -> VZSingleDirectoryShare {
+  unreachable!("{GUARDED}")
 }
 
 pub(crate) fn vz_single_directory_share_bridge_cast(object: &NSObject) -> Option<VZSingleDirectoryShare> {

@@ -74,7 +74,7 @@ fn is_the_attachment_of_the_configuration_it_was_given_to() {
 
 #[test]
 fn a_clone_is_the_same_object() {
-  let device = block_device("block_a_clone_is_the_same_object", b"");
+  let device = block_device("disk_block_a_clone_is_the_same_object", b"");
   let attachment =
     DiskBlockDeviceStorageDeviceAttachment::new(device.open(), true, DiskSynchronizationMode::Full).unwrap();
   let descriptor = attachment.file_handle().as_raw_fd();
@@ -132,7 +132,7 @@ fn a_guest_cannot_write_a_read_only_block_device() {
 
 #[test]
 fn debugs_as_its_description() {
-  let device = block_device("block_debugs_as_its_description", b"");
+  let device = block_device("disk_block_debugs_as_its_description", b"");
   let attachment =
     DiskBlockDeviceStorageDeviceAttachment::new(device.open(), true, DiskSynchronizationMode::Full).unwrap();
 

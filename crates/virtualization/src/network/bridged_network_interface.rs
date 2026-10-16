@@ -16,13 +16,9 @@ impl BridgedNetworkInterface {
     Ok(
       ffi::vz_bridged_network_interface_network_interfaces()
         .into_iter()
-        .map(Self::from_inner)
+        .map(|inner| Self { inner })
         .collect(),
     )
-  }
-
-  pub(crate) fn from_inner(inner: ffi::VZBridgedNetworkInterface) -> Self {
-    Self { inner }
   }
 
   /// [`identifier`](https://developer.apple.com/documentation/virtualization/vzbridgednetworkinterface/identifier)
@@ -38,7 +34,9 @@ impl BridgedNetworkInterface {
 
 impl Clone for BridgedNetworkInterface {
   fn clone(&self) -> Self {
-    Self::from_inner(self.inner.bridge_retained())
+    Self {
+      inner: self.inner.bridge_retained(),
+    }
   }
 }
 

@@ -21,10 +21,6 @@ impl SharedDirectory {
     })
   }
 
-  pub(crate) fn from_inner(inner: ffi::VZSharedDirectory) -> Self {
-    Self { inner }
-  }
-
   /// [`url`](https://developer.apple.com/documentation/virtualization/vzshareddirectory/url)
   pub fn url(&self) -> Result<Url, Error> {
     foundation::url(&self.inner.vz_url())
@@ -38,7 +34,9 @@ impl SharedDirectory {
 
 impl Clone for SharedDirectory {
   fn clone(&self) -> Self {
-    Self::from_inner(self.inner.bridge_retained())
+    Self {
+      inner: self.inner.bridge_retained(),
+    }
   }
 }
 

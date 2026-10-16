@@ -42,8 +42,8 @@ use io_usb_host_sys::IOUSBHostDevice;
 
 pub use self::ffi::{
   AAErrorCode, AAUSBAccessory, AAUSBAccessoryManager, AAUSBAccessoryMatchingCriteria,
-  AAUSBAccessoryMatchingCriteriaInterfaceMatchingOption, AccessoryAccessNil, aa_error_code_init_raw_value,
-  aa_error_code_raw_value, aa_error_domain, aa_usb_accessory_manager_shared,
+  AAUSBAccessoryMatchingCriteriaInterfaceMatchingOption, aa_error_code_init_raw_value, aa_error_code_raw_value,
+  aa_error_domain, aa_usb_accessory_manager_shared,
 };
 
 // No doc comments inside the module: swift-bridge can't parse them. Shared
@@ -198,11 +198,6 @@ unsafe impl Send for AAUSBAccessory {}
 unsafe impl Sync for AAUSBAccessory {}
 
 impl AAUSBAccessory {
-  pub fn bridge_object(&self) -> &NSObject {
-    // SAFETY: this one's own object.
-    unsafe { bridge_object(self, self.bridge_borrowed()) }
-  }
-
   pub fn aa_device_descriptor_data(&self) -> Vec<u8> {
     // SAFETY: `deviceDescriptorData`, a retained `NSData`.
     ns_data_bytes(&*unsafe { retained::<NSData>(ffi::aa_usb_accessory_device_descriptor_data(self.bridge_retained())) })
@@ -476,7 +471,7 @@ unsafe impl Send for AAUSBAccessoryMatchingCriteria {}
 unsafe impl Sync for AAUSBAccessoryMatchingCriteria {}
 
 impl AAUSBAccessoryMatchingCriteria {
-  pub fn bridge_object(&self) -> &NSObject {
+  fn bridge_object(&self) -> &NSObject {
     // SAFETY: this one's own object.
     unsafe { bridge_object(self, self.bridge_borrowed()) }
   }

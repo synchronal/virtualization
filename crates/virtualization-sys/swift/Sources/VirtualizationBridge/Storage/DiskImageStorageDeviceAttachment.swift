@@ -33,8 +33,7 @@ func vz_disk_image_storage_device_attachment_init_caching_mode_synchronization_m
   }
 }
 
-/// `diskImage` is DiskImageKitBridge's, lent by address
-/// (`DiskImage.bridge_borrowed()`).
+/// `disk_image` is a `DiskImage` DiskImageKitBridge lends by address.
 func vz_disk_image_storage_device_attachment_init_disk_image_caching_mode_synchronization_mode(
   disk_image: UnsafeRawPointer,
   caching_mode: BridgedVZDiskImageCachingMode,

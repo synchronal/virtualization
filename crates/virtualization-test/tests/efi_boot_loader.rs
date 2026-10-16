@@ -1,7 +1,7 @@
 use virtualization::{
   EFIBootLoader, Error, LinuxBootLoader, VirtualMachine, VirtualMachineConfiguration, VirtualMachineState,
 };
-use virtualization_test::{completed, on_queue, serial_queue, variable_store};
+use virtualization_test::{on_queue, serial_queue, start, stop, variable_store};
 
 #[test]
 fn has_no_variable_store_when_new() {
@@ -73,11 +73,11 @@ fn starts_a_machine_with_nothing_to_boot() {
     VirtualMachine::with_queue(&efi_configuration(&loader), &queue).unwrap()
   });
 
-  completed(&queue, |completion_handler| machine.start(completion_handler)).unwrap();
+  start(&queue, &machine);
 
   assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Running);
 
-  completed(&queue, |completion_handler| machine.stop(completion_handler)).unwrap();
+  stop(&queue, &machine);
 }
 
 #[test]

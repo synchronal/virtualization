@@ -7,9 +7,9 @@ pub(crate) struct VZBridgedNetworkDeviceAttachment {
 }
 
 pub(crate) fn vz_bridged_network_device_attachment_init(
-  interface: &VZBridgedNetworkInterface,
+  _interface: &VZBridgedNetworkInterface,
 ) -> VZBridgedNetworkDeviceAttachment {
-  match interface.never {}
+  unreachable!("{GUARDED}")
 }
 
 pub(crate) fn vz_bridged_network_device_attachment_bridge_cast(

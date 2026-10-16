@@ -3,14 +3,9 @@
 use crate::platform::ffi;
 use crate::{Error, NSMutableData};
 
-/// An `NSError` IOUSBHost failed with.
-pub(crate) fn error(error: &ffi::NSError) -> Error {
-  Error::NSError(Box::new(error.into()))
-}
-
 /// What a failing call left in its `error`.
-pub(crate) fn thrown(thrown: ffi::Retained<ffi::NSError>) -> Error {
-  error(&thrown)
+pub(crate) fn thrown(error: ffi::Retained<ffi::NSError>) -> Error {
+  Error::NSError(Box::new((&*error).into()))
 }
 
 /// The object an I/O buffer is.

@@ -56,7 +56,7 @@ impl MultipleDirectoryShare {
       .inner
       .vz_directories()
       .into_iter()
-      .map(|(name, directory)| (name, SharedDirectory::from_inner(directory)))
+      .map(|(name, directory)| (name, SharedDirectory { inner: directory }))
       .collect()
   }
 }

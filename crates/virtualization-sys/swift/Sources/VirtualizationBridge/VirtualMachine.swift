@@ -146,7 +146,9 @@ extension VZVirtualMachine {
   }
 
   func vz_request_stop() throws(BridgedThrown) {
-    try bridging { try requestStop() }
+    try bridging {
+      try requestStop()
+    }
   }
 }
 

@@ -11,10 +11,6 @@ use crate::{
 };
 
 /// [`VZVirtualMachineConfiguration`](https://developer.apple.com/documentation/virtualization/vzvirtualmachineconfiguration)
-///
-/// An array of an abstract class is a slice of trait objects going in. Coming
-/// out, each element is cast to the subclass given, as Swift's `as? T`:
-/// `None` where an element isn't a `T`.
 pub struct VirtualMachineConfiguration {
   pub(crate) inner: ffi::VZVirtualMachineConfiguration,
 }

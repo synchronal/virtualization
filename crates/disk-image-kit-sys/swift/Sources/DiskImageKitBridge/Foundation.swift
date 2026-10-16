@@ -2,8 +2,8 @@
 // The glue for crossing swift-bridge. Foundation's own objects cross as
 // pointers, which Rust holds through objc2 (`foundation_sys::objc`).
 //
-// Names here differ from VirtualizationBridge's: the two link into one
-// binary, and swift-bridge's symbols are named for each bridge's types.
+// Names here differ from the other bridges': all link into one binary, and
+// swift-bridge's symbols are named for each bridge's types.
 //===----------------------------------------------------------------------===//
 
 // Function names are Rust's, which are snake_case.

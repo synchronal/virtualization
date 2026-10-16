@@ -6,7 +6,7 @@ check_swift() {
   if [[ -z "${output}" ]]; then
     exit 0
   else
-    echo -e "Swift-format lint produced errors!" >&2
+    echo "Swift-format lint produced errors!" >&2
     echo >&2
     echo "${output}" >&2
     exit 1

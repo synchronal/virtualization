@@ -356,7 +356,6 @@ fn borrowed_queue_or_nil(queue: Option<&DispatchQueue>) -> usize {
 
 // Object.swift
 
-/// [`destroy()`](https://developer.apple.com/documentation/iousbhost/iousbhostobject/destroy())
 pub fn iousbhost_object_destroy(this: &NSObject) {
   ffi::iousbhost_object_destroy(borrowed(this));
 }
@@ -547,9 +546,7 @@ pub fn iousbhost_object_reference_microframe_with_time(this: &NSObject) -> Resul
 
 // Device.swift
 
-/// `options` is an `IOUSBHostObjectInitOptions`' raw value. The interest
-/// handler, if any, is called on IOUSBHost's internal queue with the device,
-/// the message type, and its argument's address (or the argument itself).
+/// `options` is an `IOUSBHostObjectInitOptions`' raw value.
 pub fn iousbhost_device_init_io_service_options_queue_interest_handler(
   io_service: u32,
   options: usize,

@@ -21,7 +21,9 @@ impl BridgedNetworkDeviceAttachment {
 
   /// [`interface`](https://developer.apple.com/documentation/virtualization/vzbridgednetworkdeviceattachment/interface)
   pub fn interface(&self) -> BridgedNetworkInterface {
-    BridgedNetworkInterface::from_inner(self.inner.vz_interface())
+    BridgedNetworkInterface {
+      inner: self.inner.vz_interface(),
+    }
   }
 }
 

@@ -85,17 +85,15 @@ fn debugs_as_its_description() {
   assert!(format!("{device:?}").starts_with("<VZVirtioNetworkDeviceConfiguration: 0x"));
 }
 
+const MAC_ADDRESS: [u8; 6] = [0x02, 0x23, 0x45, 0xab, 0xcd, 0xef];
+
 /// A started guest running `script` with a NAT-attached virtio network device
-/// with `mac_address`.
-fn nat_guest(
-  name: &str,
-  script: &str,
-  mac_address: [u8; 6],
-) -> (DispatchRetained<DispatchQueue>, VirtualMachine, Console) {
+/// with `MAC_ADDRESS`.
+fn nat_guest(name: &str, script: &str) -> (DispatchRetained<DispatchQueue>, VirtualMachine, Console) {
   let (queue, machine, console) = booting_machine(name, Some(&initial_ramdisk(name, script)), |configuration| {
     let device = VirtioNetworkDeviceConfiguration::new().unwrap();
 
-    device.set_mac_address(&MACAddress::new(mac_address).unwrap());
+    device.set_mac_address(&MACAddress::new(MAC_ADDRESS).unwrap());
     device.set_attachment(Some(&NATNetworkDeviceAttachment::new().unwrap()));
     configuration.set_network_devices(&[&device]);
   });
@@ -105,12 +103,10 @@ fn nat_guest(
   (queue, machine, console)
 }
 
-const MAC_ADDRESS: [u8; 6] = [0x02, 0x23, 0x45, 0xab, 0xcd, 0xef];
-
 #[test]
 fn a_guest_sees_the_mac_address() {
   let name = "a_guest_sees_the_mac_address";
-  let (_queue, _machine, mut console) = nat_guest(name, "echo \"mac:$(cat /sys/class/net/eth0/address)\"", MAC_ADDRESS);
+  let (_queue, _machine, mut console) = nat_guest(name, "echo \"mac:$(cat /sys/class/net/eth0/address)\"");
 
   assert_eq!(console.read_until("mac:").trim_end(), "mac:02:23:45:ab:cd:ef");
 }
@@ -130,7 +126,7 @@ udhcpc -i eth0 -n -q -s /bin/leased || echo lease:none"#;
 #[test]
 fn a_guest_gets_a_lease_from_nat_and_reaches_its_router() {
   let name = "a_guest_gets_a_lease_from_nat_and_reaches_its_router";
-  let (_queue, _machine, mut console) = nat_guest(name, LEASED, MAC_ADDRESS);
+  let (_queue, _machine, mut console) = nat_guest(name, LEASED);
 
   let lease = console.read_until("lease:");
   lease

@@ -15,27 +15,25 @@ impl MACAddress {
   pub fn new(ethernet_address: [u8; 6]) -> Result<Self, Error> {
     platform::supported()?;
 
-    Ok(Self::from_inner(ffi::vz_mac_address_init_ethernet_address(
-      ethernet_address,
-    )))
+    Ok(Self {
+      inner: ffi::vz_mac_address_init_ethernet_address(ethernet_address),
+    })
   }
 
   /// [`init(string:)`](https://developer.apple.com/documentation/virtualization/vzmacaddress/init(string:))
   pub fn with_string(string: &str) -> Result<Option<Self>, Error> {
     platform::supported()?;
 
-    Ok(ffi::vz_mac_address_init_string(string).map(Self::from_inner))
+    Ok(ffi::vz_mac_address_init_string(string).map(|inner| Self { inner }))
   }
 
   /// [`randomLocallyAdministered()`](https://developer.apple.com/documentation/virtualization/vzmacaddress/randomlocallyadministered())
   pub fn random_locally_administered() -> Result<Self, Error> {
     platform::supported()?;
 
-    Ok(Self::from_inner(ffi::vz_mac_address_random_locally_administered()))
-  }
-
-  pub(crate) fn from_inner(inner: ffi::VZMACAddress) -> Self {
-    Self { inner }
+    Ok(Self {
+      inner: ffi::vz_mac_address_random_locally_administered(),
+    })
   }
 
   /// [`ethernetAddress`](https://developer.apple.com/documentation/virtualization/vzmacaddress/ethernetaddress)
@@ -76,7 +74,9 @@ impl MACAddress {
 
 impl Clone for MACAddress {
   fn clone(&self) -> Self {
-    Self::from_inner(self.inner.bridge_retained())
+    Self {
+      inner: self.inner.bridge_retained(),
+    }
   }
 }
 

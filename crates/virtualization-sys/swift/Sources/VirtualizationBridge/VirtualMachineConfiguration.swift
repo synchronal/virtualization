@@ -27,20 +27,20 @@ func vz_virtual_machine_configuration_maximum_allowed_cpu_count() -> Int {
   VZVirtualMachineConfiguration.maximumAllowedCPUCount
 }
 
-/// Any `VZBootLoader`, or `nil`, by address.
 func vz_virtual_machine_configuration_boot_loader(this: VZVirtualMachineConfiguration) -> UInt {
   bridging(retainedAddress: this.bootLoader)
 }
 
+/// `boot_loader` is any `VZBootLoader`, or `0` for `nil`.
 func vz_virtual_machine_configuration_set_boot_loader(this: VZVirtualMachineConfiguration, boot_loader: UInt) {
   this.bootLoader = bridging(borrowedAddress: boot_loader) as VZBootLoader?
 }
 
-/// Any `VZPlatformConfiguration`.
 func vz_virtual_machine_configuration_platform(this: VZVirtualMachineConfiguration) -> UnsafeMutableRawPointer {
   bridging(retained: this.platform)
 }
 
+/// `platform` is any `VZPlatformConfiguration`.
 func vz_virtual_machine_configuration_set_platform(this: VZVirtualMachineConfiguration, platform: UnsafeRawPointer) {
   this.platform = bridging(borrowed: platform)
 }

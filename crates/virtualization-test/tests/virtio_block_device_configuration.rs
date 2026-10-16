@@ -3,7 +3,7 @@ use virtualization::url::Url;
 use virtualization::{
   DiskImageStorageDeviceAttachment, Error, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration, VirtualMachine,
 };
-use virtualization_test::{Console, booting_machine, disk_image, file, initial_ramdisk, start, stop};
+use virtualization_test::{Console, booting_machine, disk_image, initial_ramdisk, raw_image, start, stop};
 
 fn attachment(name: &str) -> DiskImageStorageDeviceAttachment {
   DiskImageStorageDeviceAttachment::new(&disk_image(name), true).unwrap()
@@ -78,7 +78,7 @@ fn fails_as_virtualization_does_on_an_identifier_that_isnt_ascii() {
   assert_eq!(error.code, 2, "{error:#?}");
 }
 
-/// A booted guest running `script` with the raw image at `url` as `vda`.
+/// A started guest running `script` with the raw image at `url` as `vda`.
 fn guest(
   name: &str,
   script: &str,
@@ -97,14 +97,6 @@ fn guest(
   start(&queue, &machine);
 
   (queue, machine, console)
-}
-
-/// A 1 MiB raw image starting with `contents`.
-fn raw_image(name: &str, contents: &[u8]) -> Url {
-  let mut image = contents.to_vec();
-
-  image.resize(1024 * 1024, 0);
-  file(&format!("{name}.img"), &image)
 }
 
 #[test]
