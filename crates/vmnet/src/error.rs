@@ -4,6 +4,10 @@ use std::fmt;
 
 use crate::platform::ffi;
 
+/// What a call into vmnet failed with: a [`vmnet_return_t`] other than
+/// `VMNET_SUCCESS`, or vmnet's absence.
+///
+/// [`vmnet_return_t`]: https://developer.apple.com/documentation/vmnet/vmnet_return_t
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum Error {
@@ -112,7 +116,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn is_the_same_case_in_vmnet_sys() {
+  fn maps_returns_both_ways() {
     for value in [
       Return::Success,
       Return::Failure,

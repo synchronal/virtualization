@@ -34,7 +34,8 @@ func aa_usb_accessory_open(
   let completionHandler = Bridged(value: completion_handler)
 
   this.open(serviceQueue: bridging(borrowedAddress: service_queue)) { device, error in
-    // The device is `nil` when the open failed.
+    // Swift imports the device as non-optional, but it is `nil` when the open
+    // failed: read it only on success.
     guard let error else {
       completionHandler.value(bridging(retainedAddress: device), 0)
       return

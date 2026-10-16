@@ -8,17 +8,10 @@ use virtualization::{
   NetworkBlockDeviceStorageDeviceAttachmentDelegate, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
   VirtualMachineState,
 };
-use virtualization_test::{booting_machine, completed, initial_ramdisk, nbd_server, on_queue, start, stop};
+use virtualization_test::{booting_machine, completed, initial_ramdisk, nbd_server, ns_error, on_queue, start, stop};
 
 fn url(url: &str) -> Url {
   Url::parse(url).unwrap()
-}
-
-fn ns_error<T: std::fmt::Debug>(result: Result<T, Error>) -> Box<virtualization::NSError> {
-  match result {
-    Err(Error::NSError(error)) => error,
-    other => panic!("expected Virtualization's error, got {other:?}"),
-  }
 }
 
 struct Delegate;
@@ -182,7 +175,7 @@ fn export(contents: &[u8]) -> Vec<u8> {
 
 #[test]
 fn a_guest_reads_and_writes_the_export_and_the_delegate_hears_it_connect() {
-  let name = "a_guest_reads_and_writes_the_export";
+  let name = "a_guest_reads_and_writes_the_export_and_the_delegate_hears_it_connect";
   let server = nbd_server(export(b"from the host"));
   let (sender, told) = mpsc::channel();
   let delegate: Arc<dyn NetworkBlockDeviceStorageDeviceAttachmentDelegate> = Arc::new(Telling(Mutex::new(sender)));
@@ -249,7 +242,7 @@ fn tells_its_delegate_when_the_server_no_longer_negotiates() {
   start(&queue, &machine);
   console.read_until("ready:");
   server.stop();
-  console.input.write_all(b"go\n").unwrap();
+  writeln!(console.input, "go").unwrap();
 
   assert_eq!(told.recv().unwrap(), format!("connected {}", server.url));
   assert_eq!(

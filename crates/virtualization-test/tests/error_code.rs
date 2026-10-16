@@ -1,5 +1,3 @@
-//! AccessoryAccess's `AAError.Code` and `AAErrorDomain`.
-
 use virtualization::accessory_access::{ErrorCode, error_domain};
 
 #[test]

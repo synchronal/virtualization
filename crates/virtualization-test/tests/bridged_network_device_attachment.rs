@@ -1,8 +1,7 @@
 use virtualization::{
-  BridgedNetworkDeviceAttachment, BridgedNetworkInterface, Error, NetworkDeviceConfiguration,
-  VirtioNetworkDeviceConfiguration,
+  BridgedNetworkDeviceAttachment, BridgedNetworkInterface, NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration,
 };
-use virtualization_test::linux_configuration;
+use virtualization_test::{linux_configuration, ns_error};
 
 /// An attachment of the host's first bridgeable interface.
 fn attachment() -> BridgedNetworkDeviceAttachment {
@@ -25,9 +24,7 @@ fn fails_validation_without_the_networking_entitlement() {
   device.set_attachment(Some(&attachment()));
   configuration.set_network_devices(&[&device]);
 
-  let Err(Error::NSError(error)) = configuration.validate() else {
-    panic!("validated a bridged attachment without com.apple.vm.networking");
-  };
+  let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");

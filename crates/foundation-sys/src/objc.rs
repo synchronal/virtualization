@@ -110,7 +110,7 @@ pub fn ns_data_bytes(data: &NSData) -> Vec<u8> {
 
 /// [`replaceBytes(in:withBytes:)`](https://developer.apple.com/documentation/foundation/nsmutabledata/replacebytes(in:withbytes:)),
 /// over the `bytes.len()` bytes from `location`.
-pub fn ns_mutable_data_replace_bytes(data: &NSMutableData, location: usize, bytes: &[u8]) {
+pub(crate) fn ns_mutable_data_replace_bytes(data: &NSMutableData, location: usize, bytes: &[u8]) {
   // SAFETY: Foundation reads the range's length from `bytes`, which is that
   // long.
   unsafe { data.replaceBytesInRange_withBytes(NSRange::new(location, bytes.len()), NonNull::from(bytes).cast()) }
@@ -118,7 +118,7 @@ pub fn ns_mutable_data_replace_bytes(data: &NSMutableData, location: usize, byte
 
 /// A property list value as Foundation's object: `NSNumber`, `NSString`,
 /// `NSData`, `NSArray`, or `NSDictionary`.
-pub fn ns_property_list(value: &PropertyListValue) -> Retained<AnyObject> {
+pub(crate) fn ns_property_list(value: &PropertyListValue) -> Retained<AnyObject> {
   match value {
     PropertyListValue::Boolean(value) => NSNumber::new_bool(*value).into(),
     PropertyListValue::Integer(value) => NSNumber::new_i64(*value).into(),
@@ -152,7 +152,7 @@ pub fn ns_property_list_dictionary(
 ///
 /// When `object` isn't a property list object: IOKit's dictionaries hold
 /// nothing else.
-pub fn property_list_value(object: &AnyObject) -> PropertyListValue {
+pub(crate) fn property_list_value(object: &AnyObject) -> PropertyListValue {
   if let Some(number) = object.downcast_ref::<NSNumber>() {
     return ns_number_value(number);
   }

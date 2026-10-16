@@ -1,5 +1,5 @@
-use virtualization::{EFISignature, EFISignatureList, Error, SecCertificate};
-use virtualization_test::{certificate, file, file_url};
+use virtualization::{EFISignature, EFISignatureList, SecCertificate};
+use virtualization_test::{certificate, file, file_url, ns_error};
 
 #[test]
 fn has_the_signatures_it_was_made_with() {
@@ -46,9 +46,7 @@ fn reads_a_certificate_from_a_file() {
 
 #[test]
 fn fails_as_virtualization_does_to_read_a_missing_file() {
-  let Err(Error::NSError(error)) = EFISignatureList::new(&file_url("/nowhere/signatures.esl")) else {
-    panic!("read a missing file");
-  };
+  let error = ns_error(EFISignatureList::new(&file_url("/nowhere/signatures.esl")));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 1, "{error:#?}");
@@ -58,9 +56,7 @@ fn fails_as_virtualization_does_to_read_a_missing_file() {
 fn fails_as_virtualization_does_to_read_a_file_of_no_format_it_knows() {
   let url = file("fails_to_read_a_file_of_no_format_it_knows.esl", b"not signatures");
 
-  let Err(Error::NSError(error)) = EFISignatureList::new(&url) else {
-    panic!("read signatures from a file with none");
-  };
+  let error = ns_error(EFISignatureList::new(&url));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 1, "{error:#?}");

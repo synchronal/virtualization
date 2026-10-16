@@ -81,16 +81,16 @@ func iousbhost_device_configuration_descriptor(this: IOUSBHostDevice) -> UInt {
   UInt(bitPattern: this.configurationDescriptor.map { bridging(configurationDescriptor: $0) })
 }
 
-extension IOUSBHostDevice {
-  func bridge_configure_with_value(value: Int, match_interfaces: Bool) throws(IOUSBHostThrown) {
-    try bridging {
-      try __configure(withValue: value, matchInterfaces: match_interfaces)
-    }
+func iousbhost_device_configure_with_value(this: IOUSBHostDevice, value: Int, match_interfaces: Bool)
+  throws(IOUSBHostThrown)
+{
+  try bridging {
+    try this.__configure(withValue: value, matchInterfaces: match_interfaces)
   }
+}
 
-  func bridge_reset() throws(IOUSBHostThrown) {
-    try bridging {
-      try reset()
-    }
+func iousbhost_device_reset(this: IOUSBHostDevice) throws(IOUSBHostThrown) {
+  try bridging {
+    try this.reset()
   }
 }

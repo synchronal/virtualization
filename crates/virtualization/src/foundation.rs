@@ -13,7 +13,7 @@ pub(crate) fn ns_url(url: &Url) -> Result<ffi::Retained<ffi::NSURL>, Error> {
 
 /// `absoluteString`, parsed.
 pub(crate) fn url(ns_url: &ffi::NSURL) -> Result<Url, Error> {
-  Ok(Url::parse(&ffi::ns_url_absolute_string(ns_url))?)
+  Url::parse(&ffi::ns_url_absolute_string(ns_url)).map_err(Error::UnparseableUrl)
 }
 
 /// `NSUUID(uuidString:)`.

@@ -19,7 +19,7 @@ pub struct ASIFCreationConfiguration {
 }
 
 impl ASIFCreationConfiguration {
-  /// [`asif(url:blockCount:blockSize:)`](https://developer.apple.com/documentation/diskimagekit/asifcreationconfiguration/asif(url:blockcount:blocksize:))
+  /// [`asif(url:blockCount:blockSize:)`](https://developer.apple.com/documentation/diskimagekit/diskimage/creationconfiguration/asif(url:blockcount:blocksize:))
   pub fn asif(url: &Url, block_count: isize, block_size: DiskImageBlockSize) -> Result<Self, Error> {
     platform::supported()?;
 
@@ -122,7 +122,7 @@ pub struct RAWCreationConfiguration {
 }
 
 impl RAWCreationConfiguration {
-  /// [`raw(url:blockCount:)`](https://developer.apple.com/documentation/diskimagekit/rawcreationconfiguration/raw(url:blockcount:))
+  /// [`raw(url:blockCount:)`](https://developer.apple.com/documentation/diskimagekit/diskimage/creationconfiguration/raw(url:blockcount:))
   pub fn raw(url: &Url, block_count: isize) -> Result<Self, Error> {
     platform::supported()?;
 

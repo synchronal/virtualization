@@ -57,7 +57,7 @@ pub trait Object: Sealed {
   }
 
   /// [`descriptorWithType:length:index:languageID:requestType:requestRecipient:error:`](https://developer.apple.com/documentation/iousbhost/iousbhostobject/descriptorwithtype:length:index:languageid:requesttype:requestrecipient:error:):
-  /// its `length` bytes. `descriptor_type` is `type`, a Rust keyword.
+  /// its `length` bytes. `descriptor_type` is `type`.
   fn descriptor_with_type(
     &self,
     descriptor_type: DescriptorType,
@@ -275,13 +275,6 @@ impl From<AbortOption> for ffi::IOUSBHostAbortOption {
 #[cfg(test)]
 mod tests {
   use super::*;
-
-  #[test]
-  fn has_the_raw_value_it_was_made_with() {
-    assert_eq!(ObjectInitOptions::new(1).raw_value, 1);
-    assert_eq!(ObjectDestroyOptions::new(2).raw_value, 2);
-    assert_eq!(ObjectDataOptions::new(3).raw_value, 3);
-  }
 
   #[test]
   fn maps_abort_options_both_ways() {

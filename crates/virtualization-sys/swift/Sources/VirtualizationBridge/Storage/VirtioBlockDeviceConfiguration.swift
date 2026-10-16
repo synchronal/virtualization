@@ -7,8 +7,7 @@
 
 import Virtualization
 
-/// `attachment` is any `VZStorageDeviceAttachment`, lent by address
-/// (`bridge_borrowed()`).
+/// `attachment` is any `VZStorageDeviceAttachment`.
 func vz_virtio_block_device_configuration_init(attachment: UnsafeRawPointer) -> VZVirtioBlockDeviceConfiguration {
   VZVirtioBlockDeviceConfiguration(attachment: bridging(borrowed: attachment) as VZStorageDeviceAttachment)
 }

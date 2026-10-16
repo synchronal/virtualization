@@ -108,7 +108,7 @@ fn fails_as_diskimagekit_does_when_there_is_no_image() {
 #[test]
 fn fails_as_diskimagekit_does_on_an_unrecognized_image() {
   let result = DiskImage::with_opening(&OpenConfiguration::new(
-    file("unrecognized.asif", b"abc"),
+    file("fails_as_diskimagekit_does_on_an_unrecognized_image.asif", b"abc"),
     OpenConfigurationMode::Automatic,
   ));
 
@@ -281,7 +281,7 @@ fn compares_layer_types_as_diskimagekit_does() {
 
 #[test]
 fn a_clone_is_the_same_object() {
-  let (url, image) = asif("a_clone_is_the_same_object.asif");
+  let (url, image) = asif("disk_image_a_clone_is_the_same_object.asif");
   let clone = image.clone();
 
   drop(image);
@@ -291,9 +291,9 @@ fn a_clone_is_the_same_object() {
 
 #[test]
 fn debugs_as_its_description() {
-  let (_url, image) = asif("debugs_as_its_description.asif");
+  let (_url, image) = asif("disk_image_debugs_as_its_description.asif");
   let configuration = ASIFCreationConfiguration::asif(
-    &new_file_url("debugs_as_its_description_2.asif"),
+    &new_file_url("disk_image_debugs_as_its_description_2.asif"),
     BLOCK_COUNT,
     DiskImageBlockSize::Bytes512,
   )

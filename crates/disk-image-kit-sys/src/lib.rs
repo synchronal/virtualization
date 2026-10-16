@@ -189,6 +189,7 @@ mod ffi {
 
 /// What DiskImageKit threw: one of the error types it declares, by name,
 /// with its fields, or anything else as an `NSError`.
+#[derive(Debug)]
 pub enum DiskImageKitError {
   IncompatibleStackingError {
     reason: String,
@@ -310,6 +311,13 @@ impl DiskImage {
     Ok(ffi::dik_disk_image_truncate(self.bridge_retained(), block_count)?)
   }
 }
+
+// SAFETY: Apple declares `DiskImage.LayerType` `Sendable`, and
+// `BridgedDiskImageLayerType` only holds one, immutably.
+unsafe impl Send for BridgedDiskImageLayerType {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for BridgedDiskImageLayerType {}
 
 /// `==`.
 impl PartialEq for BridgedDiskImageLayerType {

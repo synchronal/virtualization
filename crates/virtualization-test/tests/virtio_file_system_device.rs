@@ -1,13 +1,10 @@
-use std::io::Write;
-use std::time::Duration;
-
 use virtualization::url::Url;
 use virtualization::{
   MultipleDirectoryShare, SharedDirectory, SingleDirectoryShare, VirtioFileSystemDevice,
   VirtioFileSystemDeviceConfiguration, VirtualMachine,
 };
 use virtualization_test::{
-  Console, booting_machine, directory, initial_ramdisk, linux_configuration, on_queue, serial_queue, start,
+  booting_machine, directory, initial_ramdisk, linux_configuration, on_queue, serial_queue, start,
 };
 
 #[test]
@@ -51,20 +48,6 @@ fn is_one_per_virtio_file_system_device_configuration_with_its_tag_and_share() {
 const WHICH: &str = "mkdir /mnt\nmount -t virtiofs share /mnt || echo mount:failed\necho ready\nwhile read line; do \
                      echo \"which:$(cat /mnt/which 2>&1)\"; done";
 
-/// Asks the guest what `/mnt/which` holds until it is `expected`: the guest's
-/// mount sees a new share only once its cache of the old one expires.
-fn wait_for_which(console: &mut Console, expected: &str) {
-  for _ in 0..50 {
-    writeln!(console.input).unwrap();
-    if console.read_until("which:").trim_end() == format!("which:{expected}") {
-      return;
-    }
-    std::thread::sleep(Duration::from_millis(100));
-  }
-
-  panic!("the guest's /mnt/which never held {expected}");
-}
-
 #[test]
 fn changes_its_share_while_running() {
   let name = "changes_its_share_while_running";
@@ -81,7 +64,7 @@ fn changes_its_share_while_running() {
 
   start(&queue, &machine);
   console.read_until("ready");
-  wait_for_which(&mut console, "first");
+  console.ask_until("which:", |which| which == "first");
 
   on_queue(&queue, || {
     let devices = machine.directory_sharing_devices::<VirtioFileSystemDevice>();
@@ -101,7 +84,9 @@ fn changes_its_share_while_running() {
       second
     );
   });
-  wait_for_which(&mut console, "second");
+  // The guest's mount sees the new share only once its cache of the old one
+  // expires.
+  console.ask_until("which:", |which| which == "second");
 }
 
 #[test]

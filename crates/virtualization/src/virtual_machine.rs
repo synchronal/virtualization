@@ -99,22 +99,26 @@ impl VirtualMachine {
     self.inner.vz_can_request_stop()
   }
 
-  /// [`consoleDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/consoledevices)
+  /// [`consoleDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/consoledevices),
+  /// each as Swift's `as? T`: `None` for one that isn't a `T`.
   pub fn console_devices<T: ConsoleDevice>(&self) -> Vec<Option<T>> {
     bridge_cast_each(self.inner.vz_console_devices())
   }
 
-  /// [`directorySharingDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/directorysharingdevices)
+  /// [`directorySharingDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/directorysharingdevices),
+  /// each as Swift's `as? T`: `None` for one that isn't a `T`.
   pub fn directory_sharing_devices<T: DirectorySharingDevice>(&self) -> Vec<Option<T>> {
     bridge_cast_each(self.inner.vz_directory_sharing_devices())
   }
 
-  /// [`graphicsDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/graphicsdevices)
+  /// [`graphicsDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/graphicsdevices),
+  /// each as Swift's `as? T`: `None` for one that isn't a `T`.
   pub fn graphics_devices<T: GraphicsDevice>(&self) -> Vec<Option<T>> {
     bridge_cast_each(self.inner.vz_graphics_devices())
   }
 
-  /// [`memoryBalloonDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/memoryballoondevices)
+  /// [`memoryBalloonDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/memoryballoondevices),
+  /// each as Swift's `as? T`: `None` for one that isn't a `T`.
   pub fn memory_balloon_devices<T: MemoryBalloonDevice>(&self) -> Vec<Option<T>> {
     bridge_cast_each(self.inner.vz_memory_balloon_devices())
   }
@@ -129,12 +133,14 @@ impl VirtualMachine {
       .collect()
   }
 
-  /// [`socketDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/socketdevices)
+  /// [`socketDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/socketdevices),
+  /// each as Swift's `as? T`: `None` for one that isn't a `T`.
   pub fn socket_devices<T: SocketDevice>(&self) -> Vec<Option<T>> {
     bridge_cast_each(self.inner.vz_socket_devices())
   }
 
-  /// [`usbControllers`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/usbcontrollers)
+  /// [`usbControllers`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/usbcontrollers),
+  /// each as Swift's `as? T`: `None` for one that isn't a `T`.
   pub fn usb_controllers<T: USBController>(&self) -> Vec<Option<T>> {
     bridge_cast_each(self.inner.vz_usb_controllers())
   }

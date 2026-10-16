@@ -2,10 +2,12 @@ use std::fs::File;
 use std::os::fd::{AsRawFd, OwnedFd};
 
 use virtualization::{
-  DiskBlockDeviceStorageDeviceAttachment, DiskImageStorageDeviceAttachment, DiskSynchronizationMode, Error,
+  DiskBlockDeviceStorageDeviceAttachment, DiskImageStorageDeviceAttachment, DiskSynchronizationMode,
   StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
 };
-use virtualization_test::{BlockDevice, block_device, booting_machine, disk_image, initial_ramdisk, start, stop};
+use virtualization_test::{
+  BlockDevice, block_device, booting_machine, disk_image, initial_ramdisk, ns_error, start, stop,
+};
 
 #[test]
 fn attaches_a_block_device_by_the_descriptor_it_was_given() {
@@ -37,11 +39,11 @@ fn fails_as_virtualization_does_on_a_file_that_is_no_block_device() {
   let image = disk_image("fails_as_virtualization_does_on_a_file_that_is_no_block_device");
   let file_handle = OwnedFd::from(File::open(image.to_file_path().unwrap()).unwrap());
 
-  let Err(Error::NSError(error)) =
-    DiskBlockDeviceStorageDeviceAttachment::new(file_handle, true, DiskSynchronizationMode::Full)
-  else {
-    panic!("attached a file that is no block device");
-  };
+  let error = ns_error(DiskBlockDeviceStorageDeviceAttachment::new(
+    file_handle,
+    true,
+    DiskSynchronizationMode::Full,
+  ));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");

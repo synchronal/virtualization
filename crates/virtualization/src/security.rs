@@ -8,7 +8,8 @@ use crate::platform::{self, ffi};
 
 /// [`SecCertificate`](https://developer.apple.com/documentation/security/seccertificate)
 ///
-/// `Data` is its bytes. `Send` and `Sync`: a certificate never changes.
+/// `Data` is its bytes. `Send` and `Sync`, as Security declares it
+/// `Sendable`.
 pub struct SecCertificate {
   pub(crate) inner: ffi::SecCertificate,
 }

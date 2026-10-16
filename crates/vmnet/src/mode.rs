@@ -42,20 +42,9 @@ mod tests {
   use super::*;
 
   #[test]
-  fn comes_from_the_same_case_in_vmnet_sys() {
+  fn maps_modes_both_ways() {
     for mode in [Mode::Host, Mode::Shared, Mode::Bridged, Mode::Unknown(2000)] {
       assert_eq!(Mode::from(ffi::VmnetMode::from(mode)), mode);
     }
-  }
-
-  #[test]
-  fn becomes_the_same_case_in_vmnet_sys() {
-    assert!(matches!(ffi::VmnetMode::from(Mode::Host), ffi::VmnetMode::Host));
-    assert!(matches!(ffi::VmnetMode::from(Mode::Shared), ffi::VmnetMode::Shared));
-    assert!(matches!(ffi::VmnetMode::from(Mode::Bridged), ffi::VmnetMode::Bridged));
-    assert!(matches!(
-      ffi::VmnetMode::from(Mode::Unknown(2000)),
-      ffi::VmnetMode::Unknown(2000)
-    ));
   }
 }

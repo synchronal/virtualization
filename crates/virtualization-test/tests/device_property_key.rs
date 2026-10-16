@@ -1,6 +1,3 @@
-//! IOUSBHost's `IOUSBHostDevicePropertyKey`, and
-//! `IOUSBHostPropertyKeyLocationID`.
-
 use virtualization::io_usb_host::{DevicePropertyKey, property_key_location_id};
 
 #[test]

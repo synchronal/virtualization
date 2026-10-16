@@ -1,5 +1,3 @@
-//! IOUSBHost's `IOUSBHostObjectDataOptions`.
-
 use virtualization::io_usb_host::ObjectDataOptions;
 
 #[test]

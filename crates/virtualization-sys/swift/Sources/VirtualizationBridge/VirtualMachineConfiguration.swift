@@ -49,6 +49,7 @@ func vz_virtual_machine_configuration_audio_devices(this: VZVirtualMachineConfig
   bridging(retained: this.audioDevices as NSArray)
 }
 
+/// `audio_devices` is an array of any `VZAudioDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_audio_devices(
   this: VZVirtualMachineConfiguration,
   audio_devices: UnsafeRawPointer
@@ -60,6 +61,7 @@ func vz_virtual_machine_configuration_console_devices(this: VZVirtualMachineConf
   bridging(retained: this.consoleDevices as NSArray)
 }
 
+/// `console_devices` is an array of any `VZConsoleDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_console_devices(
   this: VZVirtualMachineConfiguration,
   console_devices: UnsafeRawPointer
@@ -73,6 +75,8 @@ func vz_virtual_machine_configuration_directory_sharing_devices(this: VZVirtualM
   bridging(retained: this.directorySharingDevices as NSArray)
 }
 
+/// `directory_sharing_devices` is an array of any
+/// `VZDirectorySharingDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_directory_sharing_devices(
   this: VZVirtualMachineConfiguration,
   directory_sharing_devices: UnsafeRawPointer
@@ -84,6 +88,7 @@ func vz_virtual_machine_configuration_entropy_devices(this: VZVirtualMachineConf
   bridging(retained: this.entropyDevices as NSArray)
 }
 
+/// `entropy_devices` is an array of any `VZEntropyDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_entropy_devices(
   this: VZVirtualMachineConfiguration,
   entropy_devices: UnsafeRawPointer
@@ -97,6 +102,8 @@ func vz_virtual_machine_configuration_memory_balloon_devices(this: VZVirtualMach
   bridging(retained: this.memoryBalloonDevices as NSArray)
 }
 
+/// `memory_balloon_devices` is an array of any
+/// `VZMemoryBalloonDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_memory_balloon_devices(
   this: VZVirtualMachineConfiguration,
   memory_balloon_devices: UnsafeRawPointer
@@ -108,6 +115,7 @@ func vz_virtual_machine_configuration_network_devices(this: VZVirtualMachineConf
   bridging(retained: this.networkDevices as NSArray)
 }
 
+/// `network_devices` is an array of any `VZNetworkDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_network_devices(
   this: VZVirtualMachineConfiguration,
   network_devices: UnsafeRawPointer
@@ -119,6 +127,7 @@ func vz_virtual_machine_configuration_serial_ports(this: VZVirtualMachineConfigu
   bridging(retained: this.serialPorts as NSArray)
 }
 
+/// `serial_ports` is an array of any `VZSerialPortConfiguration`.
 func vz_virtual_machine_configuration_set_serial_ports(
   this: VZVirtualMachineConfiguration,
   serial_ports: UnsafeRawPointer
@@ -130,6 +139,7 @@ func vz_virtual_machine_configuration_socket_devices(this: VZVirtualMachineConfi
   bridging(retained: this.socketDevices as NSArray)
 }
 
+/// `socket_devices` is an array of any `VZSocketDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_socket_devices(
   this: VZVirtualMachineConfiguration,
   socket_devices: UnsafeRawPointer
@@ -141,6 +151,7 @@ func vz_virtual_machine_configuration_storage_devices(this: VZVirtualMachineConf
   bridging(retained: this.storageDevices as NSArray)
 }
 
+/// `storage_devices` is an array of any `VZStorageDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_storage_devices(
   this: VZVirtualMachineConfiguration,
   storage_devices: UnsafeRawPointer
@@ -152,6 +163,7 @@ func vz_virtual_machine_configuration_keyboards(this: VZVirtualMachineConfigurat
   bridging(retained: this.keyboards as NSArray)
 }
 
+/// `keyboards` is an array of any `VZKeyboardConfiguration`.
 func vz_virtual_machine_configuration_set_keyboards(this: VZVirtualMachineConfiguration, keyboards: UnsafeRawPointer) {
   this.keyboards = bridging(borrowedArray: keyboards)
 }
@@ -160,6 +172,7 @@ func vz_virtual_machine_configuration_pointing_devices(this: VZVirtualMachineCon
   bridging(retained: this.pointingDevices as NSArray)
 }
 
+/// `pointing_devices` is an array of any `VZPointingDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_pointing_devices(
   this: VZVirtualMachineConfiguration,
   pointing_devices: UnsafeRawPointer
@@ -171,6 +184,7 @@ func vz_virtual_machine_configuration_graphics_devices(this: VZVirtualMachineCon
   bridging(retained: this.graphicsDevices as NSArray)
 }
 
+/// `graphics_devices` is an array of any `VZGraphicsDeviceConfiguration`.
 func vz_virtual_machine_configuration_set_graphics_devices(
   this: VZVirtualMachineConfiguration,
   graphics_devices: UnsafeRawPointer
@@ -182,6 +196,7 @@ func vz_virtual_machine_configuration_usb_controllers(this: VZVirtualMachineConf
   bridging(retained: this.usbControllers as NSArray)
 }
 
+/// `usb_controllers` is an array of any `VZUSBControllerConfiguration`.
 func vz_virtual_machine_configuration_set_usb_controllers(
   this: VZVirtualMachineConfiguration,
   usb_controllers: UnsafeRawPointer

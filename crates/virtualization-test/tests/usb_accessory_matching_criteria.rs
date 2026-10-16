@@ -1,6 +1,3 @@
-//! `AAUSBAccessoryMatchingCriteria`, in a binary without the
-//! `com.apple.developer.accessory-access.usb` entitlement.
-
 use virtualization::accessory_access::{
   USBAccessoryMatchingCriteria, USBAccessoryMatchingCriteriaDeviceMatchingCriteria,
   USBAccessoryMatchingCriteriaInterfaceMatchingCriteria, USBAccessoryMatchingCriteriaInterfaceMatchingOption,

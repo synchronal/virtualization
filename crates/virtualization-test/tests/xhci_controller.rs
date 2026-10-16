@@ -3,12 +3,12 @@ use std::sync::Arc;
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::uuid::Uuid;
 use virtualization::{
-  Error, USBController, USBControllerConfiguration, USBControllerDelegate, USBDevice, USBDeviceConfiguration,
+  USBController, USBControllerConfiguration, USBControllerDelegate, USBDevice, USBDeviceConfiguration,
   USBMassStorageDevice, VirtualMachine, XHCIController, XHCIControllerConfiguration,
 };
 use virtualization_test::{
-  Console, booting_machine, completed, initial_ramdisk, on_queue, start, usb_mass_storage_device_configuration,
-  with_usb_mass_storage_device, xhci_controller,
+  Console, booting_machine, completed, initial_ramdisk, ns_error, on_queue, start,
+  usb_mass_storage_device_configuration, with_usb_mass_storage_device, xhci_controller,
 };
 
 /// The UUID of the device a machine's configuration gives its controller.
@@ -38,13 +38,6 @@ fn devices(queue: &DispatchQueue, machine: &VirtualMachine) -> Vec<Uuid> {
       .map(|device| device.as_ref().unwrap().uuid())
       .collect()
   })
-}
-
-fn ns_error(result: Result<(), Error>) -> Box<virtualization::NSError> {
-  match result {
-    Err(Error::NSError(error)) => error,
-    other => panic!("expected Virtualization's error, got {other:?}"),
-  }
 }
 
 #[test]

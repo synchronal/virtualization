@@ -1,5 +1,5 @@
-use virtualization::{Error, VirtioSocketDeviceConfiguration, VirtualMachineConfiguration};
-use virtualization_test::{add_socket_device, booting_machine, initial_ramdisk, linux_configuration, start};
+use virtualization::{VirtioSocketDeviceConfiguration, VirtualMachineConfiguration};
+use virtualization_test::{add_socket_device, booting_machine, initial_ramdisk, linux_configuration, ns_error, start};
 
 #[test]
 fn is_a_socket_device_of_the_configuration_it_was_given_to() {
@@ -23,9 +23,7 @@ fn fails_validation_as_virtualization_does_with_two() {
     &VirtioSocketDeviceConfiguration::new().unwrap(),
   ]);
 
-  let Err(Error::NSError(error)) = configuration.validate() else {
-    panic!("validated two socket devices");
-  };
+  let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");

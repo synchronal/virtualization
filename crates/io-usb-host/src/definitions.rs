@@ -19,7 +19,7 @@ pub struct DeviceRequest {
   pub w_length: u16,
 }
 
-/// Off macOS, `platform::unsupported` takes a `DeviceRequest`.
+/// The request as the sys crate takes it.
 #[cfg(target_os = "macos")]
 impl From<DeviceRequest> for ffi::BridgedIOUSBDeviceRequest {
   fn from(request: DeviceRequest) -> Self {
@@ -513,15 +513,6 @@ mod tests {
         value
       );
     }
-  }
-
-  #[test]
-  fn has_the_raw_values_it_was_made_with() {
-    assert_eq!(MatchingPropertyKey::new("idVendor".to_string()).raw_value, "idVendor");
-    assert_eq!(
-      DevicePropertyKey::new("USB Vendor Name".to_string()).raw_value,
-      "USB Vendor Name"
-    );
   }
 
   #[cfg(not(target_os = "macos"))]

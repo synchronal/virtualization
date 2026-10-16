@@ -1,9 +1,9 @@
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::url::Url;
 use virtualization::{
-  DiskImageStorageDeviceAttachment, Error, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration, VirtualMachine,
+  DiskImageStorageDeviceAttachment, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration, VirtualMachine,
 };
-use virtualization_test::{Console, booting_machine, disk_image, initial_ramdisk, raw_image, start, stop};
+use virtualization_test::{Console, booting_machine, disk_image, initial_ramdisk, ns_error, raw_image, start, stop};
 
 fn attachment(name: &str) -> DiskImageStorageDeviceAttachment {
   DiskImageStorageDeviceAttachment::new(&disk_image(name), true).unwrap()
@@ -58,11 +58,9 @@ fn validates_an_identifier_of_20_ascii_bytes() {
 
 #[test]
 fn fails_as_virtualization_does_on_an_identifier_over_20_bytes() {
-  let Err(Error::NSError(error)) =
-    VirtioBlockDeviceConfiguration::validate_block_device_identifier("abcdefghijklmnopqrstu")
-  else {
-    panic!("validated an identifier over 20 bytes");
-  };
+  let error = ns_error(VirtioBlockDeviceConfiguration::validate_block_device_identifier(
+    "abcdefghijklmnopqrstu",
+  ));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");
@@ -70,9 +68,9 @@ fn fails_as_virtualization_does_on_an_identifier_over_20_bytes() {
 
 #[test]
 fn fails_as_virtualization_does_on_an_identifier_that_isnt_ascii() {
-  let Err(Error::NSError(error)) = VirtioBlockDeviceConfiguration::validate_block_device_identifier("disqué") else {
-    panic!("validated an identifier that isn't ASCII");
-  };
+  let error = ns_error(VirtioBlockDeviceConfiguration::validate_block_device_identifier(
+    "disqué",
+  ));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");

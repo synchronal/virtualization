@@ -41,7 +41,7 @@ impl DiskImage {
     self.inner.dik_block_count()
   }
 
-  /// [`blockSize`](https://developer.apple.com/documentation/diskimagekit/diskimage/blocksize)
+  /// [`blockSize`](https://developer.apple.com/documentation/diskimagekit/diskimage/blocksize-swift.property)
   pub fn block_size(&self) -> DiskImageBlockSize {
     self.inner.dik_block_size().into()
   }
@@ -51,7 +51,7 @@ impl DiskImage {
     self.inner.dik_size()
   }
 
-  /// [`layerType`](https://developer.apple.com/documentation/diskimagekit/diskimage/layertype)
+  /// [`layerType`](https://developer.apple.com/documentation/diskimagekit/diskimage/layertype-swift.property)
   pub fn layer_type(&self) -> Option<DiskImageLayerType> {
     self
       .inner
@@ -302,69 +302,29 @@ mod tests {
   use super::*;
 
   #[test]
-  fn format_becomes_the_same_case_in_disk_image_kit_sys() {
-    assert!(matches!(
-      ffi::DiskImageFormat::from(DiskImageFormat::Asif),
-      ffi::DiskImageFormat::Asif
-    ));
-    assert!(matches!(
-      ffi::DiskImageFormat::from(DiskImageFormat::Raw),
-      ffi::DiskImageFormat::Raw
-    ));
-    assert!(matches!(
-      ffi::DiskImageFormat::from(DiskImageFormat::Stack),
-      ffi::DiskImageFormat::Stack
-    ));
-    assert!(matches!(
-      ffi::DiskImageFormat::from(DiskImageFormat::Unknown),
-      ffi::DiskImageFormat::Unknown
-    ));
+  fn maps_formats_both_ways() {
+    for format in [
+      DiskImageFormat::Asif,
+      DiskImageFormat::Raw,
+      DiskImageFormat::Stack,
+      DiskImageFormat::Unknown,
+    ] {
+      assert_eq!(DiskImageFormat::from(ffi::DiskImageFormat::from(format)), format);
+    }
   }
 
   #[test]
-  fn format_comes_from_the_same_case_in_disk_image_kit_sys() {
-    assert_eq!(DiskImageFormat::from(ffi::DiskImageFormat::Asif), DiskImageFormat::Asif);
-    assert_eq!(DiskImageFormat::from(ffi::DiskImageFormat::Raw), DiskImageFormat::Raw);
-    assert_eq!(
-      DiskImageFormat::from(ffi::DiskImageFormat::Stack),
-      DiskImageFormat::Stack
-    );
-    assert_eq!(
-      DiskImageFormat::from(ffi::DiskImageFormat::Unknown),
-      DiskImageFormat::Unknown
-    );
-  }
-
-  #[test]
-  fn block_size_becomes_the_same_case_in_disk_image_kit_sys() {
-    assert!(matches!(
-      ffi::DiskImageBlockSize::from(DiskImageBlockSize::Bytes512),
-      ffi::DiskImageBlockSize::Bytes512
-    ));
-    assert!(matches!(
-      ffi::DiskImageBlockSize::from(DiskImageBlockSize::Bytes4096),
-      ffi::DiskImageBlockSize::Bytes4096
-    ));
-    assert!(matches!(
-      ffi::DiskImageBlockSize::from(DiskImageBlockSize::Unknown(7)),
-      ffi::DiskImageBlockSize::Unknown(7)
-    ));
-  }
-
-  #[test]
-  fn block_size_comes_from_the_same_case_in_disk_image_kit_sys() {
-    assert_eq!(
-      DiskImageBlockSize::from(ffi::DiskImageBlockSize::Bytes512),
-      DiskImageBlockSize::Bytes512
-    );
-    assert_eq!(
-      DiskImageBlockSize::from(ffi::DiskImageBlockSize::Bytes4096),
-      DiskImageBlockSize::Bytes4096
-    );
-    assert_eq!(
-      DiskImageBlockSize::from(ffi::DiskImageBlockSize::Unknown(7)),
-      DiskImageBlockSize::Unknown(7)
-    );
+  fn maps_block_sizes_both_ways() {
+    for block_size in [
+      DiskImageBlockSize::Bytes512,
+      DiskImageBlockSize::Bytes4096,
+      DiskImageBlockSize::Unknown(7),
+    ] {
+      assert_eq!(
+        DiskImageBlockSize::from(ffi::DiskImageBlockSize::from(block_size)),
+        block_size
+      );
+    }
   }
 
   #[cfg(not(target_os = "macos"))]

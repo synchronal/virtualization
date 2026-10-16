@@ -26,11 +26,11 @@ case $1 in
     ;;
 
   *)
-    echo "unknown flag or file type: '$1'"
-    echo ""
-    echo "USAGE"
-    echo "  $0 --all"
-    echo "  $0 --check"
+    echo "unknown flag: '$1'" >&2
+    echo "" >&2
+    echo "USAGE" >&2
+    echo "  $0 --all" >&2
+    echo "  $0 --check" >&2
     exit 1
     ;;
 

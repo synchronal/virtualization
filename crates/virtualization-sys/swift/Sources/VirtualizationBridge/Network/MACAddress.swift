@@ -63,8 +63,12 @@ private func bridging(ethernetAddress packed: UInt64) -> ether_addr_t {
 /// An `ether_addr_t` for Rust, as its six octets in a `u64`, first octet
 /// lowest.
 private func bridging(ethernetAddress address: ether_addr_t) -> UInt64 {
+  func packed(_ octet: UInt8, _ index: UInt64) -> UInt64 {
+    UInt64(octet) << (8 * index)
+  }
+
   let octets = address.octet
 
-  return [octets.0, octets.1, octets.2, octets.3, octets.4, octets.5].enumerated()
-    .reduce(0) { packed, element in packed | UInt64(element.element) << (8 * UInt64(element.offset)) }
+  return packed(octets.0, 0) | packed(octets.1, 1) | packed(octets.2, 2) | packed(octets.3, 3)
+    | packed(octets.4, 4) | packed(octets.5, 5)
 }

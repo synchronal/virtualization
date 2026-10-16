@@ -2,6 +2,7 @@
 //! to attach, a kernel and userland to boot, and the values chosen for them.
 
 use std::collections::BTreeMap;
+use std::fmt::Debug;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines, PipeReader, PipeWriter, Read, Write};
 use std::net::{Ipv4Addr, Shutdown, TcpListener, TcpStream};
@@ -17,7 +18,7 @@ use virtualization::url::Url;
 use virtualization::vmnet::{Mode, Network, NetworkConfiguration};
 use virtualization::{
   DiskImageStorageDeviceAttachment, EFIVariableStore, EFIVariableStoreInitializationOptions, Error,
-  FileHandleSerialPortAttachment, LinuxBootLoader, NetworkDeviceConfiguration, SerialPortConfiguration,
+  FileHandleSerialPortAttachment, LinuxBootLoader, NSError, NetworkDeviceConfiguration, SerialPortConfiguration,
   USBMassStorageDevice, USBMassStorageDeviceConfiguration, VirtioConsoleDeviceSerialPortConfiguration,
   VirtioNetworkDeviceConfiguration, VirtioSocketConnection, VirtioSocketDevice, VirtioSocketDeviceConfiguration,
   VirtualMachine, VirtualMachineConfiguration, VmnetNetworkDeviceAttachment, XHCIController,
@@ -504,6 +505,28 @@ impl Console {
       .find(|line| line.contains(text))
       .unwrap_or_else(|| panic!("the console closed before {text:?}"))
   }
+
+  /// Sends the guest a line, and reads what it reports after `label` (the
+  /// rest of the line `read_until(label)` finds), until that is `wanted`, and
+  /// returns it: a guest sees a change on the host a moment after it is made.
+  /// Asks 50 times, 100 ms apart, then panics.
+  pub fn ask_until(&mut self, label: &str, wanted: impl Fn(&str) -> bool) -> String {
+    let mut answer = String::new();
+
+    for _ in 0..50 {
+      writeln!(self.input).unwrap();
+      let line = self.read_until(label);
+      let (_, reported) = line.split_once(label).unwrap();
+
+      answer = reported.trim_end().to_owned();
+      if wanted(&answer) {
+        return answer;
+      }
+      std::thread::sleep(Duration::from_millis(100));
+    }
+
+    panic!("the guest's {label} stayed {answer:?}");
+  }
 }
 
 /// An initial ramdisk whose `/init` is busybox's shell running `script`,
@@ -518,17 +541,16 @@ pub fn initial_ramdisk(name: &str, script: &str) -> Url {
 pub fn initial_ramdisk_with_programs(name: &str, script: &str, programs: &[(&str, &[u8])]) -> Url {
   let programs: Vec<(String, &[u8])> = programs
     .iter()
-    .map(|(program, contents)| (format!("bin/{program}"), *contents))
+    .map(|(name, contents)| (format!("bin/{name}"), *contents))
     .collect();
-  let busybox = std::env::var("VZ_TEST_BUSYBOX").expect("VZ_TEST_BUSYBOX: run under nextest, which sets it");
+  let busybox_path = std::env::var("VZ_TEST_BUSYBOX").expect("VZ_TEST_BUSYBOX: run under nextest, which sets it");
+  let busybox = std::fs::read(busybox_path).unwrap();
   let init = format!(
     "#!/bin/busybox sh\n/bin/busybox --install -s /bin\nexport PATH=/bin\nmount -t proc proc /proc\nmount -t sysfs \
      sysfs /sys\nmount -t devtmpfs devtmpfs /dev\n{script}\n"
   );
   let directory = 0o040_755;
   let executable = 0o100_755;
-
-  let busybox = std::fs::read(busybox).unwrap();
   let mut entries = vec![
     CpioEntry::new("bin", directory, &[]),
     CpioEntry::new("bin/busybox", executable, &busybox),
@@ -834,4 +856,13 @@ pub fn completed(
   });
 
   receiver.recv().unwrap()
+}
+
+/// The `NSError` Virtualization failed with. Panics if `result` is anything
+/// else.
+pub fn ns_error<T: Debug>(result: Result<T, Error>) -> Box<NSError> {
+  match result {
+    Err(Error::NSError(error)) => error,
+    other => panic!("expected Virtualization's error, got {other:?}"),
+  }
 }

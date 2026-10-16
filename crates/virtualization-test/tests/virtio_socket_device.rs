@@ -2,11 +2,12 @@ use std::io::{BufRead, BufReader, Write};
 use std::sync::Arc;
 
 use virtualization::{
-  Error, VirtioSocketConnection, VirtioSocketDevice, VirtioSocketListener, VirtioSocketListenerDelegate, VirtualMachine,
+  VirtioSocketConnection, VirtioSocketDevice, VirtioSocketListener, VirtioSocketListenerDelegate, VirtualMachine,
 };
 use virtualization_test::{
   add_socket_device, booting_machine, connect, connect_once_listening, initial_ramdisk, initial_ramdisk_with_programs,
-  linux_configuration, on_queue, serial_queue, socket_device, start, stream, vsock_connecting, vsock_listening,
+  linux_configuration, ns_error, on_queue, serial_queue, socket_device, start, stream, vsock_connecting,
+  vsock_listening,
 };
 
 /// The port the guest listens on, or connects to.
@@ -71,15 +72,13 @@ const READY: &str = "echo ready\nsleep 60";
 
 #[test]
 fn fails_to_connect_as_virtualization_does_to_a_port_the_guest_does_not_listen_on() {
-  let name = "fails_to_connect_to_a_port_the_guest_does_not_listen_on";
+  let name = "fails_to_connect_as_virtualization_does_to_a_port_the_guest_does_not_listen_on";
   let (queue, machine, mut console) = booting_machine(name, Some(&initial_ramdisk(name, READY)), add_socket_device);
 
   start(&queue, &machine);
   console.read_until("ready");
 
-  let Err(Error::NSError(error)) = connect(&queue, &machine, PORT, |_| ()) else {
-    panic!("connected to a port the guest doesn't listen on");
-  };
+  let error = ns_error(connect(&queue, &machine, PORT, |_| ()));
 
   assert_eq!(error.domain, "NSPOSIXErrorDomain", "{error:#?}");
   assert_eq!(error.code, 54, "{error:#?}");

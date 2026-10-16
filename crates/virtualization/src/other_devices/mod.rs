@@ -31,7 +31,7 @@ pub trait MemoryBalloonDeviceConfiguration: Sealed {}
 /// [`VZUSBControllerConfiguration`](https://developer.apple.com/documentation/virtualization/vzusbcontrollerconfiguration)
 pub trait USBControllerConfiguration: Sealed {
   /// [`usbDevices`](https://developer.apple.com/documentation/virtualization/vzusbcontrollerconfiguration/usbdevices),
-  /// each as Swift's `as? T`: `None` when the device isn't a `T`.
+  /// each as Swift's `as? T`: `None` for one that isn't a `T`.
   fn usb_devices<T: USBDeviceConfiguration>(&self) -> Vec<Option<T>>
   where
     Self: Sized,
@@ -84,7 +84,7 @@ pub trait USBController: Sealed {
   }
 
   /// [`usbDevices`](https://developer.apple.com/documentation/virtualization/vzusbcontroller/usbdevices),
-  /// each as Swift's `as? T`: `None` when the device isn't a `T`.
+  /// each as Swift's `as? T`: `None` for one that isn't a `T`.
   fn usb_devices<T: USBDevice>(&self) -> Vec<Option<T>>
   where
     Self: Sized,

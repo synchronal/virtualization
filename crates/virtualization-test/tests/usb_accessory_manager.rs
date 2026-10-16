@@ -1,6 +1,6 @@
-//! `AAUSBAccessoryManager`, in a binary without the
-//! `com.apple.developer.accessory-access.usb` entitlement: AccessoryAccess
-//! refuses it.
+//! The suites aren't signed with `com.apple.developer.accessory-access.usb`,
+//! nor an app with a UI, which `AAUSBAccessoryManager` needs: it refuses
+//! them.
 
 use std::sync::Arc;
 use std::sync::mpsc;

@@ -115,7 +115,8 @@ extension DiskImage {
 }
 
 /// `DiskImage.LayerType`, a struct, in a class swift-bridge can carry.
-final class BridgedDiskImageLayerType {
+/// `Sendable`, as `LayerType` is.
+final class BridgedDiskImageLayerType: Sendable {
   let value: DiskImage.LayerType
 
   init(_ value: DiskImage.LayerType) {

@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
 use virtualization::url::Url;
-use virtualization::{Error, MultipleDirectoryShare, SharedDirectory};
-use virtualization_test::directory;
+use virtualization::{MultipleDirectoryShare, SharedDirectory};
+use virtualization_test::{directory, ns_error};
 
 #[test]
 fn has_no_directories_when_new() {
@@ -46,9 +46,7 @@ fn validates_a_plain_name() {
 
 #[test]
 fn fails_as_virtualization_does_on_an_empty_name() {
-  let Err(Error::NSError(error)) = MultipleDirectoryShare::validate_name("") else {
-    panic!("validated an empty name");
-  };
+  let error = ns_error(MultipleDirectoryShare::validate_name(""));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");
@@ -56,9 +54,7 @@ fn fails_as_virtualization_does_on_an_empty_name() {
 
 #[test]
 fn fails_as_virtualization_does_on_a_name_with_a_slash() {
-  let Err(Error::NSError(error)) = MultipleDirectoryShare::validate_name("a/b") else {
-    panic!("validated a name with a slash");
-  };
+  let error = ns_error(MultipleDirectoryShare::validate_name("a/b"));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");

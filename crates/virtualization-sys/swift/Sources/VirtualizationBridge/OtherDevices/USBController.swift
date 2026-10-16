@@ -71,12 +71,11 @@ final class BridgedUSBControllerDelegate: NSObject, VZUSBController.Delegate {
     self.delegate = delegate
   }
 
-  /// `usbController` crosses by address, retained for Rust.
+  /// `usbController` crosses as a pointer, retained for Rust.
   func usbController(
     _ usbController: VZUSBController,
     usbPassthroughDeviceDidDisconnect device: VZUSBPassthroughDevice
   ) {
-    delegate.usb_controller_usb_passthrough_device_did_disconnect(
-      UInt(bitPattern: bridging(retained: usbController)), device)
+    delegate.usb_controller_usb_passthrough_device_did_disconnect(bridging(retained: usbController), device)
   }
 }

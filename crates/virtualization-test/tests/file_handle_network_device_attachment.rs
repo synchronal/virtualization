@@ -8,7 +8,7 @@ use virtualization::{
   Error, FileHandleNetworkDeviceAttachment, NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration,
   VirtualMachine,
 };
-use virtualization_test::{Console, booting_machine, initial_ramdisk, linux_configuration, start};
+use virtualization_test::{Console, booting_machine, initial_ramdisk, linux_configuration, ns_error, start};
 
 /// An attachment of one end of a datagram socket pair, and the other end.
 fn attachment() -> (FileHandleNetworkDeviceAttachment, UnixDatagram) {
@@ -71,9 +71,7 @@ fn validates_with_a_maximum_transmission_unit_from_1500_to_65535() {
 #[test]
 fn fails_validation_with_a_maximum_transmission_unit_outside_1500_to_65535() {
   for (name, maximum_transmission_unit) in [("fails_with_mtu_1499", 1499), ("fails_with_mtu_65536", 65536)] {
-    let Err(Error::NSError(error)) = validate_with_maximum_transmission_unit(name, maximum_transmission_unit) else {
-      panic!("validated a maximum transmission unit of {maximum_transmission_unit}");
-    };
+    let error = ns_error(validate_with_maximum_transmission_unit(name, maximum_transmission_unit));
 
     assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
     assert_eq!(error.code, 2, "{error:#?}");
@@ -164,15 +162,9 @@ fn delivers_its_file_handles_frames_to_the_guest() {
   frame[12..14].copy_from_slice(&[0x88, 0xb5]);
   networked.host.send(&frame).unwrap();
 
-  for _ in 0..50 {
-    writeln!(networked.console.input).unwrap();
-    if networked.console.read_until("rx:").trim_end() != "rx:0" {
-      return;
-    }
-    std::thread::sleep(Duration::from_millis(100));
-  }
-
-  panic!("the guest never received the frame");
+  networked
+    .console
+    .ask_until("rx:", |received| received != "0");
 }
 
 #[test]

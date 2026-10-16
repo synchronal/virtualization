@@ -39,12 +39,6 @@ impl std::error::Error for Error {
   }
 }
 
-impl From<url::ParseError> for Error {
-  fn from(error: url::ParseError) -> Self {
-    Self::UnparseableUrl(error)
-  }
-}
-
 #[cfg(test)]
 mod tests {
   use std::collections::BTreeMap;
@@ -81,16 +75,16 @@ mod tests {
   }
 
   #[test]
-  fn says_why_a_url_did_not_parse() {
-    let error = Error::from(url::ParseError::RelativeUrlWithoutBase);
+  fn says_why_a_url_did_not_parse_and_has_the_parse_error_as_its_source() {
+    let error = Error::UnparseableUrl(url::ParseError::RelativeUrlWithoutBase);
 
-    assert!(matches!(
-      error,
-      Error::UnparseableUrl(url::ParseError::RelativeUrlWithoutBase)
-    ));
     assert_eq!(
       error.to_string(),
       "Foundation returned an unparseable URL: relative URL without a base"
+    );
+    assert_eq!(
+      error.source().unwrap().to_string(),
+      url::ParseError::RelativeUrlWithoutBase.to_string()
     );
   }
 
@@ -114,15 +108,6 @@ mod tests {
       Error::NSError(Box::new(ns_error(vec![])))
         .source()
         .is_none()
-    );
-  }
-
-  #[test]
-  fn has_a_parse_error_as_its_source() {
-    assert!(
-      Error::UnparseableUrl(url::ParseError::EmptyHost)
-        .source()
-        .is_some()
     );
   }
 

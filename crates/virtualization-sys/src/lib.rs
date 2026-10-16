@@ -651,7 +651,7 @@ mod ffi {
     fn bridge_retained(self: &VZUSBControllerDelegateBridge) -> usize;
     fn usb_controller_usb_passthrough_device_did_disconnect(
       self: &VZUSBControllerDelegateBridge,
-      usb_controller: usize,
+      usb_controller: *mut c_void,
       device: VZUSBPassthroughDevice,
     );
   }
@@ -1289,8 +1289,8 @@ pub struct SecCertificate {
   object: Retained<AnyObject>,
 }
 
-// SAFETY: a certificate never changes, and Apple's `VZEFISignature`, which
-// carries one, is `Sendable`.
+// SAFETY: Security declares `SecCertificateRef` `Sendable`
+// (`SEC_SWIFT_SENDABLE`, in `SecBase.h`).
 unsafe impl Send for SecCertificate {}
 
 // SAFETY: as for `Send`.
@@ -1383,13 +1383,13 @@ impl VZVirtualMachine {
     }
   }
 
-  /// Each any `VZConsoleDevice`.
+  /// Each element is any `VZConsoleDevice`.
   pub fn vz_console_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `consoleDevices`, a retained `NSArray`.
     unsafe { bridge_objects(ffi::vz_virtual_machine_console_devices(self.bridge_retained())) }
   }
 
-  /// Each any `VZDirectorySharingDevice`.
+  /// Each element is any `VZDirectorySharingDevice`.
   pub fn vz_directory_sharing_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `directorySharingDevices`, a retained `NSArray`.
     unsafe {
@@ -1399,13 +1399,13 @@ impl VZVirtualMachine {
     }
   }
 
-  /// Each any `VZGraphicsDevice`.
+  /// Each element is any `VZGraphicsDevice`.
   pub fn vz_graphics_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `graphicsDevices`, a retained `NSArray`.
     unsafe { bridge_objects(ffi::vz_virtual_machine_graphics_devices(self.bridge_retained())) }
   }
 
-  /// Each any `VZMemoryBalloonDevice`.
+  /// Each element is any `VZMemoryBalloonDevice`.
   pub fn vz_memory_balloon_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `memoryBalloonDevices`, a retained `NSArray`.
     unsafe { bridge_objects(ffi::vz_virtual_machine_memory_balloon_devices(self.bridge_retained())) }
@@ -1419,13 +1419,13 @@ impl VZVirtualMachine {
       .collect()
   }
 
-  /// Each any `VZSocketDevice`.
+  /// Each element is any `VZSocketDevice`.
   pub fn vz_socket_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `socketDevices`, a retained `NSArray`.
     unsafe { bridge_objects(ffi::vz_virtual_machine_socket_devices(self.bridge_retained())) }
   }
 
-  /// Each any `VZUSBController`.
+  /// Each element is any `VZUSBController`.
   pub fn vz_usb_controllers(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `usbControllers`, a retained `NSArray`.
     unsafe { bridge_objects(ffi::vz_virtual_machine_usb_controllers(self.bridge_retained())) }
@@ -1570,7 +1570,7 @@ impl VZVirtualMachineConfiguration {
     ffi::vz_virtual_machine_configuration_set_platform(self.bridge_retained(), borrowed(platform));
   }
 
-  /// Each any `VZAudioDeviceConfiguration`.
+  /// Each element is any `VZAudioDeviceConfiguration`.
   pub fn vz_audio_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `audioDevices`, a retained `NSArray`.
     unsafe {
@@ -1580,7 +1580,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZAudioDeviceConfiguration`.
+  /// Each element is any `VZAudioDeviceConfiguration`.
   pub fn vz_set_audio_devices(&self, audio_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_audio_devices(
       self.bridge_retained(),
@@ -1588,7 +1588,7 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZConsoleDeviceConfiguration`.
+  /// Each element is any `VZConsoleDeviceConfiguration`.
   pub fn vz_console_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `consoleDevices`, a retained `NSArray`.
     unsafe {
@@ -1598,7 +1598,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZConsoleDeviceConfiguration`.
+  /// Each element is any `VZConsoleDeviceConfiguration`.
   pub fn vz_set_console_devices(&self, console_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_console_devices(
       self.bridge_retained(),
@@ -1606,7 +1606,7 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZDirectorySharingDeviceConfiguration`.
+  /// Each element is any `VZDirectorySharingDeviceConfiguration`.
   pub fn vz_directory_sharing_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `directorySharingDevices`, a retained `NSArray`.
     unsafe {
@@ -1616,7 +1616,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZDirectorySharingDeviceConfiguration`.
+  /// Each element is any `VZDirectorySharingDeviceConfiguration`.
   pub fn vz_set_directory_sharing_devices(&self, directory_sharing_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_directory_sharing_devices(
       self.bridge_retained(),
@@ -1624,7 +1624,7 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZEntropyDeviceConfiguration`.
+  /// Each element is any `VZEntropyDeviceConfiguration`.
   pub fn vz_entropy_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `entropyDevices`, a retained `NSArray`.
     unsafe {
@@ -1634,7 +1634,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZEntropyDeviceConfiguration`.
+  /// Each element is any `VZEntropyDeviceConfiguration`.
   pub fn vz_set_entropy_devices(&self, entropy_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_entropy_devices(
       self.bridge_retained(),
@@ -1642,7 +1642,7 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZMemoryBalloonDeviceConfiguration`.
+  /// Each element is any `VZMemoryBalloonDeviceConfiguration`.
   pub fn vz_memory_balloon_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `memoryBalloonDevices`, a retained `NSArray`.
     unsafe {
@@ -1652,7 +1652,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZMemoryBalloonDeviceConfiguration`.
+  /// Each element is any `VZMemoryBalloonDeviceConfiguration`.
   pub fn vz_set_memory_balloon_devices(&self, memory_balloon_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_memory_balloon_devices(
       self.bridge_retained(),
@@ -1660,7 +1660,7 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZNetworkDeviceConfiguration`.
+  /// Each element is any `VZNetworkDeviceConfiguration`.
   pub fn vz_network_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `networkDevices`, a retained `NSArray`.
     unsafe {
@@ -1670,7 +1670,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZNetworkDeviceConfiguration`.
+  /// Each element is any `VZNetworkDeviceConfiguration`.
   pub fn vz_set_network_devices(&self, network_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_network_devices(
       self.bridge_retained(),
@@ -1678,7 +1678,7 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZSerialPortConfiguration`.
+  /// Each element is any `VZSerialPortConfiguration`.
   pub fn vz_serial_ports(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `serialPorts`, a retained `NSArray`.
     unsafe {
@@ -1688,12 +1688,12 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZSerialPortConfiguration`.
+  /// Each element is any `VZSerialPortConfiguration`.
   pub fn vz_set_serial_ports(&self, serial_ports: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_serial_ports(self.bridge_retained(), borrowed(&*ns_array(serial_ports)));
   }
 
-  /// Each any `VZSocketDeviceConfiguration`.
+  /// Each element is any `VZSocketDeviceConfiguration`.
   pub fn vz_socket_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `socketDevices`, a retained `NSArray`.
     unsafe {
@@ -1703,7 +1703,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZSocketDeviceConfiguration`.
+  /// Each element is any `VZSocketDeviceConfiguration`.
   pub fn vz_set_socket_devices(&self, socket_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_socket_devices(
       self.bridge_retained(),
@@ -1711,7 +1711,7 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZStorageDeviceConfiguration`.
+  /// Each element is any `VZStorageDeviceConfiguration`.
   pub fn vz_storage_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `storageDevices`, a retained `NSArray`.
     unsafe {
@@ -1721,7 +1721,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZStorageDeviceConfiguration`.
+  /// Each element is any `VZStorageDeviceConfiguration`.
   pub fn vz_set_storage_devices(&self, storage_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_storage_devices(
       self.bridge_retained(),
@@ -1729,18 +1729,18 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZKeyboardConfiguration`.
+  /// Each element is any `VZKeyboardConfiguration`.
   pub fn vz_keyboards(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `keyboards`, a retained `NSArray`.
     unsafe { bridge_objects(ffi::vz_virtual_machine_configuration_keyboards(self.bridge_retained())) }
   }
 
-  /// Each any `VZKeyboardConfiguration`.
+  /// Each element is any `VZKeyboardConfiguration`.
   pub fn vz_set_keyboards(&self, keyboards: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_keyboards(self.bridge_retained(), borrowed(&*ns_array(keyboards)));
   }
 
-  /// Each any `VZPointingDeviceConfiguration`.
+  /// Each element is any `VZPointingDeviceConfiguration`.
   pub fn vz_pointing_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `pointingDevices`, a retained `NSArray`.
     unsafe {
@@ -1750,7 +1750,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZPointingDeviceConfiguration`.
+  /// Each element is any `VZPointingDeviceConfiguration`.
   pub fn vz_set_pointing_devices(&self, pointing_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_pointing_devices(
       self.bridge_retained(),
@@ -1758,7 +1758,7 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZGraphicsDeviceConfiguration`.
+  /// Each element is any `VZGraphicsDeviceConfiguration`.
   pub fn vz_graphics_devices(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `graphicsDevices`, a retained `NSArray`.
     unsafe {
@@ -1768,7 +1768,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZGraphicsDeviceConfiguration`.
+  /// Each element is any `VZGraphicsDeviceConfiguration`.
   pub fn vz_set_graphics_devices(&self, graphics_devices: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_graphics_devices(
       self.bridge_retained(),
@@ -1776,7 +1776,7 @@ impl VZVirtualMachineConfiguration {
     );
   }
 
-  /// Each any `VZUSBControllerConfiguration`.
+  /// Each element is any `VZUSBControllerConfiguration`.
   pub fn vz_usb_controllers(&self) -> Vec<Retained<NSObject>> {
     // SAFETY: `usbControllers`, a retained `NSArray`.
     unsafe {
@@ -1786,7 +1786,7 @@ impl VZVirtualMachineConfiguration {
     }
   }
 
-  /// Each any `VZUSBControllerConfiguration`.
+  /// Each element is any `VZUSBControllerConfiguration`.
   pub fn vz_set_usb_controllers(&self, usb_controllers: &[&NSObject]) {
     ffi::vz_virtual_machine_configuration_set_usb_controllers(
       self.bridge_retained(),
@@ -2389,7 +2389,7 @@ pub fn vz_usb_controller_detach(
   );
 }
 
-/// `this` is any `VZUSBController`; each device, any `VZUSBDevice`.
+/// `this` is any `VZUSBController`. Each element is any `VZUSBDevice`.
 pub fn vz_usb_controller_usb_devices(this: &NSObject) -> Vec<Retained<NSObject>> {
   // SAFETY: `usbDevices`, a retained `NSArray`.
   unsafe { bridge_objects(ffi::vz_usb_controller_usb_devices(borrowed(this))) }
@@ -2438,12 +2438,11 @@ impl VZUSBControllerDelegateBridge {
 
   fn usb_controller_usb_passthrough_device_did_disconnect(
     &self,
-    usb_controller: usize,
+    usb_controller: *mut c_void,
     device: VZUSBPassthroughDevice,
   ) {
-    // SAFETY: `bridging(retained:)`'s address, a `VZUSBController`, taken
-    // once.
-    let usb_controller = unsafe { retained_or_nil(usb_controller) }.expect("Swift passes the controller");
+    // SAFETY: `usb_controller`, a retained `VZUSBController`.
+    let usb_controller = unsafe { retained(usb_controller) };
 
     self
       .delegate
@@ -2453,14 +2452,14 @@ impl VZUSBControllerDelegateBridge {
 
 // OtherDevices/USBControllerConfiguration.swift
 
-/// `this` is any `VZUSBControllerConfiguration`; each device, any
+/// `this` is any `VZUSBControllerConfiguration`. Each element is any
 /// `VZUSBDeviceConfiguration`.
 pub fn vz_usb_controller_configuration_usb_devices(this: &NSObject) -> Vec<Retained<NSObject>> {
   // SAFETY: `usbDevices`, a retained `NSArray`.
   unsafe { bridge_objects(ffi::vz_usb_controller_configuration_usb_devices(borrowed(this))) }
 }
 
-/// `this` is any `VZUSBControllerConfiguration`; each device, any
+/// `this` is any `VZUSBControllerConfiguration`. Each element is any
 /// `VZUSBDeviceConfiguration`.
 pub fn vz_usb_controller_configuration_set_usb_devices(this: &NSObject, usb_devices: &[&NSObject]) {
   ffi::vz_usb_controller_configuration_set_usb_devices(borrowed(this), borrowed(&*ns_array(usb_devices)));

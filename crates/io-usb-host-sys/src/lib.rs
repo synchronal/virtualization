@@ -59,8 +59,9 @@ pub use self::ffi::{
 // No doc comments inside the module: swift-bridge can't parse them. Shared
 // types are renamed on the Swift side, where Apple's names are taken.
 //
-// A function with a Foundation pointer takes the object it is a member of by
-// value: swift-bridge 0.1.59 releases an object a free function borrows.
+// A member that returns a Foundation pointer or throws is a free function
+// taking the object by value (swift-bridge 0.1.59 releases an object a free
+// function borrows), and the method below wraps it, taking what it threw.
 #[swift_bridge::bridge]
 mod ffi {
   // Foundation.swift
@@ -285,12 +286,12 @@ mod ffi {
     fn bridge_borrowed(self: &IOUSBHostDevice) -> *const c_void;
     fn ns_description(self: &IOUSBHostDevice) -> String;
     fn iousbhost_device_configuration_descriptor(this: IOUSBHostDevice) -> usize;
-    fn bridge_configure_with_value(
-      self: &IOUSBHostDevice,
+    fn iousbhost_device_configure_with_value(
+      this: IOUSBHostDevice,
       value: isize,
       match_interfaces: bool,
     ) -> Result<(), IOUSBHostThrown>;
-    fn bridge_reset(self: &IOUSBHostDevice) -> Result<(), IOUSBHostThrown>;
+    fn iousbhost_device_reset(this: IOUSBHostDevice) -> Result<(), IOUSBHostThrown>;
   }
 
   extern "Rust" {
@@ -412,8 +413,8 @@ pub fn iousbhost_object_configuration_descriptor_with_configuration_value(
   Ok(unsafe { descriptor(address) })
 }
 
-/// The descriptor's `length` bytes. `descriptor_type` is `type`, a Rust
-/// keyword.
+/// The descriptor's `length` bytes. `descriptor_type` is `type`: swift-bridge
+/// 0.1.59 can't parse a parameter named `r#type`.
 pub fn iousbhost_object_descriptor_with_type(
   this: &NSObject,
   descriptor_type: IOUSBDescriptorType,
@@ -644,13 +645,11 @@ impl IOUSBHostDevice {
   }
 
   pub fn iousbhost_configure_with_value(&self, value: isize, match_interfaces: bool) -> Result<(), Retained<NSError>> {
-    self
-      .bridge_configure_with_value(value, match_interfaces)
-      .map_err(thrown)
+    ffi::iousbhost_device_configure_with_value(self.bridge_retained(), value, match_interfaces).map_err(thrown)
   }
 
   pub fn iousbhost_reset(&self) -> Result<(), Retained<NSError>> {
-    self.bridge_reset().map_err(thrown)
+    ffi::iousbhost_device_reset(self.bridge_retained()).map_err(thrown)
   }
 }
 

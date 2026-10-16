@@ -1,6 +1,3 @@
-//! IOUSBHost's device requests: `IOUSBHostDeviceRequestType` and the default
-//! completion timeout.
-
 use virtualization::io_usb_host::{
   DeviceRequestDirectionValue, DeviceRequestRecipientValue, DeviceRequestTypeValue, default_control_completion_timeout,
   device_request_type,

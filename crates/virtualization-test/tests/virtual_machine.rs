@@ -8,7 +8,8 @@ use virtualization::{
   VirtualMachineDelegate, VirtualMachineState,
 };
 use virtualization_test::{
-  booting_machine, completed, initial_ramdisk, linux_configuration, new_file_url, on_queue, serial_queue, start, stop,
+  booting_machine, completed, initial_ramdisk, linux_configuration, new_file_url, ns_error, on_queue, serial_queue,
+  start, stop,
 };
 
 struct Delegate;
@@ -22,13 +23,6 @@ fn linux_machine(name: &str) -> (DispatchRetained<DispatchQueue>, VirtualMachine
   });
 
   (queue, machine)
-}
-
-fn ns_error(result: Result<(), Error>) -> Box<virtualization::NSError> {
-  match result {
-    Err(Error::NSError(error)) => error,
-    other => panic!("expected Virtualization's error, got {other:?}"),
-  }
 }
 
 #[test]
@@ -106,7 +100,7 @@ fn holds_its_delegate_weakly() {
 
 #[test]
 fn fails_as_virtualization_does_to_start_with_a_placeholder_kernel() {
-  let (queue, machine) = linux_machine("fails_to_start_with_a_placeholder_kernel");
+  let (queue, machine) = linux_machine("fails_as_virtualization_does_to_start_with_a_placeholder_kernel");
 
   let error = ns_error(completed(&queue, |completion_handler| {
     machine.start(completion_handler);
@@ -119,7 +113,7 @@ fn fails_as_virtualization_does_to_start_with_a_placeholder_kernel() {
 
 #[test]
 fn fails_as_virtualization_does_to_stop_a_stopped_machine() {
-  let (queue, machine) = linux_machine("fails_to_stop_a_stopped_machine");
+  let (queue, machine) = linux_machine("fails_as_virtualization_does_to_stop_a_stopped_machine");
 
   let error = ns_error(completed(&queue, |completion_handler| {
     machine.stop(completion_handler);
@@ -131,7 +125,7 @@ fn fails_as_virtualization_does_to_stop_a_stopped_machine() {
 
 #[test]
 fn fails_as_virtualization_does_to_pause_a_stopped_machine() {
-  let (queue, machine) = linux_machine("fails_to_pause_a_stopped_machine");
+  let (queue, machine) = linux_machine("fails_as_virtualization_does_to_pause_a_stopped_machine");
 
   let error = ns_error(completed(&queue, |completion_handler| {
     machine.pause(completion_handler);
@@ -143,7 +137,7 @@ fn fails_as_virtualization_does_to_pause_a_stopped_machine() {
 
 #[test]
 fn fails_as_virtualization_does_to_resume_a_stopped_machine() {
-  let (queue, machine) = linux_machine("fails_to_resume_a_stopped_machine");
+  let (queue, machine) = linux_machine("fails_as_virtualization_does_to_resume_a_stopped_machine");
 
   let error = ns_error(completed(&queue, |completion_handler| {
     machine.resume(completion_handler);
@@ -155,7 +149,7 @@ fn fails_as_virtualization_does_to_resume_a_stopped_machine() {
 
 #[test]
 fn fails_as_virtualization_does_to_request_a_stopped_machine_stop() {
-  let (queue, machine) = linux_machine("fails_to_request_a_stopped_machine_stop");
+  let (queue, machine) = linux_machine("fails_as_virtualization_does_to_request_a_stopped_machine_stop");
 
   let error = ns_error(on_queue(&queue, || machine.request_stop()));
 
@@ -165,8 +159,9 @@ fn fails_as_virtualization_does_to_request_a_stopped_machine_stop() {
 
 #[test]
 fn fails_as_virtualization_does_to_save_a_stopped_machine() {
-  let (queue, machine) = linux_machine("fails_to_save_a_stopped_machine");
-  let url = new_file_url("fails_to_save_a_stopped_machine.vzvmsave");
+  let name = "fails_as_virtualization_does_to_save_a_stopped_machine";
+  let (queue, machine) = linux_machine(name);
+  let url = new_file_url(&format!("{name}.vzvmsave"));
 
   let error = ns_error(completed(&queue, |completion_handler| {
     machine
@@ -180,8 +175,9 @@ fn fails_as_virtualization_does_to_save_a_stopped_machine() {
 
 #[test]
 fn fails_as_virtualization_does_to_restore_from_a_missing_file() {
-  let (queue, machine) = linux_machine("fails_to_restore_from_a_missing_file");
-  let url = new_file_url("fails_to_restore_from_a_missing_file.vzvmsave");
+  let name = "fails_as_virtualization_does_to_restore_from_a_missing_file";
+  let (queue, machine) = linux_machine(name);
+  let url = new_file_url(&format!("{name}.vzvmsave"));
 
   let error = ns_error(completed(&queue, |completion_handler| {
     machine
@@ -270,7 +266,7 @@ fn requests_a_stop_that_a_guest_without_a_power_button_ignores() {
 #[test]
 fn saves_and_restores_a_paused_machine() {
   let name = "saves_and_restores_a_paused_machine";
-  let url = new_file_url("saves_and_restores_a_paused_machine.vzvmsave");
+  let url = new_file_url(&format!("{name}.vzvmsave"));
   let initial_ramdisk = initial_ramdisk(name, ECHO);
   let identifier = GenericMachineIdentifier::new()
     .unwrap()
@@ -344,7 +340,7 @@ fn tells_its_delegate_when_the_guest_stops() {
 
 #[test]
 fn a_clone_is_the_same_object() {
-  let (queue, machine) = linux_machine("a_clone_is_the_same_object");
+  let (queue, machine) = linux_machine("virtual_machine_a_clone_is_the_same_object");
   let delegate: Arc<dyn VirtualMachineDelegate> = Arc::new(Delegate);
 
   on_queue(&queue, || {
@@ -358,7 +354,7 @@ fn a_clone_is_the_same_object() {
 
 #[test]
 fn debugs_as_its_description() {
-  let (queue, machine) = linux_machine("debugs_as_its_description");
+  let (queue, machine) = linux_machine("virtual_machine_debugs_as_its_description");
 
   assert!(on_queue(&queue, || format!("{machine:?}")).starts_with("<VZVirtualMachine: 0x"));
 }

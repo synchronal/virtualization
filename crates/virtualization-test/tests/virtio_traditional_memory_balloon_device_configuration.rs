@@ -1,5 +1,5 @@
-use virtualization::{Error, VirtioTraditionalMemoryBalloonDeviceConfiguration};
-use virtualization_test::linux_configuration;
+use virtualization::VirtioTraditionalMemoryBalloonDeviceConfiguration;
+use virtualization_test::{linux_configuration, ns_error};
 
 #[test]
 fn is_a_memory_balloon_device_of_the_configuration_it_was_given_to() {
@@ -23,9 +23,7 @@ fn fails_validation_as_virtualization_does_with_two() {
     &VirtioTraditionalMemoryBalloonDeviceConfiguration::new().unwrap(),
   ]);
 
-  let Err(Error::NSError(error)) = configuration.validate() else {
-    panic!("validated two memory balloon devices");
-  };
+  let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");

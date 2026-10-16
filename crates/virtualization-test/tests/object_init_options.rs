@@ -1,5 +1,3 @@
-//! IOUSBHost's `IOUSBHostObjectInitOptions`.
-
 use virtualization::io_usb_host::ObjectInitOptions;
 
 #[test]

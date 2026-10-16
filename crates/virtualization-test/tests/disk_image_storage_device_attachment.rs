@@ -4,10 +4,11 @@ use virtualization::disk_image_kit::{
 };
 use virtualization::url::Url;
 use virtualization::{
-  DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, Error,
-  VirtioBlockDeviceConfiguration,
+  DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, VirtioBlockDeviceConfiguration,
 };
-use virtualization_test::{booting_machine, disk_image, file, file_url, initial_ramdisk, new_file_url, start, stop};
+use virtualization_test::{
+  booting_machine, disk_image, file, file_url, initial_ramdisk, new_file_url, ns_error, start, stop,
+};
 
 #[test]
 fn attaches_a_disk_image() {
@@ -223,7 +224,7 @@ fn a_guest_writes_a_stacked_image_to_its_top_layer() {
 
 #[test]
 fn a_clone_is_the_same_object() {
-  let url = disk_image("a_clone_is_the_same_object");
+  let url = disk_image("disk_image_storage_device_attachment_a_clone_is_the_same_object");
   let attachment = DiskImageStorageDeviceAttachment::new(&url, true).unwrap();
   let clone = attachment.clone();
 
@@ -237,23 +238,25 @@ fn a_clone_is_the_same_object() {
 fn fails_as_virtualization_does_with_modes_and_no_image() {
   let url = file_url("/nowhere/disk.img");
 
-  let result = DiskImageStorageDeviceAttachment::with_caching_mode_and_synchronization_mode(
-    &url,
-    true,
-    DiskImageCachingMode::Cached,
-    DiskImageSynchronizationMode::Full,
+  let error = ns_error(
+    DiskImageStorageDeviceAttachment::with_caching_mode_and_synchronization_mode(
+      &url,
+      true,
+      DiskImageCachingMode::Cached,
+      DiskImageSynchronizationMode::Full,
+    ),
   );
 
-  assert!(matches!(result, Err(Error::NSError(_))));
+  // What macOS 27 throws: ENOTSUP, not ENOENT.
+  assert_eq!(error.domain, "NSPOSIXErrorDomain", "{error:#?}");
+  assert_eq!(error.code, 45, "{error:#?}");
 }
 
 #[test]
 fn fails_as_virtualization_does_when_there_is_no_image() {
   let url = file_url("/nowhere/disk.img");
 
-  let Err(Error::NSError(error)) = DiskImageStorageDeviceAttachment::new(&url, true) else {
-    panic!("attached a disk image that does not exist");
-  };
+  let error = ns_error(DiskImageStorageDeviceAttachment::new(&url, true));
 
   // What macOS 27 throws: ENOTSUP, not ENOENT.
   assert_eq!(error.domain, "NSPOSIXErrorDomain", "{error:#?}");
@@ -267,11 +270,9 @@ fn fails_as_virtualization_does_when_there_is_no_image() {
 
 #[test]
 fn fails_as_virtualization_does_on_an_unrecognized_image() {
-  let url = file("unrecognized.img", b"abc");
+  let url = file("fails_as_virtualization_does_on_an_unrecognized_image.img", b"abc");
 
-  let Err(Error::NSError(error)) = DiskImageStorageDeviceAttachment::new(&url, true) else {
-    panic!("attached a disk image Virtualization can't read");
-  };
+  let error = ns_error(DiskImageStorageDeviceAttachment::new(&url, true));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 5, "{error:#?}");
@@ -293,14 +294,10 @@ fn fails_as_virtualization_does_on_an_unrecognized_image() {
 #[test]
 fn reports_each_thrown_error_as_its_own() {
   let missing = file_url("/nowhere/disk.img");
-  let unrecognized = file("unrecognized-second.img", b"abc");
+  let unrecognized = file("reports_each_thrown_error_as_its_own.img", b"abc");
 
-  let Err(Error::NSError(first)) = DiskImageStorageDeviceAttachment::new(&missing, true) else {
-    panic!("attached a disk image that does not exist");
-  };
-  let Err(Error::NSError(second)) = DiskImageStorageDeviceAttachment::new(&unrecognized, true) else {
-    panic!("attached a disk image Virtualization can't read");
-  };
+  let first = ns_error(DiskImageStorageDeviceAttachment::new(&missing, true));
+  let second = ns_error(DiskImageStorageDeviceAttachment::new(&unrecognized, true));
 
   assert_eq!(first.domain, "NSPOSIXErrorDomain");
   assert_eq!(second.domain, "VZErrorDomain");
@@ -308,7 +305,7 @@ fn reports_each_thrown_error_as_its_own() {
 
 #[test]
 fn debugs_as_its_description() {
-  let url = disk_image("debugs_as_its_description");
+  let url = disk_image("disk_image_storage_device_attachment_debugs_as_its_description");
   let attachment = DiskImageStorageDeviceAttachment::new(&url, true).unwrap();
 
   assert!(format!("{attachment:?}").starts_with("<VZDiskImageStorageDeviceAttachment: 0x"));

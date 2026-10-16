@@ -1,5 +1,3 @@
-//! IOUSBHost's `IOUSBHostMatchingPropertyKey`.
-
 use virtualization::io_usb_host::MatchingPropertyKey;
 
 #[test]

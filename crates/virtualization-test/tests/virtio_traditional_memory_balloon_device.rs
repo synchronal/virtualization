@@ -1,6 +1,3 @@
-use std::io::Write;
-use std::time::Duration;
-
 use virtualization::{
   VirtioTraditionalMemoryBalloonDevice, VirtioTraditionalMemoryBalloonDeviceConfiguration, VirtualMachine,
   VirtualMachineConfiguration,
@@ -91,24 +88,7 @@ const FREE: &str = "echo ready\nwhile read line; do echo \"free:$(grep MemFree /
 /// Asks the guest for its free memory until `expected` holds of it, in MiB:
 /// the guest handles a new target a moment after it is set.
 fn wait_for_free(console: &mut Console, expected: impl Fn(u64) -> bool) {
-  let mut free = 0;
-
-  for _ in 0..50 {
-    writeln!(console.input).unwrap();
-    free = console
-      .read_until("free:")
-      .trim_end()
-      .trim_start_matches("free:")
-      .parse::<u64>()
-      .unwrap()
-      / 1024;
-    if expected(free) {
-      return;
-    }
-    std::thread::sleep(Duration::from_millis(100));
-  }
-
-  panic!("the guest's free memory stayed at {free} MiB");
+  console.ask_until("free:", |free| expected(free.parse::<u64>().unwrap() / 1024));
 }
 
 #[test]

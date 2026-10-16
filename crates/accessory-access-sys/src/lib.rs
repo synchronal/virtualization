@@ -300,14 +300,15 @@ impl AAUSBAccessoryManager {
       key,
       borrowed(&*ns_array(&matching_criteria)),
       Box::new(move |accessories, error| {
+        // SAFETY: `bridging(retainedAddress:)`, a retained `NSArray` of
+        // `AAUSBAccessory`s, which Swift passes even with an error: taken
+        // first, so it is released either way.
+        let accessories =
+          unsafe { retained_or_nil::<NSArray<NSObject>>(accessories) }.expect("Swift passes the accessories");
+
         if let Some(error) = completed_error(error) {
           return completion_handler(Err(error));
         }
-
-        // SAFETY: `bridging(retainedAddress:)`, a retained `NSArray` of
-        // `AAUSBAccessory`s.
-        let accessories =
-          unsafe { retained_or_nil::<NSArray<NSObject>>(accessories) }.expect("Swift passes the accessories");
 
         completion_handler(Ok(
           ns_array_objects(&accessories)

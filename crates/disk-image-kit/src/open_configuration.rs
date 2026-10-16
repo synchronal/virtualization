@@ -13,13 +13,12 @@ pub trait OpenConfigurationProtocol {
   fn mode(&self) -> OpenConfigurationMode;
 }
 
-/// [`OpenConfiguration`](https://developer.apple.com/documentation/diskimagekit/openconfiguration):
-/// a struct of two values, in Rust as in Swift.
+/// [`OpenConfiguration`](https://developer.apple.com/documentation/diskimagekit/openconfiguration)
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OpenConfiguration {
   /// [`url`](https://developer.apple.com/documentation/diskimagekit/openconfiguration/url)
   pub url: Url,
-  /// [`mode`](https://developer.apple.com/documentation/diskimagekit/openconfiguration/mode)
+  /// [`mode`](https://developer.apple.com/documentation/diskimagekit/openconfiguration/mode-swift.property)
   pub mode: OpenConfigurationMode,
 }
 
@@ -29,7 +28,9 @@ impl OpenConfiguration {
     Self { url, mode }
   }
 
-  /// [`open(url:mode:)`](https://developer.apple.com/documentation/diskimagekit/openconfiguration/open(url:mode:))
+  /// [`open(url:mode:)`](https://developer.apple.com/documentation/diskimagekit/openconfigurationprotocol/open(url:mode:)),
+  /// declared on `OpenConfigurationProtocol` where `Self` is
+  /// `OpenConfiguration`.
   pub fn open(url: Url, mode: OpenConfigurationMode) -> Self {
     Self { url, mode }
   }
@@ -87,42 +88,17 @@ mod tests {
   use super::*;
 
   #[test]
-  fn mode_becomes_the_same_case_in_disk_image_kit_sys() {
-    assert!(matches!(
-      ffi::OpenConfigurationMode::from(OpenConfigurationMode::Automatic),
-      ffi::OpenConfigurationMode::Automatic
-    ));
-    assert!(matches!(
-      ffi::OpenConfigurationMode::from(OpenConfigurationMode::ReadOnly),
-      ffi::OpenConfigurationMode::ReadOnly
-    ));
-    assert!(matches!(
-      ffi::OpenConfigurationMode::from(OpenConfigurationMode::ReadWrite),
-      ffi::OpenConfigurationMode::ReadWrite
-    ));
-    assert!(matches!(
-      ffi::OpenConfigurationMode::from(OpenConfigurationMode::Unknown),
-      ffi::OpenConfigurationMode::Unknown
-    ));
-  }
-
-  #[test]
-  fn mode_comes_from_the_same_case_in_disk_image_kit_sys() {
-    assert_eq!(
-      OpenConfigurationMode::from(ffi::OpenConfigurationMode::Automatic),
-      OpenConfigurationMode::Automatic
-    );
-    assert_eq!(
-      OpenConfigurationMode::from(ffi::OpenConfigurationMode::ReadOnly),
-      OpenConfigurationMode::ReadOnly
-    );
-    assert_eq!(
-      OpenConfigurationMode::from(ffi::OpenConfigurationMode::ReadWrite),
-      OpenConfigurationMode::ReadWrite
-    );
-    assert_eq!(
-      OpenConfigurationMode::from(ffi::OpenConfigurationMode::Unknown),
-      OpenConfigurationMode::Unknown
-    );
+  fn maps_modes_both_ways() {
+    for mode in [
+      OpenConfigurationMode::Automatic,
+      OpenConfigurationMode::ReadOnly,
+      OpenConfigurationMode::ReadWrite,
+      OpenConfigurationMode::Unknown,
+    ] {
+      assert_eq!(
+        OpenConfigurationMode::from(ffi::OpenConfigurationMode::from(mode)),
+        mode
+      );
+    }
   }
 }

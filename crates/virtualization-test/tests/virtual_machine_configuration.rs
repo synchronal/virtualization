@@ -1,8 +1,8 @@
 use virtualization::{
-  DiskImageStorageDeviceAttachment, Error, LinuxBootLoader, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
+  DiskImageStorageDeviceAttachment, LinuxBootLoader, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
   VirtualMachineConfiguration,
 };
-use virtualization_test::{disk_image, file};
+use virtualization_test::{disk_image, file, ns_error};
 
 fn storage_device(name: &str) -> VirtioBlockDeviceConfiguration {
   VirtioBlockDeviceConfiguration::new(&DiskImageStorageDeviceAttachment::new(&disk_image(name), true).unwrap()).unwrap()
@@ -118,14 +118,16 @@ fn validates_a_linux_machine() {
 #[test]
 fn fails_as_virtualization_does_to_validate_an_empty_label() {
   let configuration = VirtualMachineConfiguration::new().unwrap();
-  let loader = LinuxBootLoader::new(&file("fails_to_validate_an_empty_label", b"kernel")).unwrap();
+  let loader = LinuxBootLoader::new(&file(
+    "fails_as_virtualization_does_to_validate_an_empty_label",
+    b"kernel",
+  ))
+  .unwrap();
 
   configuration.set_boot_loader(Some(&loader));
   configuration.set_label(Some(""));
 
-  let Err(Error::NSError(error)) = configuration.validate() else {
-    panic!("validated an empty label");
-  };
+  let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");
@@ -134,9 +136,7 @@ fn fails_as_virtualization_does_to_validate_an_empty_label() {
 
 #[test]
 fn fails_as_virtualization_does_to_validate_an_empty_configuration() {
-  let Err(Error::NSError(error)) = VirtualMachineConfiguration::new().unwrap().validate() else {
-    panic!("validated an empty configuration");
-  };
+  let error = ns_error(VirtualMachineConfiguration::new().unwrap().validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");

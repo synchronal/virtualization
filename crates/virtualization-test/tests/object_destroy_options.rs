@@ -1,5 +1,3 @@
-//! IOUSBHost's `IOUSBHostObjectDestroyOptions`.
-
 use virtualization::io_usb_host::ObjectDestroyOptions;
 
 #[test]

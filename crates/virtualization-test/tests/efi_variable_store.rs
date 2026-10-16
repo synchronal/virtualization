@@ -1,24 +1,16 @@
 use virtualization::{
   EFISignature, EFISignatureDatabaseConfiguration, EFISignatureList, EFIVariableStore,
-  EFIVariableStoreInitializationOptions, Error, SecCertificate,
+  EFIVariableStoreInitializationOptions, SecCertificate,
 };
-use virtualization_test::{certificate, file_url, new_file_url, variable_store};
-
-/// Swift's `[]`.
-const NO_OPTIONS: EFIVariableStoreInitializationOptions = EFIVariableStoreInitializationOptions { raw_value: 0 };
-
-fn ns_error<T: std::fmt::Debug>(result: Result<T, Error>) -> Box<virtualization::NSError> {
-  match result {
-    Err(Error::NSError(error)) => error,
-    other => panic!("expected Virtualization's error, got {other:?}"),
-  }
-}
+use virtualization_test::{certificate, file_url, new_file_url, ns_error, variable_store};
 
 #[test]
 fn creates_a_variable_store_at_its_url() {
   let url = new_file_url("creates_a_variable_store_at_its_url.efivars");
 
-  let store = EFIVariableStore::with_creating_variable_store_at_and_options(&url, NO_OPTIONS).unwrap();
+  let store =
+    EFIVariableStore::with_creating_variable_store_at_and_options(&url, EFIVariableStoreInitializationOptions::new(0))
+      .unwrap();
 
   assert_eq!(store.url().unwrap(), url);
   assert!(url.to_file_path().unwrap().exists());
@@ -26,12 +18,14 @@ fn creates_a_variable_store_at_its_url() {
 
 #[test]
 fn fails_as_virtualization_does_to_create_one_where_a_file_exists() {
-  let url = new_file_url("fails_to_create_one_where_a_file_exists.efivars");
+  let url = new_file_url("fails_as_virtualization_does_to_create_one_where_a_file_exists.efivars");
 
-  EFIVariableStore::with_creating_variable_store_at_and_options(&url, NO_OPTIONS).unwrap();
+  EFIVariableStore::with_creating_variable_store_at_and_options(&url, EFIVariableStoreInitializationOptions::new(0))
+    .unwrap();
 
   let error = ns_error(EFIVariableStore::with_creating_variable_store_at_and_options(
-    &url, NO_OPTIONS,
+    &url,
+    EFIVariableStoreInitializationOptions::new(0),
   ));
 
   assert_eq!(error.domain, "NSPOSIXErrorDomain", "{error:#?}");
@@ -42,7 +36,8 @@ fn fails_as_virtualization_does_to_create_one_where_a_file_exists() {
 fn overwrites_a_file_when_allowed() {
   let url = new_file_url("overwrites_a_file_when_allowed.efivars");
 
-  EFIVariableStore::with_creating_variable_store_at_and_options(&url, NO_OPTIONS).unwrap();
+  EFIVariableStore::with_creating_variable_store_at_and_options(&url, EFIVariableStoreInitializationOptions::new(0))
+    .unwrap();
 
   let store = EFIVariableStore::with_creating_variable_store_at_and_options(
     &url,
@@ -67,7 +62,7 @@ fn allows_overwriting_with_its_first_bit() {
 fn fails_as_virtualization_does_to_create_one_in_a_missing_directory() {
   let error = ns_error(EFIVariableStore::with_creating_variable_store_at_and_options(
     &file_url("/nowhere/efivars"),
-    NO_OPTIONS,
+    EFIVariableStoreInitializationOptions::new(0),
   ));
 
   assert_eq!(error.domain, "NSPOSIXErrorDomain", "{error:#?}");

@@ -19,44 +19,48 @@ impl EFISignatureDatabaseConfiguration {
   ) -> Result<Self, Error> {
     platform::supported()?;
 
+    let [key_exchange_keys, db_signatures, dbx_signatures] =
+      [key_exchange_keys, db_signatures, dbx_signatures].map(|signature_lists| {
+        signature_lists
+          .iter()
+          .map(|signature_list| &signature_list.inner)
+          .collect::<Vec<_>>()
+      });
+
     Ok(Self {
-      inner: ffi::vz_efi_signature_database_configuration_init(
-        &bridge_inner(key_exchange_keys),
-        &bridge_inner(db_signatures),
-        &bridge_inner(dbx_signatures),
-      ),
+      inner: ffi::vz_efi_signature_database_configuration_init(&key_exchange_keys, &db_signatures, &dbx_signatures),
     })
   }
 
   /// [`keyExchangeKeys`](https://developer.apple.com/documentation/virtualization/vzefisignaturedatabaseconfiguration/keyexchangekeys)
   pub fn key_exchange_keys(&self) -> Vec<EFISignatureList> {
-    bridge_from(self.inner.vz_key_exchange_keys())
+    self
+      .inner
+      .vz_key_exchange_keys()
+      .into_iter()
+      .map(EFISignatureList::bridge_from)
+      .collect()
   }
 
   /// [`dbSignatures`](https://developer.apple.com/documentation/virtualization/vzefisignaturedatabaseconfiguration/dbsignatures)
   pub fn db_signatures(&self) -> Vec<EFISignatureList> {
-    bridge_from(self.inner.vz_db_signatures())
+    self
+      .inner
+      .vz_db_signatures()
+      .into_iter()
+      .map(EFISignatureList::bridge_from)
+      .collect()
   }
 
   /// [`dbxSignatures`](https://developer.apple.com/documentation/virtualization/vzefisignaturedatabaseconfiguration/dbxsignatures)
   pub fn dbx_signatures(&self) -> Vec<EFISignatureList> {
-    bridge_from(self.inner.vz_dbx_signatures())
+    self
+      .inner
+      .vz_dbx_signatures()
+      .into_iter()
+      .map(EFISignatureList::bridge_from)
+      .collect()
   }
-}
-
-/// Each list's object.
-fn bridge_inner(signature_lists: &[EFISignatureList]) -> Vec<&ffi::VZEFISignatureList> {
-  signature_lists
-    .iter()
-    .map(|signature_list| &signature_list.inner)
-    .collect()
-}
-
-fn bridge_from(signature_lists: Vec<ffi::VZEFISignatureList>) -> Vec<EFISignatureList> {
-  signature_lists
-    .into_iter()
-    .map(|inner| EFISignatureList { inner })
-    .collect()
 }
 
 impl Clone for EFISignatureDatabaseConfiguration {

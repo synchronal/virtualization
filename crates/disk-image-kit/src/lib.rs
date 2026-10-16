@@ -6,8 +6,8 @@
 //! Where Rust differs from Swift:
 //!
 //! - Objects are shared references, as in Swift: [`Clone`] is the same
-//!   object, and nothing is `Send` or `Sync`. [`Debug`] is the value's
-//!   `String(describing:)`.
+//!   object. Only what Apple declares `Sendable` is `Send` and `Sync`.
+//!   [`Debug`] is the value's `String(describing:)`.
 //! - A nested type joins its names: `DiskImage.Format` is [`DiskImageFormat`].
 //! - A protocol is a trait. One only DiskImageKit's own types conform to is
 //!   sealed.

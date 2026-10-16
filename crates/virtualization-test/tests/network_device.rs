@@ -1,12 +1,7 @@
-use std::io::Write;
-use std::time::Duration;
-
 use virtualization::{
   NATNetworkDeviceAttachment, NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration, VirtualMachine,
 };
-use virtualization_test::{
-  Console, booting_machine, initial_ramdisk, linux_configuration, on_queue, serial_queue, start,
-};
+use virtualization_test::{booting_machine, initial_ramdisk, linux_configuration, on_queue, serial_queue, start};
 
 /// A guest that reports `eth0`'s carrier for each line it reads, once it
 /// says it's ready.
@@ -41,20 +36,6 @@ fn is_one_per_network_device_configuration_with_its_attachment() {
   });
 }
 
-/// Asks the guest for `eth0`'s carrier until it is `expected`: the guest sees
-/// an attachment change a moment after it is made.
-fn wait_for_carrier(console: &mut Console, expected: &str) {
-  for _ in 0..50 {
-    writeln!(console.input).unwrap();
-    if console.read_until("carrier:").trim_end() == format!("carrier:{expected}") {
-      return;
-    }
-    std::thread::sleep(Duration::from_millis(100));
-  }
-
-  panic!("the guest's carrier never became {expected}");
-}
-
 #[test]
 fn detaches_and_reattaches_while_running() {
   let name = "detaches_and_reattaches_while_running";
@@ -67,7 +48,8 @@ fn detaches_and_reattaches_while_running() {
 
   start(&queue, &machine);
   console.read_until("ready");
-  wait_for_carrier(&mut console, "1");
+  // The guest sees an attachment change a moment after it is made.
+  console.ask_until("carrier:", |carrier| carrier == "1");
 
   on_queue(&queue, || {
     let device = &machine.network_devices()[0];
@@ -76,7 +58,7 @@ fn detaches_and_reattaches_while_running() {
 
     assert!(device.attachment::<NATNetworkDeviceAttachment>().is_none());
   });
-  wait_for_carrier(&mut console, "0");
+  console.ask_until("carrier:", |carrier| carrier == "0");
 
   on_queue(&queue, || {
     let device = &machine.network_devices()[0];
@@ -85,7 +67,7 @@ fn detaches_and_reattaches_while_running() {
 
     assert!(device.attachment::<NATNetworkDeviceAttachment>().is_some());
   });
-  wait_for_carrier(&mut console, "1");
+  console.ask_until("carrier:", |carrier| carrier == "1");
 }
 
 #[test]

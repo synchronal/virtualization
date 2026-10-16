@@ -1,7 +1,7 @@
 use virtualization::{
-  EFIBootLoader, Error, LinuxBootLoader, VirtualMachine, VirtualMachineConfiguration, VirtualMachineState,
+  EFIBootLoader, LinuxBootLoader, VirtualMachine, VirtualMachineConfiguration, VirtualMachineState,
 };
-use virtualization_test::{on_queue, serial_queue, start, stop, variable_store};
+use virtualization_test::{ns_error, on_queue, serial_queue, start, stop, variable_store};
 
 #[test]
 fn has_no_variable_store_when_new() {
@@ -53,9 +53,7 @@ fn validates_with_a_variable_store() {
 
 #[test]
 fn fails_validation_as_virtualization_does_without_a_variable_store() {
-  let Err(Error::NSError(error)) = efi_configuration(&EFIBootLoader::new().unwrap()).validate() else {
-    panic!("validated an EFI boot loader with no variable store");
-  };
+  let error = ns_error(efi_configuration(&EFIBootLoader::new().unwrap()).validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");

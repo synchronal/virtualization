@@ -1,5 +1,4 @@
-//! IOUSBHost's `IOUSBHostDevice`. No service the suites can open is a USB
-//! device they may claim, so only failing to open one is tested.
+//! With no USB accessory to open, only failing to open a device is tested.
 
 use virtualization::io_usb_host::{
   Device, DeviceMatchingDictionaryArguments, Error, ObjectInitOptions, PropertyListValue, error_domain,

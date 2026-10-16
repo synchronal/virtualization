@@ -14,6 +14,10 @@ pub struct EFISignatureList {
 }
 
 impl EFISignatureList {
+  pub(crate) fn bridge_from(inner: ffi::VZEFISignatureList) -> Self {
+    Self { inner }
+  }
+
   /// [`init(contentsOf:)`](https://developer.apple.com/documentation/virtualization/vzefisignaturelist/init(contentsof:))
   pub fn new(url: &Url) -> Result<Self, Error> {
     platform::supported()?;

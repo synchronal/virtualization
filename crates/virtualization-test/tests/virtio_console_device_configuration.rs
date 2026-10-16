@@ -1,9 +1,7 @@
 use std::io::Write;
 
-use virtualization::{
-  ConsolePortConfiguration, Error, VirtioConsoleDeviceConfiguration, VirtioConsolePortConfiguration,
-};
-use virtualization_test::{booting_machine, console_attachment, initial_ramdisk, linux_configuration, start};
+use virtualization::{ConsolePortConfiguration, VirtioConsoleDeviceConfiguration, VirtioConsolePortConfiguration};
+use virtualization_test::{booting_machine, console_attachment, initial_ramdisk, linux_configuration, ns_error, start};
 
 #[test]
 fn is_a_console_device_of_the_configuration_it_was_given_to() {
@@ -36,9 +34,7 @@ fn fails_validation_as_virtualization_does_with_no_ports() {
 
   configuration.set_console_devices(&[&VirtioConsoleDeviceConfiguration::new().unwrap()]);
 
-  let Err(Error::NSError(error)) = configuration.validate() else {
-    panic!("validated a console device with no ports");
-  };
+  let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
   assert_eq!(error.code, 2, "{error:#?}");

@@ -5,6 +5,8 @@ use std::fmt;
 pub use foundation_sys::NSError;
 use url::Url;
 
+/// What a call into DiskImageKit failed with: what it threw, or why Rust
+/// couldn't make the call or read its result.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum Error {
