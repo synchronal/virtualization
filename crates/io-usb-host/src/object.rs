@@ -171,7 +171,7 @@ pub type CompletionHandler = Box<dyn FnOnce(i32, isize) + Send + 'static>;
 /// `new(0)`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ObjectInitOptions {
-  /// [`rawValue`](https://developer.apple.com/documentation/iousbhost/iousbhostobjectinitoptions/rawvalue)
+  /// [`rawValue`](https://developer.apple.com/documentation/swift/rawrepresentable/rawvalue-swift.property)
   pub raw_value: usize,
 }
 
@@ -200,7 +200,7 @@ impl ObjectInitOptions {
 /// an option set, which is its raw value. Swift's `[]` is `new(0)`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ObjectDestroyOptions {
-  /// [`rawValue`](https://developer.apple.com/documentation/iousbhost/iousbhostobjectdestroyoptions/rawvalue)
+  /// [`rawValue`](https://developer.apple.com/documentation/swift/rawrepresentable/rawvalue-swift.property)
   pub raw_value: usize,
 }
 
@@ -222,7 +222,7 @@ impl ObjectDestroyOptions {
 /// an option set, which is its raw value. Swift's `[]` is `new(0)`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ObjectDataOptions {
-  /// [`rawValue`](https://developer.apple.com/documentation/iousbhost/iousbhostobjectdataoptions/rawvalue)
+  /// [`rawValue`](https://developer.apple.com/documentation/swift/rawrepresentable/rawvalue-swift.property)
   pub raw_value: usize,
 }
 

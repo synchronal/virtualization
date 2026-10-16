@@ -252,7 +252,7 @@ pub fn ns_file_handle_file_descriptor(file_handle: &NSFileHandle) -> RawFd {
   file_handle.fileDescriptor()
 }
 
-/// [`NSUUID(uuidString:)`](https://developer.apple.com/documentation/foundation/nsuuid/init(uuidstring:)).
+/// [`NSUUID(uuidString:)`](https://developer.apple.com/documentation/foundation/nsuuid/init(uuidstring:)-8t9n3).
 pub fn ns_uuid_init_uuid_string(string: &str) -> Option<Retained<NSUUID>> {
   NSUUID::initWithUUIDString(NSUUID::alloc(), &NSString::from_str(string))
 }

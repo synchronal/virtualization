@@ -12,7 +12,7 @@ pub struct SharedDirectory {
 }
 
 impl SharedDirectory {
-  /// [`init(url:readOnly:)`](https://developer.apple.com/documentation/virtualization/vzshareddirectory/init(url:readonly:))
+  /// [`init(url:readOnly:)`](https://developer.apple.com/documentation/virtualization/vzshareddirectory/init(url:readonly:)-8j5z)
   pub fn new(url: &Url, read_only: bool) -> Result<Self, Error> {
     platform::supported()?;
 

@@ -38,7 +38,7 @@ impl EFISignatureList {
     })
   }
 
-  /// [`signatures`](https://developer.apple.com/documentation/virtualization/vzefisignaturelist/signatures)
+  /// [`signatures`](https://developer.apple.com/documentation/virtualization/vzefisignaturelist/signatures-3cz50)
   pub fn signatures(&self) -> Vec<EFISignature> {
     self
       .inner
@@ -64,16 +64,16 @@ impl fmt::Debug for EFISignatureList {
   }
 }
 
-/// [`VZEFISignature`](https://developer.apple.com/documentation/virtualization/vzefisignature)
+/// [`VZEFISignature`](https://developer.apple.com/documentation/virtualization/vzefisignature-swift.enum)
 ///
 /// `Data` is its bytes. `Unknown` is a case newer than this crate; giving it to
 /// Virtualization stops the process.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum EFISignature {
-  /// [`sha256(_:)`](https://developer.apple.com/documentation/virtualization/vzefisignature/sha256(_:))
+  /// [`sha256(_:)`](https://developer.apple.com/documentation/virtualization/vzefisignature-swift.enum/sha256(_:))
   Sha256(Vec<u8>),
-  /// [`x509Certificate(_:)`](https://developer.apple.com/documentation/virtualization/vzefisignature/x509certificate(_:))
+  /// [`x509Certificate(_:)`](https://developer.apple.com/documentation/virtualization/vzefisignature-swift.enum/x509certificate(_:))
   X509Certificate(SecCertificate),
   Unknown,
 }

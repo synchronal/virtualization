@@ -1870,7 +1870,7 @@ impl VZEFIVariableStore {
 
 // BootLoader/EFISignatureList.swift
 
-/// [`VZEFISignature`](https://developer.apple.com/documentation/virtualization/vzefisignature).
+/// [`VZEFISignature`](https://developer.apple.com/documentation/virtualization/vzefisignature-swift.enum).
 /// `Data` is its bytes. `Unknown` is a case newer than this crate; passing it
 /// to Virtualization stops the process.
 pub enum VZEFISignature {

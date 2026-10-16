@@ -12,7 +12,7 @@ pub struct EFIVariableStore {
 }
 
 impl EFIVariableStore {
-  /// [`init(url:)`](https://developer.apple.com/documentation/virtualization/vzefivariablestore/init(url:))
+  /// [`init(url:)`](https://developer.apple.com/documentation/virtualization/vzefivariablestore/init(url:)-83pcn)
   pub fn new(url: &Url) -> Result<Self, Error> {
     platform::supported()?;
 
@@ -127,7 +127,7 @@ impl fmt::Debug for EFIVariableStore {
 /// an option set, which is its raw value. Swift's `[]` is `new(0)`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct EFIVariableStoreInitializationOptions {
-  /// [`rawValue`](https://developer.apple.com/documentation/virtualization/vzefivariablestore/initializationoptions/rawvalue)
+  /// [`rawValue`](https://developer.apple.com/documentation/swift/rawrepresentable/rawvalue-swift.property)
   pub raw_value: usize,
 }
 

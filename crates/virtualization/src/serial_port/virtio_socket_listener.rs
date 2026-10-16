@@ -11,7 +11,7 @@ pub struct VirtioSocketListener {
 }
 
 impl VirtioSocketListener {
-  /// [`init()`](https://developer.apple.com/documentation/virtualization/vzvirtiosocketlistener/init())
+  /// [`init()`](https://developer.apple.com/documentation/objectivec/nsobject-swift.class/init())
   pub fn new() -> Result<Self, Error> {
     platform::supported()?;
 

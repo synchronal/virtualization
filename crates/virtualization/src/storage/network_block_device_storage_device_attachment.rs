@@ -14,7 +14,7 @@ pub struct NetworkBlockDeviceStorageDeviceAttachment {
 }
 
 impl NetworkBlockDeviceStorageDeviceAttachment {
-  /// [`init(url:)`](https://developer.apple.com/documentation/virtualization/vznetworkblockdevicestoragedeviceattachment/init(url:))
+  /// [`init(url:)`](https://developer.apple.com/documentation/virtualization/vznetworkblockdevicestoragedeviceattachment/init(url:)-6q4m7)
   pub fn new(url: &Url) -> Result<Self, Error> {
     platform::supported()?;
 

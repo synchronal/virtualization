@@ -14,7 +14,7 @@ pub struct DiskImageStorageDeviceAttachment {
 }
 
 impl DiskImageStorageDeviceAttachment {
-  /// [`init(url:readOnly:)`](https://developer.apple.com/documentation/virtualization/vzdiskimagestoragedeviceattachment/init(url:readonly:))
+  /// [`init(url:readOnly:)`](https://developer.apple.com/documentation/virtualization/vzdiskimagestoragedeviceattachment/init(url:readonly:)-9qeco)
   pub fn new(url: &Url, read_only: bool) -> Result<Self, Error> {
     platform::supported()?;
 
@@ -24,7 +24,7 @@ impl DiskImageStorageDeviceAttachment {
     })
   }
 
-  /// [`init(url:readOnly:cachingMode:synchronizationMode:)`](https://developer.apple.com/documentation/virtualization/vzdiskimagestoragedeviceattachment/init(url:readonly:cachingmode:synchronizationmode:))
+  /// [`init(url:readOnly:cachingMode:synchronizationMode:)`](https://developer.apple.com/documentation/virtualization/vzdiskimagestoragedeviceattachment/init(url:readonly:cachingmode:synchronizationmode:)-36gc5)
   pub fn with_caching_mode_and_synchronization_mode(
     url: &Url,
     read_only: bool,

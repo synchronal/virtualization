@@ -12,7 +12,7 @@ pub struct FileSerialPortAttachment {
 }
 
 impl FileSerialPortAttachment {
-  /// [`init(url:append:)`](https://developer.apple.com/documentation/virtualization/vzfileserialportattachment/init(url:append:))
+  /// [`init(url:append:)`](https://developer.apple.com/documentation/virtualization/vzfileserialportattachment/init(url:append:)-37g72)
   pub fn new(url: &Url, append: bool) -> Result<Self, Error> {
     platform::supported()?;
 

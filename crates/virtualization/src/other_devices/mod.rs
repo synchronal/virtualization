@@ -92,7 +92,7 @@ pub trait USBController: Sealed {
     bridge_cast_each(ffi::vz_usb_controller_usb_devices(self.bridge_object()))
   }
 
-  /// [`delegate`](https://developer.apple.com/documentation/virtualization/vzusbcontroller/delegate):
+  /// [`delegate`](https://developer.apple.com/documentation/virtualization/vzusbcontroller/delegate-swift.property):
   /// `None` when there is none, or it has been dropped.
   fn delegate(&self) -> Option<Arc<dyn USBControllerDelegate>> {
     let delegating: Arc<dyn Any + Send + Sync> = ffi::vz_usb_controller_delegate(self.bridge_object())?;
@@ -100,7 +100,7 @@ pub trait USBController: Sealed {
     delegating.downcast::<Delegating>().ok()?.0.upgrade()
   }
 
-  /// [`delegate`](https://developer.apple.com/documentation/virtualization/vzusbcontroller/delegate),
+  /// [`delegate`](https://developer.apple.com/documentation/virtualization/vzusbcontroller/delegate-swift.property),
   /// held weakly, as in Swift.
   fn set_delegate(&self, delegate: Option<&Arc<dyn USBControllerDelegate>>) {
     ffi::vz_usb_controller_set_delegate(

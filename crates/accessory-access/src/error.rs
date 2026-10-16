@@ -68,7 +68,7 @@ impl ErrorCode {
     Ok(ffi::aa_error_code_init_raw_value(raw_value).into())
   }
 
-  /// [`rawValue`](https://developer.apple.com/documentation/accessoryaccess/aaerror/code/rawvalue)
+  /// [`rawValue`](https://developer.apple.com/documentation/swift/rawrepresentable/rawvalue-swift.property)
   pub fn raw_value(self) -> Result<isize, Error> {
     platform::supported()?;
 

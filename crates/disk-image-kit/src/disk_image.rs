@@ -86,7 +86,7 @@ impl DiskImage {
     self.inner.dik_open_mode().into()
   }
 
-  /// [`appending(_:)`](https://developer.apple.com/documentation/diskimagekit/diskimage/appending(_:)-(diskimage)),
+  /// [`appending(_:)`](https://developer.apple.com/documentation/diskimagekit/diskimage/appending(_:)-4wifj),
   /// with an existing image. Consuming, as in Swift.
   pub fn appending_layer(self, layer: DiskImage) -> Result<StackedImage, Error> {
     Ok(StackedImage {
@@ -96,7 +96,7 @@ impl DiskImage {
     })
   }
 
-  /// [`appending(_:)`](https://developer.apple.com/documentation/diskimagekit/diskimage/appending(_:)-(creationconfiguration&stackablelayer)),
+  /// [`appending(_:)`](https://developer.apple.com/documentation/diskimagekit/diskimage/appending(_:)-3pfqg),
   /// with a new layer. Consuming, as in Swift.
   pub fn appending_configuration(
     self,

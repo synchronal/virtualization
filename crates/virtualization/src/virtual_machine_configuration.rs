@@ -16,7 +16,7 @@ pub struct VirtualMachineConfiguration {
 }
 
 impl VirtualMachineConfiguration {
-  /// [`init()`](https://developer.apple.com/documentation/virtualization/vzvirtualmachineconfiguration/init())
+  /// [`init()`](https://developer.apple.com/documentation/objectivec/nsobject-swift.class/init())
   pub fn new() -> Result<Self, Error> {
     platform::supported()?;
 

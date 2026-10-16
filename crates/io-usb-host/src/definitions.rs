@@ -76,7 +76,7 @@ pub fn property_key_location_id() -> Result<String, Error> {
 /// read from Swift.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MatchingPropertyKey {
-  /// [`rawValue`](https://developer.apple.com/documentation/iousbhost/iousbhostmatchingpropertykey/rawvalue)
+  /// [`rawValue`](https://developer.apple.com/documentation/swift/rawrepresentable/rawvalue-swift.property)
   pub raw_value: String,
 }
 
@@ -190,7 +190,7 @@ impl MatchingPropertyKey {
 /// read from Swift.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DevicePropertyKey {
-  /// [`rawValue`](https://developer.apple.com/documentation/iousbhost/iousbhostdevicepropertykey/rawvalue)
+  /// [`rawValue`](https://developer.apple.com/documentation/swift/rawrepresentable/rawvalue-swift.property)
   pub raw_value: String,
 }
 

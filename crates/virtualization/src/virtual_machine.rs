@@ -53,7 +53,7 @@ impl VirtualMachine {
     self.inner.vz_queue()
   }
 
-  /// [`state`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/state)
+  /// [`state`](https://developer.apple.com/documentation/virtualization/vzvirtualmachine/state-swift.property)
   pub fn state(&self) -> VirtualMachineState {
     self.inner.vz_state().into()
   }

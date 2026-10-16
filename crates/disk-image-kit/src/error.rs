@@ -36,14 +36,14 @@ pub enum Error {
 pub struct IncompatibleStackingError {
   /// [`reason`](https://developer.apple.com/documentation/diskimagekit/incompatiblestackingerror/reason)
   pub reason: String,
-  /// [`errorDescription`](https://developer.apple.com/documentation/diskimagekit/incompatiblestackingerror/errordescription)
+  /// [`errorDescription`](https://developer.apple.com/documentation/foundation/localizederror/errordescription)
   pub error_description: Option<String>,
 }
 
 /// [`InvalidBlockCountError`](https://developer.apple.com/documentation/diskimagekit/invalidblockcounterror)
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InvalidBlockCountError {
-  /// [`errorDescription`](https://developer.apple.com/documentation/diskimagekit/invalidblockcounterror/errordescription)
+  /// [`errorDescription`](https://developer.apple.com/documentation/foundation/localizederror/errordescription)
   pub error_description: Option<String>,
 }
 
@@ -53,7 +53,7 @@ pub struct CorruptedImageError {
   /// [`underlyingError`](https://developer.apple.com/documentation/diskimagekit/corruptedimageerror/underlyingerror),
   /// as an `NSError`.
   pub underlying_error: NSError,
-  /// [`errorDescription`](https://developer.apple.com/documentation/diskimagekit/corruptedimageerror/errordescription)
+  /// [`errorDescription`](https://developer.apple.com/documentation/foundation/localizederror/errordescription)
   pub error_description: Option<String>,
 }
 
@@ -63,7 +63,7 @@ pub struct UnsupportedFormatError {
   /// [`underlyingError`](https://developer.apple.com/documentation/diskimagekit/unsupportedformaterror/underlyingerror),
   /// as an `NSError`.
   pub underlying_error: NSError,
-  /// [`errorDescription`](https://developer.apple.com/documentation/diskimagekit/unsupportedformaterror/errordescription)
+  /// [`errorDescription`](https://developer.apple.com/documentation/foundation/localizederror/errordescription)
   pub error_description: Option<String>,
 }
 
