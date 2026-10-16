@@ -16,7 +16,7 @@ argv = ["cargo", "audit"]
 argv = ["cargo", "check", "--workspace", "--all-targets"]
 
 [host.commands.check-linux]
-argv = ["cargo", "check", "--target", "x86_64-unknown-linux-gnu", "-p", "disk-image-kit", "-p", "foundation-sys", "-p", "virtualization", "-p", "vmnet", "--all-targets"]
+argv = ["cargo", "check", "--target", "x86_64-unknown-linux-gnu", "-p", "accessory-access", "-p", "disk-image-kit", "-p", "foundation-sys", "-p", "io-usb-host", "-p", "virtualization", "-p", "vmnet", "--all-targets"]
 
 [host.commands.clippy]
 argv = ["cargo", "clippy", "--workspace", "--all-targets", "--all-features", "--", "-D", "warnings"]
@@ -26,6 +26,11 @@ argv = ["cargo", "fmt", "--all"]
 
 [host.commands.swift-fmt]
 argv = ["bin/dev/format-swift", "--all"]
+
+# Takes a module name; the script refuses anything else.
+[host.commands.swift-interface]
+arguments = true
+argv = ["bin/dev/swift-interface"]
 
 [host.commands.swift-lint]
 argv = ["bin/dev/lint-swift"]

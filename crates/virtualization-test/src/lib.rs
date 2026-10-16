@@ -1,6 +1,7 @@
 //! What the integration suites assume, which Virtualization does not: files
 //! to attach, a kernel and userland to boot, and the values chosen for them.
 
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines, PipeReader, PipeWriter, Read, Write};
 use std::net::{Ipv4Addr, Shutdown, TcpListener, TcpStream};
@@ -11,6 +12,7 @@ use std::sync::{Arc, Mutex, mpsc};
 use std::time::Duration;
 
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
+use virtualization::io_usb_host::{Device, DeviceMatchingDictionaryArguments, PropertyListValue};
 use virtualization::url::Url;
 use virtualization::vmnet::{Mode, Network, NetworkConfiguration};
 use virtualization::{
@@ -321,6 +323,22 @@ thread_local! {
 /// configuration made: one to attach to a running machine's controller.
 pub fn with_usb_mass_storage_device<T>(work: impl FnOnce(&USBMassStorageDevice) -> T) -> T {
   USB_MASS_STORAGE_DEVICE.with(work)
+}
+
+/// IOUSBHost's matching dictionary for an Apple device (vendor 0x05ac) of
+/// product 0x1234, which no Mac need have.
+pub fn apple_device_matching_dictionary() -> BTreeMap<String, PropertyListValue> {
+  Device::create_matching_dictionary(&DeviceMatchingDictionaryArguments {
+    vendor_id: Some(0x05ac),
+    product_id: Some(0x1234),
+    bcd_device: None,
+    device_class: None,
+    device_subclass: None,
+    device_protocol: None,
+    speed: None,
+    product_id_array: None,
+  })
+  .unwrap()
 }
 
 /// The XHCI controller of a machine configured with one. Call it on the

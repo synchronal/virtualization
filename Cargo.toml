@@ -1,8 +1,12 @@
 [workspace]
 members = [
+  "crates/accessory-access",
+  "crates/accessory-access-sys",
   "crates/disk-image-kit",
   "crates/disk-image-kit-sys",
   "crates/foundation-sys",
+  "crates/io-usb-host",
+  "crates/io-usb-host-sys",
   "crates/virtualization",
   "crates/virtualization-sys",
   "crates/virtualization-test",
@@ -11,9 +15,13 @@ members = [
 ]
 # The integration suites run only signed, through bin/dev/test-integration.
 default-members = [
+  "crates/accessory-access",
+  "crates/accessory-access-sys",
   "crates/disk-image-kit",
   "crates/disk-image-kit-sys",
   "crates/foundation-sys",
+  "crates/io-usb-host",
+  "crates/io-usb-host-sys",
   "crates/virtualization",
   "crates/virtualization-sys",
   "crates/vmnet",
@@ -31,10 +39,14 @@ rust-version = "1.98"
 version = "0.1.0"
 
 [workspace.dependencies]
+accessory-access = { path = "crates/accessory-access", version = "0.1.0" }
+accessory-access-sys = { path = "crates/accessory-access-sys", version = "0.1.0" }
 disk-image-kit = { path = "crates/disk-image-kit", version = "0.1.0" }
 dispatch2 = { version = "0.3.1", default-features = false, features = ["std"] }
 disk-image-kit-sys = { path = "crates/disk-image-kit-sys", version = "0.1.0" }
 foundation-sys = { path = "crates/foundation-sys", version = "0.1.0" }
+io-usb-host = { path = "crates/io-usb-host", version = "0.1.0" }
+io-usb-host-sys = { path = "crates/io-usb-host-sys", version = "0.1.0" }
 objc2 = { version = "0.6.4", default-features = false, features = ["std"] }
 objc2-foundation = { version = "0.3.2", default-features = false, features = [
   "std",
@@ -46,9 +58,11 @@ objc2-foundation = { version = "0.3.2", default-features = false, features = [
   "NSFileHandle",
   "NSNull",
   "NSObject",
+  "NSRange",
   "NSString",
   "NSURL",
   "NSUUID",
+  "NSValue",
 ] }
 swift-bridge = "0.1.59"
 swift-bridge-build = "0.1.59"

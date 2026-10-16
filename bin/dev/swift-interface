@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+#
+# Prints a framework's interface as Swift imports it from the macOS SDK, for
+# finding the Swift signature of an API Apple documents only in Objective-C.
+#
+#   bin/dev/swift-interface IOUSBHost.IOUSBHostObject
+#   bin/dev/swift-interface --list IOUSBHost
+#   bin/dev/swift-interface --file IOUSBHost Headers/IOUSBHostObject.h
+#
+# A framework of submodules prints only their imports: name the submodule.
+# Members refined for Swift (`__name`) don't print; their Objective-C
+# headers are among the framework's files, as is a Swift framework's
+# `.swiftinterface`.
+
+set -e
+
+usage="usage: bin/dev/swift-interface <module> | --list <framework> | --file <framework> <path>"
+
+refuse() {
+  echo "bin/dev/swift-interface: $1" >&2
+  echo "$usage" >&2
+  exit 1
+}
+
+name() {
+  case "$1" in
+    "" | *[!A-Za-z0-9_.]* | .*) refuse "not a name: $1" ;;
+  esac
+}
+
+sdk="$(xcrun --sdk macosx --show-sdk-path)"
+frameworks="$sdk/System/Library/Frameworks"
+
+case "$1" in
+  --list)
+    name "$2"
+    cd "$frameworks/$2.framework"
+    exec find . -type f
+    ;;
+  --file)
+    name "$2"
+    case "$3" in
+      "" | /* | *..* | *[!A-Za-z0-9_./+-]*) refuse "not a path in the framework: $3" ;;
+    esac
+    exec cat "$frameworks/$2.framework/$3"
+    ;;
+esac
+
+name "$1"
+
+exec xcrun swift-synthesize-interface \
+  -module-name "$1" \
+  -sdk "$sdk" \
+  -target "$(uname -m)-apple-macos27.0"

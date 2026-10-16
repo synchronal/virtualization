@@ -11,6 +11,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
+accessory-access.workspace = true
 disk-image-kit.workspace = true
 dispatch2.workspace = true
 foundation-sys.workspace = true

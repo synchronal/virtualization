@@ -1,0 +1,22 @@
+[package]
+categories.workspace = true
+description = "Rust bindings for Apple's AccessoryAccess framework."
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "accessory-access"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+dispatch2.workspace = true
+foundation-sys.workspace = true
+io-usb-host.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+accessory-access-sys.workspace = true
+
+# Every `unsafe` lives in accessory-access-sys.
+[lints.rust]
+unsafe_code = "forbid"

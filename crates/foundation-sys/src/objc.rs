@@ -16,13 +16,20 @@
 //!   with [`ns_dictionary`]. Swift returns one as an `NSDictionary`, read here
 //!   with [`ns_dictionary_entries`].
 
-use std::ffi::c_void;
+use std::collections::BTreeMap;
+use std::ffi::{CStr, c_void};
 use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
+use std::ptr::NonNull;
 
 use objc2::AllocAnyThread;
 pub use objc2::rc::Retained;
 pub use objc2::runtime::{AnyObject, NSObject};
-pub use objc2_foundation::{NSArray, NSData, NSDictionary, NSError, NSFileHandle, NSNull, NSString, NSURL, NSUUID};
+use objc2_foundation::NSRange;
+pub use objc2_foundation::{
+  NSArray, NSData, NSDictionary, NSError, NSFileHandle, NSMutableData, NSNull, NSNumber, NSString, NSURL, NSUUID,
+};
+
+use crate::PropertyListValue;
 
 /// A Foundation object, lent to Swift for one call.
 pub fn borrowed<T: objc2::Message>(object: &T) -> *const c_void {
@@ -99,6 +106,124 @@ pub fn ns_data(bytes: &[u8]) -> Retained<NSData> {
 /// A copy of an `NSData`'s bytes.
 pub fn ns_data_bytes(data: &NSData) -> Vec<u8> {
   data.to_vec()
+}
+
+/// [`replaceBytes(in:withBytes:)`](https://developer.apple.com/documentation/foundation/nsmutabledata/replacebytes(in:withbytes:)),
+/// over the `bytes.len()` bytes from `location`.
+pub fn ns_mutable_data_replace_bytes(data: &NSMutableData, location: usize, bytes: &[u8]) {
+  // SAFETY: Foundation reads the range's length from `bytes`, which is that
+  // long.
+  unsafe { data.replaceBytesInRange_withBytes(NSRange::new(location, bytes.len()), NonNull::from(bytes).cast()) }
+}
+
+/// A property list value as Foundation's object: `NSNumber`, `NSString`,
+/// `NSData`, `NSArray`, or `NSDictionary`.
+pub fn ns_property_list(value: &PropertyListValue) -> Retained<AnyObject> {
+  match value {
+    PropertyListValue::Boolean(value) => NSNumber::new_bool(*value).into(),
+    PropertyListValue::Integer(value) => NSNumber::new_i64(*value).into(),
+    PropertyListValue::Real(value) => NSNumber::new_f64(*value).into(),
+    PropertyListValue::String(value) => NSString::from_str(value).into(),
+    PropertyListValue::Data(value) => NSData::with_bytes(value).into(),
+    PropertyListValue::Array(values) => {
+      let objects: Vec<_> = values.iter().map(ns_property_list).collect();
+
+      NSArray::from_retained_slice(&objects).into()
+    }
+    PropertyListValue::Dictionary(entries) => ns_property_list_dictionary(entries).into(),
+  }
+}
+
+/// A `[String: Any]` property list as an `NSDictionary`.
+pub fn ns_property_list_dictionary(
+  entries: &BTreeMap<String, PropertyListValue>,
+) -> Retained<NSDictionary<NSString, AnyObject>> {
+  let keys: Vec<_> = entries.keys().map(|key| NSString::from_str(key)).collect();
+  let keys: Vec<_> = keys.iter().map(|key| &**key).collect();
+  let objects: Vec<_> = entries.values().map(ns_property_list).collect();
+  let objects: Vec<_> = objects.iter().map(|object| &**object).collect();
+
+  NSDictionary::from_slices(&keys, &objects)
+}
+
+/// A property list object Foundation holds, as its value.
+///
+/// # Panics
+///
+/// When `object` isn't a property list object: IOKit's dictionaries hold
+/// nothing else.
+pub fn property_list_value(object: &AnyObject) -> PropertyListValue {
+  if let Some(number) = object.downcast_ref::<NSNumber>() {
+    return ns_number_value(number);
+  }
+
+  if let Some(string) = object.downcast_ref::<NSString>() {
+    return PropertyListValue::String(string.to_string());
+  }
+
+  if let Some(data) = object.downcast_ref::<NSData>() {
+    return PropertyListValue::Data(data.to_vec());
+  }
+
+  if let Some(array) = object.downcast_ref::<NSArray>() {
+    return PropertyListValue::Array(
+      array
+        .iter()
+        .map(|object| property_list_value(&object))
+        .collect(),
+    );
+  }
+
+  if let Some(dictionary) = object.downcast_ref::<NSDictionary>() {
+    let (keys, objects) = dictionary.to_vecs();
+
+    return PropertyListValue::Dictionary(
+      keys
+        .iter()
+        .zip(&objects)
+        .map(|(key, object)| (property_list_key(key), property_list_value(object)))
+        .collect(),
+    );
+  }
+
+  panic!("not a property list object: {}", ns_description(object));
+}
+
+/// An `NSDictionary` of `String`s to property list objects, as its entries.
+pub fn property_list_dictionary(dictionary: &NSDictionary<NSString, AnyObject>) -> BTreeMap<String, PropertyListValue> {
+  let (keys, objects) = dictionary.to_vecs();
+
+  keys
+    .iter()
+    .map(|key| key.to_string())
+    .zip(objects.iter().map(|object| property_list_value(object)))
+    .collect()
+}
+
+/// A property list dictionary's key, which is a string.
+fn property_list_key(key: &AnyObject) -> String {
+  key
+    .downcast_ref::<NSString>()
+    .unwrap_or_else(|| panic!("not a property list key: {}", ns_description(key)))
+    .to_string()
+}
+
+/// A Boolean `NSNumber` is one of Foundation's two Boolean singletons; any
+/// other is an integer or, by its Objective-C type, floating-point.
+fn ns_number_value(number: &NSNumber) -> PropertyListValue {
+  for value in [false, true] {
+    if std::ptr::eq(number, &*NSNumber::new_bool(value)) {
+      return PropertyListValue::Boolean(value);
+    }
+  }
+
+  // SAFETY: `objCType` is a C string Foundation keeps for the number's life.
+  let objc_type = unsafe { CStr::from_ptr(number.objCType().as_ptr()) };
+
+  match objc_type.to_bytes() {
+    b"f" | b"d" => PropertyListValue::Real(number.as_f64()),
+    _ => PropertyListValue::Integer(number.as_i64()),
+  }
 }
 
 /// [`NSURL(string:)`](https://developer.apple.com/documentation/foundation/nsurl/init(string:)).

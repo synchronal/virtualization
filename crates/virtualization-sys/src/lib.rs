@@ -63,15 +63,16 @@ pub use self::ffi::{
   VZFileSerialPortAttachment, VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader,
   VZMACAddress, VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration,
   VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
-  VZSpiceAgentPortAttachment, VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration,
-  VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice, VZVirtioConsoleDeviceConfiguration,
-  VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort, VZVirtioConsolePortArray,
-  VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioEntropyDeviceConfiguration,
-  VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration, VZVirtioNetworkDeviceConfiguration,
-  VZVirtioSocketConnection, VZVirtioSocketDevice, VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener,
-  VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
-  VZVirtualMachineConfiguration, VZVirtualMachineState, VZVmnetNetworkDeviceAttachment, VZXHCIController,
-  VZXHCIControllerConfiguration, vz_efi_boot_loader_init, vz_efi_variable_store_initialization_options_allow_overwrite,
+  VZSpiceAgentPortAttachment, VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration, VZUSBPassthroughDevice,
+  VZUSBPassthroughDeviceConfiguration, VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice,
+  VZVirtioConsoleDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort,
+  VZVirtioConsolePortArray, VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray,
+  VZVirtioEntropyDeviceConfiguration, VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration,
+  VZVirtioNetworkDeviceConfiguration, VZVirtioSocketConnection, VZVirtioSocketDevice,
+  VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener, VZVirtioTraditionalMemoryBalloonDevice,
+  VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine, VZVirtualMachineConfiguration,
+  VZVirtualMachineState, VZVmnetNetworkDeviceAttachment, VZXHCIController, VZXHCIControllerConfiguration,
+  vz_efi_boot_loader_init, vz_efi_variable_store_initialization_options_allow_overwrite,
   vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
   vz_generic_platform_configuration_is_nested_virtualization_supported, vz_mac_address_random_locally_administered,
   vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
@@ -639,6 +640,20 @@ mod ffi {
     fn vz_usb_controller_attach(this: *const c_void, device: *const c_void, completion_handler: Box<dyn FnOnce(usize)>);
     fn vz_usb_controller_detach(this: *const c_void, device: *const c_void, completion_handler: Box<dyn FnOnce(usize)>);
     fn vz_usb_controller_usb_devices(this: *const c_void) -> *mut c_void;
+    fn vz_usb_controller_delegate(this: *const c_void) -> usize;
+    fn vz_usb_controller_set_delegate(this: *const c_void, delegate: VZUSBControllerDelegateBridge);
+    fn vz_usb_controller_set_delegate_nil(this: *const c_void);
+  }
+
+  extern "Rust" {
+    type VZUSBControllerDelegateBridge;
+
+    fn bridge_retained(self: &VZUSBControllerDelegateBridge) -> usize;
+    fn usb_controller_usb_passthrough_device_did_disconnect(
+      self: &VZUSBControllerDelegateBridge,
+      usb_controller: usize,
+      device: VZUSBPassthroughDevice,
+    );
   }
 
   // OtherDevices/USBControllerConfiguration.swift
@@ -660,6 +675,34 @@ mod ffi {
   extern "Swift" {
     fn vz_usb_device_configuration_uuid(this: *const c_void) -> *mut c_void;
     fn vz_usb_device_configuration_set_uuid(this: *const c_void, uuid: *const c_void);
+  }
+
+  // OtherDevices/USBPassthroughDevice.swift
+
+  extern "Swift" {
+    type VZUSBPassthroughDevice;
+
+    fn vz_usb_passthrough_device_init_configuration(
+      configuration: VZUSBPassthroughDeviceConfiguration,
+    ) -> Result<VZUSBPassthroughDevice, BridgedThrown>;
+    fn bridge_retained(self: &VZUSBPassthroughDevice) -> VZUSBPassthroughDevice;
+    fn bridge_borrowed(self: &VZUSBPassthroughDevice) -> *const c_void;
+    fn vz_usb_passthrough_device_bridge_cast(object: *const c_void) -> Result<VZUSBPassthroughDevice, BridgedNil>;
+    fn ns_description(self: &VZUSBPassthroughDevice) -> String;
+  }
+
+  // OtherDevices/USBPassthroughDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZUSBPassthroughDeviceConfiguration;
+
+    fn vz_usb_passthrough_device_configuration_init(device: *const c_void) -> VZUSBPassthroughDeviceConfiguration;
+    fn bridge_retained(self: &VZUSBPassthroughDeviceConfiguration) -> VZUSBPassthroughDeviceConfiguration;
+    fn bridge_borrowed(self: &VZUSBPassthroughDeviceConfiguration) -> *const c_void;
+    fn vz_usb_passthrough_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZUSBPassthroughDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZUSBPassthroughDeviceConfiguration) -> String;
   }
 
   // OtherDevices/VirtioEntropyDeviceConfiguration.swift
@@ -2352,6 +2395,62 @@ pub fn vz_usb_controller_usb_devices(this: &NSObject) -> Vec<Retained<NSObject>>
   unsafe { bridge_objects(ffi::vz_usb_controller_usb_devices(borrowed(this))) }
 }
 
+/// `this` is any `VZUSBController`. The delegate set with
+/// [`vz_usb_controller_set_delegate`].
+pub fn vz_usb_controller_delegate(this: &NSObject) -> Option<Arc<dyn VZUSBControllerDelegate>> {
+  let address = ffi::vz_usb_controller_delegate(borrowed(this));
+
+  // SAFETY: `VZUSBControllerDelegateBridge::bridge_retained`'s address, taken
+  // once, or `0` for none.
+  (address != 0).then(|| *unsafe { Box::from_raw(address as *mut Arc<dyn VZUSBControllerDelegate>) })
+}
+
+/// `this` is any `VZUSBController`.
+pub fn vz_usb_controller_set_delegate(this: &NSObject, delegate: Option<Arc<dyn VZUSBControllerDelegate>>) {
+  match delegate {
+    Some(delegate) => ffi::vz_usb_controller_set_delegate(borrowed(this), VZUSBControllerDelegateBridge { delegate }),
+    None => ffi::vz_usb_controller_set_delegate_nil(borrowed(this)),
+  }
+}
+
+/// `VZUSBController.Delegate`, which Rust implements. `usb_controller` is
+/// any `VZUSBController`.
+pub trait VZUSBControllerDelegate: Any + Send + Sync {
+  fn usb_controller_usb_passthrough_device_did_disconnect(
+    &self,
+    usb_controller: Retained<NSObject>,
+    device: VZUSBPassthroughDevice,
+  );
+}
+
+/// A [`VZUSBControllerDelegate`] as Swift holds it.
+pub struct VZUSBControllerDelegateBridge {
+  delegate: Arc<dyn VZUSBControllerDelegate>,
+}
+
+impl VZUSBControllerDelegateBridge {
+  /// Another reference to the delegate, for [`vz_usb_controller_delegate`]
+  /// to take, by address. (swift-bridge's code for returning this type by
+  /// value fails clippy.)
+  fn bridge_retained(&self) -> usize {
+    Box::into_raw(Box::new(Arc::clone(&self.delegate))) as usize
+  }
+
+  fn usb_controller_usb_passthrough_device_did_disconnect(
+    &self,
+    usb_controller: usize,
+    device: VZUSBPassthroughDevice,
+  ) {
+    // SAFETY: `bridging(retained:)`'s address, a `VZUSBController`, taken
+    // once.
+    let usb_controller = unsafe { retained_or_nil(usb_controller) }.expect("Swift passes the controller");
+
+    self
+      .delegate
+      .usb_controller_usb_passthrough_device_did_disconnect(usb_controller, device);
+  }
+}
+
 // OtherDevices/USBControllerConfiguration.swift
 
 /// `this` is any `VZUSBControllerConfiguration`; each device, any
@@ -2392,6 +2491,47 @@ pub fn vz_usb_device_configuration_uuid(this: &NSObject) -> Retained<NSUUID> {
 /// `this` is any `VZUSBDeviceConfiguration`.
 pub fn vz_usb_device_configuration_set_uuid(this: &NSObject, uuid: &NSUUID) {
   ffi::vz_usb_device_configuration_set_uuid(borrowed(this), borrowed(uuid));
+}
+
+// OtherDevices/USBPassthroughDevice.swift
+
+pub fn vz_usb_passthrough_device_init_configuration(
+  configuration: &VZUSBPassthroughDeviceConfiguration,
+) -> Result<VZUSBPassthroughDevice, BridgedThrown> {
+  ffi::vz_usb_passthrough_device_init_configuration(configuration.bridge_retained())
+}
+
+pub fn vz_usb_passthrough_device_bridge_cast(object: &NSObject) -> Option<VZUSBPassthroughDevice> {
+  ffi::vz_usb_passthrough_device_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZUSBPassthroughDevice {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// OtherDevices/USBPassthroughDeviceConfiguration.swift
+
+/// `device` crosses from accessory-access-sys's bridge, lent for the call.
+pub fn vz_usb_passthrough_device_configuration_init(
+  device: &accessory_access_sys::AAUSBAccessory,
+) -> VZUSBPassthroughDeviceConfiguration {
+  ffi::vz_usb_passthrough_device_configuration_init(device.bridge_borrowed())
+}
+
+pub fn vz_usb_passthrough_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZUSBPassthroughDeviceConfiguration> {
+  ffi::vz_usb_passthrough_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZUSBPassthroughDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
 }
 
 // OtherDevices/VirtioEntropyDeviceConfiguration.swift

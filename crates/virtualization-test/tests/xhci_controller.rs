@@ -1,8 +1,10 @@
+use std::sync::Arc;
+
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::uuid::Uuid;
 use virtualization::{
-  Error, USBController, USBControllerConfiguration, USBDevice, USBDeviceConfiguration, USBMassStorageDevice,
-  VirtualMachine, XHCIController, XHCIControllerConfiguration,
+  Error, USBController, USBControllerConfiguration, USBControllerDelegate, USBDevice, USBDeviceConfiguration,
+  USBMassStorageDevice, VirtualMachine, XHCIController, XHCIControllerConfiguration,
 };
 use virtualization_test::{
   Console, booting_machine, completed, initial_ramdisk, on_queue, start, usb_mass_storage_device_configuration,
@@ -61,6 +63,49 @@ fn is_one_per_usb_controller_configuration() {
       machine.usb_controllers::<XHCIController>()[..],
       [Some(_), Some(_)]
     ));
+  });
+}
+
+struct Delegate;
+
+impl USBControllerDelegate for Delegate {}
+
+/// Runs `check` on the controller of a machine with one, on its queue and not
+/// started.
+fn with_controller(name: &str, check: impl FnOnce(&XHCIController) + Send) {
+  let (queue, machine, _console) = booting_machine(name, None, |machine| {
+    machine.set_usb_controllers(&[&XHCIControllerConfiguration::new().unwrap()]);
+  });
+
+  on_queue(&queue, || check(&xhci_controller(&machine)));
+}
+
+#[test]
+fn has_the_delegate_it_was_given() {
+  with_controller("usb_controller_has_the_delegate_it_was_given", |controller| {
+    let delegate: Arc<dyn USBControllerDelegate> = Arc::new(Delegate);
+
+    assert!(controller.delegate().is_none());
+
+    controller.set_delegate(Some(&delegate));
+
+    assert!(Arc::ptr_eq(&controller.delegate().unwrap(), &delegate));
+
+    controller.set_delegate(None);
+
+    assert!(controller.delegate().is_none());
+  });
+}
+
+#[test]
+fn holds_its_delegate_weakly() {
+  with_controller("usb_controller_holds_its_delegate_weakly", |controller| {
+    let delegate: Arc<dyn USBControllerDelegate> = Arc::new(Delegate);
+
+    controller.set_delegate(Some(&delegate));
+    drop(delegate);
+
+    assert!(controller.delegate().is_none());
   });
 }
 

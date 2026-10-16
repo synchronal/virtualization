@@ -1,0 +1,21 @@
+[package]
+categories.workspace = true
+description = "Rust bindings for Apple's IOUSBHost framework."
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "io-usb-host"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+dispatch2.workspace = true
+foundation-sys.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+io-usb-host-sys.workspace = true
+
+# Every `unsafe` lives in io-usb-host-sys.
+[lints.rust]
+unsafe_code = "forbid"
