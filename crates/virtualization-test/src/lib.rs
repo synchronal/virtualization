@@ -409,6 +409,21 @@ pub fn booting_machine(
   (queue, machine, console)
 }
 
+/// The PCI devices of a guest booted with `configure`, each as
+/// `vendor:device:class`, as the guest's `/sys` reads them.
+pub fn guest_pci_devices(name: &str, configure: impl FnOnce(&VirtualMachineConfiguration) + Send) -> Vec<String> {
+  let script = "echo \"pci:$(for d in /sys/bus/pci/devices/*; do echo \"$(cat $d/vendor):$(cat $d/device):$(cat \
+                $d/class)\"; done | tr '\\n' ' ')\"";
+  let (queue, machine, mut console) = booting_machine(name, Some(&initial_ramdisk(name, script)), configure);
+
+  start(&queue, &machine);
+
+  let line = console.read_until("pci:");
+  let (_, devices) = line.split_once("pci:").unwrap();
+
+  devices.split_whitespace().map(str::to_owned).collect()
+}
+
 /// What a guest found on a vmnet network: the address a DHCP lease gave
 /// `eth0`, if one came within five seconds, and `eth0`'s MTU.
 pub struct GuestNetwork {

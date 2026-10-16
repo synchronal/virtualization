@@ -56,34 +56,43 @@ use foundation_sys::objc::{
 };
 
 pub use self::ffi::{
-  BridgedNil, BridgedThrown, VZBridgedNetworkDeviceAttachment, VZBridgedNetworkInterface,
+  BridgedCGSize, BridgedNil, BridgedThrown, VZBridgedNetworkDeviceAttachment, VZBridgedNetworkInterface,
   VZDiskBlockDeviceStorageDeviceAttachment, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
   VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader, VZEFISignatureDatabaseConfiguration,
   VZEFISignatureList, VZEFIVariableStore, VZFileHandleNetworkDeviceAttachment, VZFileHandleSerialPortAttachment,
-  VZFileSerialPortAttachment, VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZLinuxBootLoader,
-  VZMACAddress, VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration,
-  VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
-  VZSpiceAgentPortAttachment, VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration, VZUSBPassthroughDevice,
-  VZUSBPassthroughDeviceConfiguration, VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice,
-  VZVirtioConsoleDeviceConfiguration, VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort,
-  VZVirtioConsolePortArray, VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray,
-  VZVirtioEntropyDeviceConfiguration, VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration,
+  VZFileSerialPortAttachment, VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZHostAudioInputStreamSource,
+  VZHostAudioOutputStreamSink, VZLinuxBootLoader, VZMACAddress, VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment,
+  VZNVMExpressControllerDeviceConfiguration, VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice,
+  VZSharedDirectory, VZSingleDirectoryShare, VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration,
+  VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration, VZUSBPassthroughDevice,
+  VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
+  VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice, VZVirtioConsoleDeviceConfiguration,
+  VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort, VZVirtioConsolePortArray,
+  VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioEntropyDeviceConfiguration,
+  VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration, VZVirtioGraphicsDevice,
+  VZVirtioGraphicsDeviceConfiguration, VZVirtioGraphicsScanout, VZVirtioGraphicsScanoutConfiguration,
   VZVirtioNetworkDeviceConfiguration, VZVirtioSocketConnection, VZVirtioSocketDevice,
-  VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener, VZVirtioTraditionalMemoryBalloonDevice,
-  VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine, VZVirtualMachineConfiguration,
-  VZVirtualMachineState, VZVmnetNetworkDeviceAttachment, VZXHCIController, VZXHCIControllerConfiguration,
-  vz_efi_boot_loader_init, vz_efi_variable_store_initialization_options_allow_overwrite,
+  VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener, VZVirtioSoundDeviceConfiguration,
+  VZVirtioSoundDeviceInputStreamConfiguration, VZVirtioSoundDeviceOutputStreamConfiguration,
+  VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
+  VZVirtualMachineConfiguration, VZVirtualMachineState, VZVmnetNetworkDeviceAttachment, VZXHCIController,
+  VZXHCIControllerConfiguration, vz_efi_boot_loader_init, vz_efi_variable_store_initialization_options_allow_overwrite,
   vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
-  vz_generic_platform_configuration_is_nested_virtualization_supported, vz_mac_address_random_locally_administered,
+  vz_generic_platform_configuration_is_nested_virtualization_supported, vz_host_audio_input_stream_source_init,
+  vz_host_audio_output_stream_sink_init, vz_mac_address_random_locally_administered,
   vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
   vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
   vz_spice_agent_port_attachment_init, vz_spice_agent_port_attachment_spice_agent_port_name,
+  vz_usb_keyboard_configuration_init, vz_usb_screen_coordinate_pointing_device_configuration_init,
   vz_virtio_block_device_configuration_validate_block_device_identifier, vz_virtio_console_device_configuration_init,
   vz_virtio_console_device_serial_port_configuration_init, vz_virtio_console_port_configuration_init,
   vz_virtio_entropy_device_configuration_init, vz_virtio_file_system_device_configuration_init,
   vz_virtio_file_system_device_configuration_macos_guest_automount_tag,
-  vz_virtio_file_system_device_configuration_validate_tag, vz_virtio_network_device_configuration_init,
+  vz_virtio_file_system_device_configuration_validate_tag, vz_virtio_graphics_device_configuration_init,
+  vz_virtio_graphics_scanout_configuration_init, vz_virtio_network_device_configuration_init,
   vz_virtio_socket_device_configuration_init, vz_virtio_socket_listener_init,
+  vz_virtio_sound_device_configuration_init, vz_virtio_sound_device_input_stream_configuration_init,
+  vz_virtio_sound_device_output_stream_configuration_init,
   vz_virtio_traditional_memory_balloon_device_configuration_init, vz_virtual_machine_configuration_init,
   vz_virtual_machine_configuration_maximum_allowed_cpu_count,
   vz_virtual_machine_configuration_maximum_allowed_memory_size,
@@ -118,6 +127,14 @@ mod ffi {
   extern "Swift" {
     fn sec_certificate_create_with_data(data: *const c_void) -> usize;
     fn sec_certificate_copy_data(certificate: *const c_void) -> *mut c_void;
+  }
+
+  // CoreGraphics.swift
+
+  #[swift_bridge(swift_repr = "struct")]
+  struct BridgedCGSize {
+    width: f64,
+    height: f64,
   }
 
   // VirtualMachine.swift
@@ -501,6 +518,220 @@ mod ffi {
     fn vz_set_tag(self: &VZVirtioFileSystemDeviceConfiguration, tag: &str);
     fn vz_virtio_file_system_device_configuration_share(this: VZVirtioFileSystemDeviceConfiguration) -> usize;
     fn vz_virtio_file_system_device_configuration_set_share(this: VZVirtioFileSystemDeviceConfiguration, share: usize);
+  }
+
+  // Graphics/GraphicsDevice.swift
+
+  extern "Swift" {
+    fn vz_graphics_device_displays(this: *const c_void) -> *mut c_void;
+  }
+
+  // Graphics/GraphicsDisplay.swift
+
+  extern "Swift" {
+    fn vz_graphics_display_size_in_pixels(this: *const c_void) -> BridgedCGSize;
+    fn vz_graphics_display_reconfigure_size_in_pixels(
+      this: *const c_void,
+      size_in_pixels: BridgedCGSize,
+    ) -> Result<(), BridgedThrown>;
+    fn vz_graphics_display_reconfigure_configuration(
+      this: *const c_void,
+      configuration: *const c_void,
+    ) -> Result<(), BridgedThrown>;
+    fn vz_graphics_display_add_observer(this: *const c_void, observer: VZGraphicsDisplayObserverBridge, key: usize);
+    fn vz_graphics_display_remove_observer(this: *const c_void, observer: VZGraphicsDisplayObserverBridge, key: usize);
+  }
+
+  extern "Rust" {
+    type VZGraphicsDisplayObserverBridge;
+
+    fn display_did_begin_reconfiguration(self: &VZGraphicsDisplayObserverBridge, display: *mut c_void);
+    fn display_did_end_reconfiguration(self: &VZGraphicsDisplayObserverBridge, display: *mut c_void);
+  }
+
+  // Graphics/HostAudioInputStreamSource.swift
+
+  extern "Swift" {
+    type VZHostAudioInputStreamSource;
+
+    fn vz_host_audio_input_stream_source_init() -> VZHostAudioInputStreamSource;
+    fn bridge_retained(self: &VZHostAudioInputStreamSource) -> VZHostAudioInputStreamSource;
+    fn bridge_borrowed(self: &VZHostAudioInputStreamSource) -> *const c_void;
+    fn vz_host_audio_input_stream_source_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZHostAudioInputStreamSource, BridgedNil>;
+    fn ns_description(self: &VZHostAudioInputStreamSource) -> String;
+  }
+
+  // Graphics/HostAudioOutputStreamSink.swift
+
+  extern "Swift" {
+    type VZHostAudioOutputStreamSink;
+
+    fn vz_host_audio_output_stream_sink_init() -> VZHostAudioOutputStreamSink;
+    fn bridge_retained(self: &VZHostAudioOutputStreamSink) -> VZHostAudioOutputStreamSink;
+    fn bridge_borrowed(self: &VZHostAudioOutputStreamSink) -> *const c_void;
+    fn vz_host_audio_output_stream_sink_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZHostAudioOutputStreamSink, BridgedNil>;
+    fn ns_description(self: &VZHostAudioOutputStreamSink) -> String;
+  }
+
+  // Graphics/USBKeyboardConfiguration.swift
+
+  extern "Swift" {
+    type VZUSBKeyboardConfiguration;
+
+    fn vz_usb_keyboard_configuration_init() -> VZUSBKeyboardConfiguration;
+    fn bridge_retained(self: &VZUSBKeyboardConfiguration) -> VZUSBKeyboardConfiguration;
+    fn bridge_borrowed(self: &VZUSBKeyboardConfiguration) -> *const c_void;
+    fn vz_usb_keyboard_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZUSBKeyboardConfiguration, BridgedNil>;
+    fn ns_description(self: &VZUSBKeyboardConfiguration) -> String;
+  }
+
+  // Graphics/USBScreenCoordinatePointingDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZUSBScreenCoordinatePointingDeviceConfiguration;
+
+    fn vz_usb_screen_coordinate_pointing_device_configuration_init() -> VZUSBScreenCoordinatePointingDeviceConfiguration;
+    fn bridge_retained(
+      self: &VZUSBScreenCoordinatePointingDeviceConfiguration,
+    ) -> VZUSBScreenCoordinatePointingDeviceConfiguration;
+    fn bridge_borrowed(self: &VZUSBScreenCoordinatePointingDeviceConfiguration) -> *const c_void;
+    fn vz_usb_screen_coordinate_pointing_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZUSBScreenCoordinatePointingDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZUSBScreenCoordinatePointingDeviceConfiguration) -> String;
+  }
+
+  // Graphics/VirtioGraphicsDevice.swift
+
+  extern "Swift" {
+    type VZVirtioGraphicsDevice;
+
+    fn bridge_retained(self: &VZVirtioGraphicsDevice) -> VZVirtioGraphicsDevice;
+    fn bridge_borrowed(self: &VZVirtioGraphicsDevice) -> *const c_void;
+    fn vz_virtio_graphics_device_bridge_cast(object: *const c_void) -> Result<VZVirtioGraphicsDevice, BridgedNil>;
+    fn ns_description(self: &VZVirtioGraphicsDevice) -> String;
+  }
+
+  // Graphics/VirtioGraphicsDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioGraphicsDeviceConfiguration;
+
+    fn vz_virtio_graphics_device_configuration_init() -> VZVirtioGraphicsDeviceConfiguration;
+    fn bridge_retained(self: &VZVirtioGraphicsDeviceConfiguration) -> VZVirtioGraphicsDeviceConfiguration;
+    fn bridge_borrowed(self: &VZVirtioGraphicsDeviceConfiguration) -> *const c_void;
+    fn vz_virtio_graphics_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioGraphicsDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioGraphicsDeviceConfiguration) -> String;
+    fn vz_virtio_graphics_device_configuration_scanouts(this: VZVirtioGraphicsDeviceConfiguration) -> *mut c_void;
+    fn vz_virtio_graphics_device_configuration_set_scanouts(
+      this: VZVirtioGraphicsDeviceConfiguration,
+      scanouts: *const c_void,
+    );
+  }
+
+  // Graphics/VirtioGraphicsScanout.swift
+
+  extern "Swift" {
+    type VZVirtioGraphicsScanout;
+
+    fn bridge_retained(self: &VZVirtioGraphicsScanout) -> VZVirtioGraphicsScanout;
+    fn bridge_borrowed(self: &VZVirtioGraphicsScanout) -> *const c_void;
+    fn vz_virtio_graphics_scanout_bridge_cast(object: *const c_void) -> Result<VZVirtioGraphicsScanout, BridgedNil>;
+    fn ns_description(self: &VZVirtioGraphicsScanout) -> String;
+  }
+
+  // Graphics/VirtioGraphicsScanoutConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioGraphicsScanoutConfiguration;
+
+    fn vz_virtio_graphics_scanout_configuration_init(
+      width_in_pixels: isize,
+      height_in_pixels: isize,
+    ) -> VZVirtioGraphicsScanoutConfiguration;
+    fn vz_virtio_graphics_scanout_configuration_bridge_from(
+      object: *const c_void,
+    ) -> VZVirtioGraphicsScanoutConfiguration;
+    fn bridge_retained(self: &VZVirtioGraphicsScanoutConfiguration) -> VZVirtioGraphicsScanoutConfiguration;
+    fn bridge_borrowed(self: &VZVirtioGraphicsScanoutConfiguration) -> *const c_void;
+    fn vz_virtio_graphics_scanout_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioGraphicsScanoutConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioGraphicsScanoutConfiguration) -> String;
+    fn vz_width_in_pixels(self: &VZVirtioGraphicsScanoutConfiguration) -> isize;
+    fn vz_set_width_in_pixels(self: &VZVirtioGraphicsScanoutConfiguration, width_in_pixels: isize);
+    fn vz_height_in_pixels(self: &VZVirtioGraphicsScanoutConfiguration) -> isize;
+    fn vz_set_height_in_pixels(self: &VZVirtioGraphicsScanoutConfiguration, height_in_pixels: isize);
+  }
+
+  // Graphics/VirtioSoundDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioSoundDeviceConfiguration;
+
+    fn vz_virtio_sound_device_configuration_init() -> VZVirtioSoundDeviceConfiguration;
+    fn bridge_retained(self: &VZVirtioSoundDeviceConfiguration) -> VZVirtioSoundDeviceConfiguration;
+    fn bridge_borrowed(self: &VZVirtioSoundDeviceConfiguration) -> *const c_void;
+    fn vz_virtio_sound_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioSoundDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioSoundDeviceConfiguration) -> String;
+    fn vz_virtio_sound_device_configuration_streams(this: VZVirtioSoundDeviceConfiguration) -> *mut c_void;
+    fn vz_virtio_sound_device_configuration_set_streams(this: VZVirtioSoundDeviceConfiguration, streams: *const c_void);
+  }
+
+  // Graphics/VirtioSoundDeviceInputStreamConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioSoundDeviceInputStreamConfiguration;
+
+    fn vz_virtio_sound_device_input_stream_configuration_init() -> VZVirtioSoundDeviceInputStreamConfiguration;
+    fn bridge_retained(
+      self: &VZVirtioSoundDeviceInputStreamConfiguration,
+    ) -> VZVirtioSoundDeviceInputStreamConfiguration;
+    fn bridge_borrowed(self: &VZVirtioSoundDeviceInputStreamConfiguration) -> *const c_void;
+    fn vz_virtio_sound_device_input_stream_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioSoundDeviceInputStreamConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioSoundDeviceInputStreamConfiguration) -> String;
+    fn vz_virtio_sound_device_input_stream_configuration_source(
+      this: VZVirtioSoundDeviceInputStreamConfiguration,
+    ) -> usize;
+    fn vz_virtio_sound_device_input_stream_configuration_set_source(
+      this: VZVirtioSoundDeviceInputStreamConfiguration,
+      source: usize,
+    );
+  }
+
+  // Graphics/VirtioSoundDeviceOutputStreamConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioSoundDeviceOutputStreamConfiguration;
+
+    fn vz_virtio_sound_device_output_stream_configuration_init() -> VZVirtioSoundDeviceOutputStreamConfiguration;
+    fn bridge_retained(
+      self: &VZVirtioSoundDeviceOutputStreamConfiguration,
+    ) -> VZVirtioSoundDeviceOutputStreamConfiguration;
+    fn bridge_borrowed(self: &VZVirtioSoundDeviceOutputStreamConfiguration) -> *const c_void;
+    fn vz_virtio_sound_device_output_stream_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZVirtioSoundDeviceOutputStreamConfiguration, BridgedNil>;
+    fn ns_description(self: &VZVirtioSoundDeviceOutputStreamConfiguration) -> String;
+    fn vz_virtio_sound_device_output_stream_configuration_sink(
+      this: VZVirtioSoundDeviceOutputStreamConfiguration,
+    ) -> usize;
+    fn vz_virtio_sound_device_output_stream_configuration_set_sink(
+      this: VZVirtioSoundDeviceOutputStreamConfiguration,
+      sink: usize,
+    );
   }
 
   // Network/BridgedNetworkDeviceAttachment.swift
@@ -2175,6 +2406,299 @@ impl VZVirtioFileSystemDeviceConfiguration {
   /// `share` is any `VZDirectoryShare`.
   pub fn vz_set_share(&self, share: Option<&NSObject>) {
     ffi::vz_virtio_file_system_device_configuration_set_share(self.bridge_retained(), borrowed_or_nil(share));
+  }
+}
+
+// Graphics/GraphicsDevice.swift
+
+/// `this` is any `VZGraphicsDevice`. Each element is any `VZGraphicsDisplay`.
+pub fn vz_graphics_device_displays(this: &NSObject) -> Vec<Retained<NSObject>> {
+  // SAFETY: `displays`, a retained `NSArray`.
+  unsafe { bridge_objects(ffi::vz_graphics_device_displays(borrowed(this))) }
+}
+
+// Graphics/GraphicsDisplay.swift
+
+/// `this` is any `VZGraphicsDisplay`.
+pub fn vz_graphics_display_size_in_pixels(this: &NSObject) -> BridgedCGSize {
+  ffi::vz_graphics_display_size_in_pixels(borrowed(this))
+}
+
+/// `this` is any `VZGraphicsDisplay`.
+pub fn vz_graphics_display_reconfigure_size_in_pixels(
+  this: &NSObject,
+  size_in_pixels: BridgedCGSize,
+) -> Result<(), BridgedThrown> {
+  ffi::vz_graphics_display_reconfigure_size_in_pixels(borrowed(this), size_in_pixels)
+}
+
+/// `this` is any `VZGraphicsDisplay`; `configuration`, any
+/// `VZGraphicsDisplayConfiguration`.
+pub fn vz_graphics_display_reconfigure_configuration(
+  this: &NSObject,
+  configuration: &NSObject,
+) -> Result<(), BridgedThrown> {
+  ffi::vz_graphics_display_reconfigure_configuration(borrowed(this), borrowed(configuration))
+}
+
+/// `this` is any `VZGraphicsDisplay`. `key` names `observer` to the bridge,
+/// which passes the display the same object for each observer with the same
+/// key, and keeps it until it is removed.
+pub fn vz_graphics_display_add_observer(this: &NSObject, observer: Arc<dyn VZGraphicsDisplayObserver>, key: usize) {
+  ffi::vz_graphics_display_add_observer(borrowed(this), VZGraphicsDisplayObserverBridge { observer }, key);
+}
+
+/// `this` is any `VZGraphicsDisplay`. `key` names `observer` as
+/// [`vz_graphics_display_add_observer`] did.
+pub fn vz_graphics_display_remove_observer(this: &NSObject, observer: Arc<dyn VZGraphicsDisplayObserver>, key: usize) {
+  ffi::vz_graphics_display_remove_observer(borrowed(this), VZGraphicsDisplayObserverBridge { observer }, key);
+}
+
+/// `VZGraphicsDisplayObserver`, which Rust implements. `display` is any
+/// `VZGraphicsDisplay`. Virtualization calls it on the machine's queue.
+pub trait VZGraphicsDisplayObserver: Send + Sync {
+  fn display_did_begin_reconfiguration(&self, display: Retained<NSObject>);
+
+  fn display_did_end_reconfiguration(&self, display: Retained<NSObject>);
+}
+
+/// A [`VZGraphicsDisplayObserver`] as Swift holds it.
+pub struct VZGraphicsDisplayObserverBridge {
+  observer: Arc<dyn VZGraphicsDisplayObserver>,
+}
+
+impl VZGraphicsDisplayObserverBridge {
+  fn display_did_begin_reconfiguration(&self, display: *mut c_void) {
+    // SAFETY: `display`, a retained `VZGraphicsDisplay`.
+    let display = unsafe { retained(display) };
+
+    self.observer.display_did_begin_reconfiguration(display);
+  }
+
+  fn display_did_end_reconfiguration(&self, display: *mut c_void) {
+    // SAFETY: `display`, a retained `VZGraphicsDisplay`.
+    let display = unsafe { retained(display) };
+
+    self.observer.display_did_end_reconfiguration(display);
+  }
+}
+
+// Graphics/HostAudioInputStreamSource.swift
+
+pub fn vz_host_audio_input_stream_source_bridge_cast(object: &NSObject) -> Option<VZHostAudioInputStreamSource> {
+  ffi::vz_host_audio_input_stream_source_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZHostAudioInputStreamSource {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/HostAudioOutputStreamSink.swift
+
+pub fn vz_host_audio_output_stream_sink_bridge_cast(object: &NSObject) -> Option<VZHostAudioOutputStreamSink> {
+  ffi::vz_host_audio_output_stream_sink_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZHostAudioOutputStreamSink {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/USBKeyboardConfiguration.swift
+
+pub fn vz_usb_keyboard_configuration_bridge_cast(object: &NSObject) -> Option<VZUSBKeyboardConfiguration> {
+  ffi::vz_usb_keyboard_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZUSBKeyboardConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/USBScreenCoordinatePointingDeviceConfiguration.swift
+
+pub fn vz_usb_screen_coordinate_pointing_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZUSBScreenCoordinatePointingDeviceConfiguration> {
+  ffi::vz_usb_screen_coordinate_pointing_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZUSBScreenCoordinatePointingDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/VirtioGraphicsDevice.swift
+
+pub fn vz_virtio_graphics_device_bridge_cast(object: &NSObject) -> Option<VZVirtioGraphicsDevice> {
+  ffi::vz_virtio_graphics_device_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioGraphicsDevice {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/VirtioGraphicsDeviceConfiguration.swift
+
+pub fn vz_virtio_graphics_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioGraphicsDeviceConfiguration> {
+  ffi::vz_virtio_graphics_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioGraphicsDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  pub fn vz_scanouts(&self) -> Vec<VZVirtioGraphicsScanoutConfiguration> {
+    // SAFETY: `scanouts`, a retained `NSArray`.
+    unsafe {
+      bridge_objects(ffi::vz_virtio_graphics_device_configuration_scanouts(
+        self.bridge_retained(),
+      ))
+    }
+    .iter()
+    .map(|scanout| ffi::vz_virtio_graphics_scanout_configuration_bridge_from(borrowed(&**scanout)))
+    .collect()
+  }
+
+  pub fn vz_set_scanouts(&self, scanouts: &[&VZVirtioGraphicsScanoutConfiguration]) {
+    let objects: Vec<_> = scanouts
+      .iter()
+      .map(|scanout| scanout.bridge_object())
+      .collect();
+
+    ffi::vz_virtio_graphics_device_configuration_set_scanouts(self.bridge_retained(), borrowed(&*ns_array(&objects)));
+  }
+}
+
+// Graphics/VirtioGraphicsScanout.swift
+
+pub fn vz_virtio_graphics_scanout_bridge_cast(object: &NSObject) -> Option<VZVirtioGraphicsScanout> {
+  ffi::vz_virtio_graphics_scanout_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioGraphicsScanout {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/VirtioGraphicsScanoutConfiguration.swift
+
+pub fn vz_virtio_graphics_scanout_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioGraphicsScanoutConfiguration> {
+  ffi::vz_virtio_graphics_scanout_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioGraphicsScanoutConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/VirtioSoundDeviceConfiguration.swift
+
+pub fn vz_virtio_sound_device_configuration_bridge_cast(object: &NSObject) -> Option<VZVirtioSoundDeviceConfiguration> {
+  ffi::vz_virtio_sound_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioSoundDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// Each element is any `VZVirtioSoundDeviceStreamConfiguration`.
+  pub fn vz_streams(&self) -> Vec<Retained<NSObject>> {
+    // SAFETY: `streams`, a retained `NSArray`.
+    unsafe {
+      bridge_objects(ffi::vz_virtio_sound_device_configuration_streams(
+        self.bridge_retained(),
+      ))
+    }
+  }
+
+  /// Each element is any `VZVirtioSoundDeviceStreamConfiguration`.
+  pub fn vz_set_streams(&self, streams: &[&NSObject]) {
+    ffi::vz_virtio_sound_device_configuration_set_streams(self.bridge_retained(), borrowed(&*ns_array(streams)));
+  }
+}
+
+// Graphics/VirtioSoundDeviceInputStreamConfiguration.swift
+
+pub fn vz_virtio_sound_device_input_stream_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioSoundDeviceInputStreamConfiguration> {
+  ffi::vz_virtio_sound_device_input_stream_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioSoundDeviceInputStreamConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// Any `VZAudioInputStreamSource`.
+  pub fn vz_source(&self) -> Option<Retained<NSObject>> {
+    // SAFETY: `source`, a retained `VZAudioInputStreamSource` or `nil`.
+    unsafe {
+      retained_or_nil(ffi::vz_virtio_sound_device_input_stream_configuration_source(
+        self.bridge_retained(),
+      ))
+    }
+  }
+
+  /// `source` is any `VZAudioInputStreamSource`.
+  pub fn vz_set_source(&self, source: Option<&NSObject>) {
+    ffi::vz_virtio_sound_device_input_stream_configuration_set_source(self.bridge_retained(), borrowed_or_nil(source));
+  }
+}
+
+// Graphics/VirtioSoundDeviceOutputStreamConfiguration.swift
+
+pub fn vz_virtio_sound_device_output_stream_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZVirtioSoundDeviceOutputStreamConfiguration> {
+  ffi::vz_virtio_sound_device_output_stream_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZVirtioSoundDeviceOutputStreamConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// Any `VZAudioOutputStreamSink`.
+  pub fn vz_sink(&self) -> Option<Retained<NSObject>> {
+    // SAFETY: `sink`, a retained `VZAudioOutputStreamSink` or `nil`.
+    unsafe {
+      retained_or_nil(ffi::vz_virtio_sound_device_output_stream_configuration_sink(
+        self.bridge_retained(),
+      ))
+    }
+  }
+
+  /// `sink` is any `VZAudioOutputStreamSink`.
+  pub fn vz_set_sink(&self, sink: Option<&NSObject>) {
+    ffi::vz_virtio_sound_device_output_stream_configuration_set_sink(self.bridge_retained(), borrowed_or_nil(sink));
   }
 }
 

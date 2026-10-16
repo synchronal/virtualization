@@ -25,7 +25,7 @@
 //!   AccessoryAccess's are [`accessory_access`]'s, and IOUSBHost's
 //!   [`io_usb_host`]'s, re-exported. Security's
 //!   `SecCertificate` is [`SecCertificate`], made from and read as its DER
-//!   bytes.
+//!   bytes. Core Graphics' `CGSize` is [`CGSize`], its `width` and `height`.
 //! - An enum has an `Unknown(rawValue)` case, for one newer than this crate.
 //! - Initializers, class members, throwing members, and members that take or
 //!   return a URL return `Result<_, Error>`.
@@ -36,6 +36,7 @@
 //! [Virtualization]: https://developer.apple.com/documentation/virtualization
 
 mod boot_loader;
+mod core_graphics;
 mod directory_sharing;
 mod error;
 mod foundation;
@@ -58,14 +59,20 @@ pub use crate::boot_loader::{
   EFIVariableStoreInitializationOptions, GenericMachineIdentifier, GenericPlatformConfiguration, LinuxBootLoader,
   PlatformConfiguration,
 };
+pub use crate::core_graphics::CGSize;
 pub use crate::directory_sharing::{
   DirectoryShare, DirectorySharingDevice, DirectorySharingDeviceConfiguration, MultipleDirectoryShare, SharedDirectory,
   SingleDirectoryShare, VirtioFileSystemDevice, VirtioFileSystemDeviceConfiguration,
 };
 pub use crate::error::{Error, NSError};
 pub use crate::graphics::{
-  AudioDeviceConfiguration, GraphicsDevice, GraphicsDeviceConfiguration, KeyboardConfiguration,
-  PointingDeviceConfiguration,
+  AudioDeviceConfiguration, AudioInputStreamSource, AudioOutputStreamSink, GraphicsDevice, GraphicsDeviceConfiguration,
+  GraphicsDisplay, GraphicsDisplayConfiguration, GraphicsDisplayObserver, HostAudioInputStreamSource,
+  HostAudioOutputStreamSink, KeyboardConfiguration, PointingDeviceConfiguration, USBKeyboardConfiguration,
+  USBScreenCoordinatePointingDeviceConfiguration, VirtioGraphicsDevice, VirtioGraphicsDeviceConfiguration,
+  VirtioGraphicsScanout, VirtioGraphicsScanoutConfiguration, VirtioSoundDeviceConfiguration,
+  VirtioSoundDeviceInputStreamConfiguration, VirtioSoundDeviceOutputStreamConfiguration,
+  VirtioSoundDeviceStreamConfiguration,
 };
 pub use crate::network::{
   BridgedNetworkDeviceAttachment, BridgedNetworkInterface, FileHandleNetworkDeviceAttachment, MACAddress,

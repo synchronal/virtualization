@@ -7,8 +7,10 @@
 //! every entry point call is unreachable.)
 
 mod boot_loader;
+mod core_graphics;
 mod directory_sharing;
 mod foundation;
+mod graphics;
 mod network;
 mod other_devices;
 mod security;
@@ -17,8 +19,10 @@ mod storage;
 mod virtual_machine;
 
 pub(crate) use self::boot_loader::*;
+pub(crate) use self::core_graphics::*;
 pub(crate) use self::directory_sharing::*;
 pub(crate) use self::foundation::*;
+pub(crate) use self::graphics::*;
 pub(crate) use self::network::*;
 pub(crate) use self::other_devices::*;
 pub(crate) use self::security::*;
