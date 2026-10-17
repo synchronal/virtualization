@@ -4,9 +4,9 @@ use std::sync::{Arc, Mutex};
 
 use virtualization::url::Url;
 use virtualization::{
-  DiskImageStorageDeviceAttachment, DiskSynchronizationMode, Error, NetworkBlockDeviceStorageDeviceAttachment,
-  NetworkBlockDeviceStorageDeviceAttachmentDelegate, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
-  VirtualMachineState,
+  DiskImageStorageDeviceAttachment, DiskSynchronizationMode, Error, ErrorCode,
+  NetworkBlockDeviceStorageDeviceAttachment, NetworkBlockDeviceStorageDeviceAttachmentDelegate,
+  StorageDeviceConfiguration, VirtioBlockDeviceConfiguration, VirtualMachineState,
 };
 use virtualization_test::{booting_machine, completed, initial_ramdisk, nbd_server, ns_error, on_queue, start, stop};
 
@@ -60,7 +60,11 @@ fn fails_as_virtualization_does_to_validate_another_scheme() {
     let error = ns_error(NetworkBlockDeviceStorageDeviceAttachment::validate(&url(other)));
 
     assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-    assert_eq!(error.code, 2, "{error:#?}");
+    assert_eq!(
+      ErrorCode::new(error.code).unwrap(),
+      ErrorCode::InvalidVirtualMachineConfiguration,
+      "{error:#?}"
+    );
   }
 }
 
@@ -71,7 +75,11 @@ fn fails_as_virtualization_does_on_another_scheme() {
   )));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -157,10 +165,10 @@ impl NetworkBlockDeviceStorageDeviceAttachmentDelegate for Telling {
     };
 
     let _ = self.0.lock().unwrap().send(format!(
-      "error {} {} {}",
+      "error {} {} {:?}",
       attachment.url().unwrap(),
       error.domain,
-      error.code
+      ErrorCode::new(error.code).unwrap()
     ));
   }
 }
@@ -212,7 +220,11 @@ fn fails_to_start_as_virtualization_does_with_no_server() {
   }));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 /// The client reconnects each time its timeout passes, and each failure to
@@ -247,7 +259,7 @@ fn tells_its_delegate_when_the_server_no_longer_negotiates() {
   assert_eq!(told.recv().unwrap(), format!("connected {}", server.url));
   assert_eq!(
     told.recv().unwrap(),
-    format!("error {} VZErrorDomain 20001", server.url)
+    format!("error {} VZErrorDomain NetworkBlockDeviceNegotiationFailed", server.url)
   );
   assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Running);
 }

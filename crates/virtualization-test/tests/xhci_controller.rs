@@ -3,7 +3,7 @@ use std::sync::Arc;
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::uuid::Uuid;
 use virtualization::{
-  USBController, USBControllerConfiguration, USBControllerDelegate, USBDevice, USBDeviceConfiguration,
+  ErrorCode, USBController, USBControllerConfiguration, USBControllerDelegate, USBDevice, USBDeviceConfiguration,
   USBMassStorageDevice, VirtualMachine, XHCIController, XHCIControllerConfiguration,
 };
 use virtualization_test::{
@@ -149,7 +149,11 @@ fn attaches_and_detaches_a_device_while_running() {
   let error = ns_error(attach());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 30002, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::DeviceAlreadyAttached,
+    "{error:#?}"
+  );
 
   detach().unwrap();
 
@@ -158,7 +162,11 @@ fn attaches_and_detaches_a_device_while_running() {
   let error = ns_error(detach());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 30004, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::DeviceNotFound,
+    "{error:#?}"
+  );
 
   attach().unwrap();
 

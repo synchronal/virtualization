@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::{
-  Error, FileHandleNetworkDeviceAttachment, NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration,
+  Error, ErrorCode, FileHandleNetworkDeviceAttachment, NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration,
   VirtualMachine,
 };
 use virtualization_test::{Console, booting_machine, initial_ramdisk, linux_configuration, ns_error, start};
@@ -74,7 +74,11 @@ fn fails_validation_with_a_maximum_transmission_unit_outside_1500_to_65535() {
     let error = ns_error(validate_with_maximum_transmission_unit(name, maximum_transmission_unit));
 
     assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-    assert_eq!(error.code, 2, "{error:#?}");
+    assert_eq!(
+      ErrorCode::new(error.code).unwrap(),
+      ErrorCode::InvalidVirtualMachineConfiguration,
+      "{error:#?}"
+    );
   }
 }
 

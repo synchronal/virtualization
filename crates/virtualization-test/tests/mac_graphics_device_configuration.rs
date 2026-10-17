@@ -1,4 +1,4 @@
-use virtualization::{MacGraphicsDeviceConfiguration, MacGraphicsDisplayConfiguration};
+use virtualization::{ErrorCode, MacGraphicsDeviceConfiguration, MacGraphicsDisplayConfiguration};
 use virtualization_test::{linux_configuration, ns_error};
 
 #[test]
@@ -39,7 +39,11 @@ fn fails_as_virtualization_does_to_validate_on_another_platform() {
   let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]

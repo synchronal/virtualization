@@ -59,14 +59,15 @@ pub use self::ffi::{
   BridgedCGSize, BridgedNil, BridgedThrown, VZBridgedNetworkDeviceAttachment, VZBridgedNetworkInterface,
   VZDiskBlockDeviceStorageDeviceAttachment, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
   VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader, VZEFISignatureDatabaseConfiguration,
-  VZEFISignatureList, VZEFIVariableStore, VZFileHandleNetworkDeviceAttachment, VZFileHandleSerialPortAttachment,
-  VZFileSerialPortAttachment, VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZHostAudioInputStreamSource,
-  VZHostAudioOutputStreamSink, VZLinuxBootLoader, VZMACAddress, VZMacGraphicsDevice, VZMacGraphicsDeviceConfiguration,
-  VZMacGraphicsDisplay, VZMacGraphicsDisplayConfiguration, VZMacKeyboardConfiguration, VZMacTrackpadConfiguration,
-  VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration,
-  VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
-  VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration, VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration,
-  VZUSBPassthroughDevice, VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
+  VZEFISignatureList, VZEFIVariableStore, VZErrorCode, VZFileHandleNetworkDeviceAttachment,
+  VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment, VZGenericMachineIdentifier,
+  VZGenericPlatformConfiguration, VZHostAudioInputStreamSource, VZHostAudioOutputStreamSink, VZLinuxBootLoader,
+  VZMACAddress, VZMacGraphicsDevice, VZMacGraphicsDeviceConfiguration, VZMacGraphicsDisplay,
+  VZMacGraphicsDisplayConfiguration, VZMacKeyboardConfiguration, VZMacTrackpadConfiguration, VZMultipleDirectoryShare,
+  VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration, VZNetworkBlockDeviceStorageDeviceAttachment,
+  VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare, VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration,
+  VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration, VZUSBPassthroughDevice,
+  VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
   VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice, VZVirtioConsoleDeviceConfiguration,
   VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort, VZVirtioConsolePortArray,
   VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioEntropyDeviceConfiguration,
@@ -78,11 +79,11 @@ pub use self::ffi::{
   VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
   VZVirtualMachineConfiguration, VZVirtualMachineState, VZVmnetNetworkDeviceAttachment, VZXHCIController,
   VZXHCIControllerConfiguration, vz_efi_boot_loader_init, vz_efi_variable_store_initialization_options_allow_overwrite,
-  vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
-  vz_generic_platform_configuration_is_nested_virtualization_supported, vz_host_audio_input_stream_source_init,
-  vz_host_audio_output_stream_sink_init, vz_mac_address_random_locally_administered,
-  vz_mac_graphics_device_configuration_init, vz_mac_graphics_display_configuration_init,
-  vz_mac_keyboard_configuration_init, vz_mac_trackpad_configuration_init,
+  vz_error_code_init_raw_value, vz_error_code_raw_value, vz_error_domain, vz_generic_machine_identifier_init,
+  vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
+  vz_host_audio_input_stream_source_init, vz_host_audio_output_stream_sink_init,
+  vz_mac_address_random_locally_administered, vz_mac_graphics_device_configuration_init,
+  vz_mac_graphics_display_configuration_init, vz_mac_keyboard_configuration_init, vz_mac_trackpad_configuration_init,
   vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
   vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
   vz_spice_agent_port_attachment_init, vz_spice_agent_port_attachment_spice_agent_port_name,
@@ -123,6 +124,49 @@ mod ffi {
 
   extern "Swift" {
     fn bridge_take_thrown_error() -> *mut c_void;
+  }
+
+  // Error.swift
+
+  #[swift_bridge(swift_name = "BridgedVZErrorCode")]
+  enum VZErrorCode {
+    InternalError,
+    InvalidVirtualMachineConfiguration,
+    InvalidVirtualMachineState,
+    InvalidVirtualMachineStateTransition,
+    InvalidDiskImage,
+    VirtualMachineLimitExceeded,
+    NetworkError,
+    OutOfDiskSpace,
+    OperationCancelled,
+    NotSupported,
+    Save,
+    Restore,
+    RestoreImageCatalogLoadFailed,
+    InvalidRestoreImageCatalog,
+    NoSupportedRestoreImagesInCatalog,
+    RestoreImageLoadFailed,
+    InvalidRestoreImage,
+    InstallationRequiresUpdate,
+    InstallationFailed,
+    NetworkBlockDeviceNegotiationFailed,
+    NetworkBlockDeviceDisconnected,
+    USBControllerNotFound,
+    DeviceAlreadyAttached,
+    DeviceInitializationFailure,
+    DeviceNotFound,
+    GuestProvisioningInvalidFullName,
+    GuestProvisioningInvalidUsername,
+    GuestProvisioningInvalidPassword,
+    EFISecureBootEnrollmentFailed,
+    EFIVariableInaccessible,
+    Unknown(isize),
+  }
+
+  extern "Swift" {
+    fn vz_error_domain() -> String;
+    fn vz_error_code_init_raw_value(raw_value: isize) -> VZErrorCode;
+    fn vz_error_code_raw_value(code: VZErrorCode) -> isize;
   }
 
   // Security.swift

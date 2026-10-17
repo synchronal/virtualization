@@ -1,4 +1,4 @@
-use virtualization::{EFISignature, EFISignatureList, SecCertificate};
+use virtualization::{EFISignature, EFISignatureList, ErrorCode, SecCertificate};
 use virtualization_test::{certificate, file, file_url, ns_error};
 
 #[test]
@@ -49,7 +49,11 @@ fn fails_as_virtualization_does_to_read_a_missing_file() {
   let error = ns_error(EFISignatureList::new(&file_url("/nowhere/signatures.esl")));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 1, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InternalError,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -59,7 +63,11 @@ fn fails_as_virtualization_does_to_read_a_file_of_no_format_it_knows() {
   let error = ns_error(EFISignatureList::new(&url));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 1, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InternalError,
+    "{error:#?}"
+  );
 }
 
 #[test]

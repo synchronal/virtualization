@@ -4,8 +4,8 @@ use std::sync::{Arc, Mutex, mpsc};
 
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::{
-  Error, GenericMachineIdentifier, GenericPlatformConfiguration, VirtualMachine, VirtualMachineConfiguration,
-  VirtualMachineDelegate, VirtualMachineState,
+  Error, ErrorCode, GenericMachineIdentifier, GenericPlatformConfiguration, VirtualMachine,
+  VirtualMachineConfiguration, VirtualMachineDelegate, VirtualMachineState,
 };
 use virtualization_test::{
   booting_machine, completed, initial_ramdisk, linux_configuration, new_file_url, ns_error, on_queue, serial_queue,
@@ -107,7 +107,11 @@ fn fails_as_virtualization_does_to_start_with_a_placeholder_kernel() {
   }));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 1, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InternalError,
+    "{error:#?}"
+  );
   assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Error);
 }
 
@@ -120,7 +124,11 @@ fn fails_as_virtualization_does_to_stop_a_stopped_machine() {
   }));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 4, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineStateTransition,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -132,7 +140,11 @@ fn fails_as_virtualization_does_to_pause_a_stopped_machine() {
   }));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 4, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineStateTransition,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -144,7 +156,11 @@ fn fails_as_virtualization_does_to_resume_a_stopped_machine() {
   }));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 4, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineStateTransition,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -154,7 +170,11 @@ fn fails_as_virtualization_does_to_request_a_stopped_machine_stop() {
   let error = ns_error(on_queue(&queue, || machine.request_stop()));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 3, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineState,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -170,7 +190,11 @@ fn fails_as_virtualization_does_to_save_a_stopped_machine() {
   }));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 3, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineState,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -186,7 +210,7 @@ fn fails_as_virtualization_does_to_restore_from_a_missing_file() {
   }));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 12, "{error:#?}");
+  assert_eq!(ErrorCode::new(error.code).unwrap(), ErrorCode::Restore, "{error:#?}");
   assert_eq!(on_queue(&queue, || machine.state()), VirtualMachineState::Stopped);
 }
 

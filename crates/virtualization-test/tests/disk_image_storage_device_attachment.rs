@@ -4,7 +4,8 @@ use virtualization::disk_image_kit::{
 };
 use virtualization::url::Url;
 use virtualization::{
-  DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, VirtioBlockDeviceConfiguration,
+  DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, ErrorCode,
+  VirtioBlockDeviceConfiguration,
 };
 use virtualization_test::{
   booting_machine, disk_image, file, file_url, initial_ramdisk, new_file_url, ns_error, start, stop,
@@ -275,7 +276,11 @@ fn fails_as_virtualization_does_on_an_unrecognized_image() {
   let error = ns_error(DiskImageStorageDeviceAttachment::new(&url, true));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 5, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidDiskImage,
+    "{error:#?}"
+  );
   assert_eq!(
     error
       .user_info

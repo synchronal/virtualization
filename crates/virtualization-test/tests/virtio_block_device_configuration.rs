@@ -1,7 +1,8 @@
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::url::Url;
 use virtualization::{
-  DiskImageStorageDeviceAttachment, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration, VirtualMachine,
+  DiskImageStorageDeviceAttachment, ErrorCode, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
+  VirtualMachine,
 };
 use virtualization_test::{Console, booting_machine, disk_image, initial_ramdisk, ns_error, raw_image, start, stop};
 
@@ -63,7 +64,11 @@ fn fails_as_virtualization_does_on_an_identifier_over_20_bytes() {
   ));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -73,7 +78,11 @@ fn fails_as_virtualization_does_on_an_identifier_that_isnt_ascii() {
   ));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 /// A started guest running `script` with the raw image at `url` as `vda`.

@@ -1,4 +1,4 @@
-use virtualization::VirtioTraditionalMemoryBalloonDeviceConfiguration;
+use virtualization::{ErrorCode, VirtioTraditionalMemoryBalloonDeviceConfiguration};
 use virtualization_test::{linux_configuration, ns_error};
 
 #[test]
@@ -26,7 +26,11 @@ fn fails_validation_as_virtualization_does_with_two() {
   let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]

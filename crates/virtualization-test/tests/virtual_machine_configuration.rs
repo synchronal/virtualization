@@ -1,6 +1,6 @@
 use virtualization::{
-  DiskImageStorageDeviceAttachment, LinuxBootLoader, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
-  VirtualMachineConfiguration,
+  DiskImageStorageDeviceAttachment, ErrorCode, LinuxBootLoader, StorageDeviceConfiguration,
+  VirtioBlockDeviceConfiguration, VirtualMachineConfiguration,
 };
 use virtualization_test::{disk_image, file, ns_error};
 
@@ -130,7 +130,11 @@ fn fails_as_virtualization_does_to_validate_an_empty_label() {
   let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
   assert!(error.localized_description.contains("label"), "{error:#?}");
 }
 
@@ -139,7 +143,11 @@ fn fails_as_virtualization_does_to_validate_an_empty_configuration() {
   let error = ns_error(VirtualMachineConfiguration::new().unwrap().validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]

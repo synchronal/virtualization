@@ -4,7 +4,8 @@ use std::path::Path;
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::url::Url;
 use virtualization::{
-  MultipleDirectoryShare, SharedDirectory, SingleDirectoryShare, VirtioFileSystemDeviceConfiguration, VirtualMachine,
+  ErrorCode, MultipleDirectoryShare, SharedDirectory, SingleDirectoryShare, VirtioFileSystemDeviceConfiguration,
+  VirtualMachine,
 };
 use virtualization_test::{Console, booting_machine, directory, initial_ramdisk, linux_configuration, ns_error, start};
 
@@ -31,7 +32,11 @@ fn fails_as_virtualization_does_on_a_tag_of_37_bytes() {
   let error = ns_error(VirtioFileSystemDeviceConfiguration::validate_tag(&"a".repeat(37)));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -39,7 +44,11 @@ fn fails_as_virtualization_does_on_an_empty_tag() {
   let error = ns_error(VirtioFileSystemDeviceConfiguration::validate_tag(""));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]

@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::{
-  CGSize, GraphicsDevice, GraphicsDisplay, GraphicsDisplayObserver, VirtioGraphicsDevice,
+  CGSize, ErrorCode, GraphicsDevice, GraphicsDisplay, GraphicsDisplayObserver, VirtioGraphicsDevice,
   VirtioGraphicsDeviceConfiguration, VirtioGraphicsScanout, VirtioGraphicsScanoutConfiguration, VirtualMachine,
   VirtualMachineConfiguration,
 };
@@ -129,7 +129,11 @@ fn fails_as_virtualization_does_to_reconfigure_its_size_before_the_machine_start
       let error = ns_error(scanout.reconfigure_with_size_in_pixels(SIZE));
 
       assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-      assert_eq!(error.code, 2, "{error:#?}");
+      assert_eq!(
+        ErrorCode::new(error.code).unwrap(),
+        ErrorCode::InvalidVirtualMachineConfiguration,
+        "{error:#?}"
+      );
     },
   );
 }
@@ -143,7 +147,11 @@ fn fails_as_virtualization_does_to_reconfigure_before_the_machine_starts() {
         ns_error(scanout.reconfigure_with_configuration(&VirtioGraphicsScanoutConfiguration::new(800, 600).unwrap()));
 
       assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-      assert_eq!(error.code, 2, "{error:#?}");
+      assert_eq!(
+        ErrorCode::new(error.code).unwrap(),
+        ErrorCode::InvalidVirtualMachineConfiguration,
+        "{error:#?}"
+      );
     },
   );
 }
@@ -159,7 +167,11 @@ fn fails_as_virtualization_does_on_a_size_that_is_not_positive() {
       }));
 
       assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-      assert_eq!(error.code, 2, "{error:#?}");
+      assert_eq!(
+        ErrorCode::new(error.code).unwrap(),
+        ErrorCode::InvalidVirtualMachineConfiguration,
+        "{error:#?}"
+      );
     },
   );
 }

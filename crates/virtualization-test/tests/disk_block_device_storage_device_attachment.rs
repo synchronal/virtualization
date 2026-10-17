@@ -2,7 +2,7 @@ use std::fs::File;
 use std::os::fd::{AsRawFd, OwnedFd};
 
 use virtualization::{
-  DiskBlockDeviceStorageDeviceAttachment, DiskImageStorageDeviceAttachment, DiskSynchronizationMode,
+  DiskBlockDeviceStorageDeviceAttachment, DiskImageStorageDeviceAttachment, DiskSynchronizationMode, ErrorCode,
   StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
 };
 use virtualization_test::{
@@ -46,7 +46,11 @@ fn fails_as_virtualization_does_on_a_file_that_is_no_block_device() {
   ));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]

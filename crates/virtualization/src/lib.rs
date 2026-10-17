@@ -68,7 +68,7 @@ pub use crate::directory_sharing::{
   DirectoryShare, DirectorySharingDevice, DirectorySharingDeviceConfiguration, MultipleDirectoryShare, SharedDirectory,
   SingleDirectoryShare, VirtioFileSystemDevice, VirtioFileSystemDeviceConfiguration,
 };
-pub use crate::error::{Error, NSError};
+pub use crate::error::{Error, ErrorCode, NSError, error_domain};
 pub use crate::graphics::{
   AudioDeviceConfiguration, AudioInputStreamSource, AudioOutputStreamSink, GraphicsDevice, GraphicsDeviceConfiguration,
   GraphicsDisplay, GraphicsDisplayConfiguration, GraphicsDisplayObserver, HostAudioInputStreamSource,

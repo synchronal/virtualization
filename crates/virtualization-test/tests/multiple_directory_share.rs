@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use virtualization::url::Url;
-use virtualization::{MultipleDirectoryShare, SharedDirectory};
+use virtualization::{ErrorCode, MultipleDirectoryShare, SharedDirectory};
 use virtualization_test::{directory, ns_error};
 
 #[test]
@@ -49,7 +49,11 @@ fn fails_as_virtualization_does_on_an_empty_name() {
   let error = ns_error(MultipleDirectoryShare::validate_name(""));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]
@@ -57,7 +61,11 @@ fn fails_as_virtualization_does_on_a_name_with_a_slash() {
   let error = ns_error(MultipleDirectoryShare::validate_name("a/b"));
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 /// Virtualization canonicalizes a name by dropping what it can't have.

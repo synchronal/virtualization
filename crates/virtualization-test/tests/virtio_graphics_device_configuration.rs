@@ -1,4 +1,4 @@
-use virtualization::{VirtioGraphicsDeviceConfiguration, VirtioGraphicsScanoutConfiguration};
+use virtualization::{ErrorCode, VirtioGraphicsDeviceConfiguration, VirtioGraphicsScanoutConfiguration};
 use virtualization_test::{guest_pci_devices, linux_configuration, ns_error};
 
 #[test]
@@ -46,7 +46,11 @@ fn fails_as_virtualization_does_to_validate_with_no_scanouts() {
   let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 /// The suites' kernel has no virtio GPU driver, so the guest has the device

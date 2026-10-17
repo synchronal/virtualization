@@ -1,5 +1,5 @@
 use virtualization::{
-  EFIBootLoader, LinuxBootLoader, VirtualMachine, VirtualMachineConfiguration, VirtualMachineState,
+  EFIBootLoader, ErrorCode, LinuxBootLoader, VirtualMachine, VirtualMachineConfiguration, VirtualMachineState,
 };
 use virtualization_test::{ns_error, on_queue, serial_queue, start, stop, variable_store};
 
@@ -56,7 +56,11 @@ fn fails_validation_as_virtualization_does_without_a_variable_store() {
   let error = ns_error(efi_configuration(&EFIBootLoader::new().unwrap()).validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
 }
 
 #[test]

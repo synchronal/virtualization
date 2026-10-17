@@ -1,5 +1,6 @@
 use virtualization::{
-  BridgedNetworkDeviceAttachment, BridgedNetworkInterface, NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration,
+  BridgedNetworkDeviceAttachment, BridgedNetworkInterface, ErrorCode, NetworkDeviceConfiguration,
+  VirtioNetworkDeviceConfiguration,
 };
 use virtualization_test::{linux_configuration, ns_error};
 
@@ -27,7 +28,11 @@ fn fails_validation_without_the_networking_entitlement() {
   let error = ns_error(configuration.validate());
 
   assert_eq!(error.domain, "VZErrorDomain", "{error:#?}");
-  assert_eq!(error.code, 2, "{error:#?}");
+  assert_eq!(
+    ErrorCode::new(error.code).unwrap(),
+    ErrorCode::InvalidVirtualMachineConfiguration,
+    "{error:#?}"
+  );
   assert!(
     error
       .localized_failure_reason
