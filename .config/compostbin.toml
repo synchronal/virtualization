@@ -44,6 +44,11 @@ tty = true
 argv = ["bin/dev/test-integration"]
 tty = true
 
+# The suites needing a screen, which `test-integration` leaves out.
+[host.commands.test-integration-screen]
+argv = ["bin/dev/test-integration", "--profile", "screen"]
+tty = true
+
 # Widened deliberately, for the iterate-on-one-failing-test loop.
 [host.commands.test-one]
 arguments = true

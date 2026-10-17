@@ -10,13 +10,15 @@ checks = [
 [test]
 checks = [
   {name = "rust: test!", shell = "cargo nextest run --color always", verbose = true},
+  {name = "rust: integration!", shell = "bin/dev/test-integration", verbose = true},
+  {name = "rust: integration, screen!", shell = "bin/dev/test-integration --profile screen", verbose = true},
 ]
 
 [audit]
 checks = [
   {name = "rust: audit", shell = "cargo audit", verbose = true},
   {name = "rust: check", shell = "cargo check --workspace --all-targets --color always", remedy = "cargo fix --allow-dirty"},
-  {name = "rust: check linux", shell = "cargo check --target x86_64-unknown-linux-gnu -p virtualization --all-targets --color always"},
+  {name = "rust: check linux", shell = "cargo check --target x86_64-unknown-linux-gnu -p accessory-access -p disk-image-kit -p foundation-sys -p io-usb-host -p virtualization -p vmnet --all-targets --color always"},
   {name = "rust: clippy", shell = "cargo clippy --workspace --all-targets --all-features -- -D warnings", remedy = "cargo clippy --workspace --all-targets --all-features --fix --allow-dirty"},
   {check = "rust", command = "format-check"},
   {name = "swift: format", shell = "bin/dev/format-swift --check", remedy = "bin/dev/format-swift --all"},
@@ -39,7 +41,6 @@ steps = [
   {audit = {}},
   {update = {}},
   {test = {}},
-  {name = "rust: integration!", shell = "bin/dev/test-integration", verbose = true},
   {step = "git", command = "push"},
 ]
 

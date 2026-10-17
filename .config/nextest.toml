@@ -5,6 +5,13 @@ experimental = ["setup-scripts"]
 # still outlasts 1s.
 [profile.default]
 leak-timeout = "1s"
+# Tests needing a screen, named `screen::…`, run only in the `screen` profile.
+default-filter = 'not test(/^screen::/)'
+
+# Tests needing a logged-in Mac with a screen (AppKit's `NSScreen`; a headless
+# one has none).
+[profile.screen]
+default-filter = 'test(/^screen::/)'
 
 # Downloads the kernel and busybox (required by booting test suites).
 [scripts.setup.prepare-integration]

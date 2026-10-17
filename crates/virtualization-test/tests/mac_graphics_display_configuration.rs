@@ -1,5 +1,6 @@
 //! On the main thread, where AppKit's members run (`main_thread_tests`), for
-//! the screen a display is made for. Assumes a Mac with a screen.
+//! the screen a display is made for. That test needs a screen, so is named
+//! `screen::…`.
 
 use virtualization::{CGSize, MacGraphicsDisplayConfiguration, MainThreadMarker, NSScreen};
 use virtualization_test::main_thread_tests;
@@ -64,7 +65,7 @@ fn main() {
       has_the_size_and_density_it_was_made_with,
     ),
     (
-      "is_made_for_a_size_in_points_on_a_screen",
+      "screen::is_made_for_a_size_in_points_on_a_screen",
       is_made_for_a_size_in_points_on_a_screen,
     ),
     (

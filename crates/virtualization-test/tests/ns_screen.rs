@@ -1,5 +1,5 @@
 //! On the main thread, where AppKit's members run (`main_thread_tests`).
-//! Assumes a Mac with a screen.
+//! Each needs a screen, so is named `screen::…`.
 
 use virtualization::{MainThreadMarker, NSScreen};
 use virtualization_test::main_thread_tests;
@@ -27,10 +27,10 @@ fn debugs_as_its_description(mtm: MainThreadMarker) {
 fn main() {
   main_thread_tests(&[
     (
-      "has_its_main_screen_among_its_screens",
+      "screen::has_its_main_screen_among_its_screens",
       has_its_main_screen_among_its_screens,
     ),
-    ("a_clone_is_the_same_object", a_clone_is_the_same_object),
-    ("debugs_as_its_description", debugs_as_its_description),
+    ("screen::a_clone_is_the_same_object", a_clone_is_the_same_object),
+    ("screen::debugs_as_its_description", debugs_as_its_description),
   ]);
 }
