@@ -1,5 +1,11 @@
 mod host_audio_input_stream_source;
 mod host_audio_output_stream_sink;
+mod mac_graphics_device;
+mod mac_graphics_device_configuration;
+mod mac_graphics_display;
+mod mac_graphics_display_configuration;
+mod mac_keyboard_configuration;
+mod mac_trackpad_configuration;
 mod usb_keyboard_configuration;
 mod usb_screen_coordinate_pointing_device_configuration;
 mod virtio_graphics_device;
@@ -16,6 +22,12 @@ use std::sync::Weak;
 
 pub use self::host_audio_input_stream_source::HostAudioInputStreamSource;
 pub use self::host_audio_output_stream_sink::HostAudioOutputStreamSink;
+pub use self::mac_graphics_device::MacGraphicsDevice;
+pub use self::mac_graphics_device_configuration::MacGraphicsDeviceConfiguration;
+pub use self::mac_graphics_display::MacGraphicsDisplay;
+pub use self::mac_graphics_display_configuration::MacGraphicsDisplayConfiguration;
+pub use self::mac_keyboard_configuration::MacKeyboardConfiguration;
+pub use self::mac_trackpad_configuration::MacTrackpadConfiguration;
 pub use self::usb_keyboard_configuration::USBKeyboardConfiguration;
 pub use self::usb_screen_coordinate_pointing_device_configuration::USBScreenCoordinatePointingDeviceConfiguration;
 pub use self::virtio_graphics_device::VirtioGraphicsDevice;

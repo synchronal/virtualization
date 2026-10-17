@@ -61,11 +61,12 @@ pub use self::ffi::{
   VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader, VZEFISignatureDatabaseConfiguration,
   VZEFISignatureList, VZEFIVariableStore, VZFileHandleNetworkDeviceAttachment, VZFileHandleSerialPortAttachment,
   VZFileSerialPortAttachment, VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZHostAudioInputStreamSource,
-  VZHostAudioOutputStreamSink, VZLinuxBootLoader, VZMACAddress, VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment,
-  VZNVMExpressControllerDeviceConfiguration, VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice,
-  VZSharedDirectory, VZSingleDirectoryShare, VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration,
-  VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration, VZUSBPassthroughDevice,
-  VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
+  VZHostAudioOutputStreamSink, VZLinuxBootLoader, VZMACAddress, VZMacGraphicsDevice, VZMacGraphicsDeviceConfiguration,
+  VZMacGraphicsDisplay, VZMacGraphicsDisplayConfiguration, VZMacKeyboardConfiguration, VZMacTrackpadConfiguration,
+  VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration,
+  VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
+  VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration, VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration,
+  VZUSBPassthroughDevice, VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
   VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice, VZVirtioConsoleDeviceConfiguration,
   VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort, VZVirtioConsolePortArray,
   VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioEntropyDeviceConfiguration,
@@ -80,6 +81,8 @@ pub use self::ffi::{
   vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
   vz_generic_platform_configuration_is_nested_virtualization_supported, vz_host_audio_input_stream_source_init,
   vz_host_audio_output_stream_sink_init, vz_mac_address_random_locally_administered,
+  vz_mac_graphics_device_configuration_init, vz_mac_graphics_display_configuration_init,
+  vz_mac_keyboard_configuration_init, vz_mac_trackpad_configuration_init,
   vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
   vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
   vz_spice_agent_port_attachment_init, vz_spice_agent_port_attachment_spice_agent_port_name,
@@ -575,6 +578,101 @@ mod ffi {
       object: *const c_void,
     ) -> Result<VZHostAudioOutputStreamSink, BridgedNil>;
     fn ns_description(self: &VZHostAudioOutputStreamSink) -> String;
+  }
+
+  // Graphics/MacGraphicsDevice.swift
+
+  extern "Swift" {
+    type VZMacGraphicsDevice;
+
+    fn bridge_retained(self: &VZMacGraphicsDevice) -> VZMacGraphicsDevice;
+    fn bridge_borrowed(self: &VZMacGraphicsDevice) -> *const c_void;
+    fn vz_mac_graphics_device_bridge_cast(object: *const c_void) -> Result<VZMacGraphicsDevice, BridgedNil>;
+    fn ns_description(self: &VZMacGraphicsDevice) -> String;
+  }
+
+  // Graphics/MacGraphicsDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZMacGraphicsDeviceConfiguration;
+
+    fn vz_mac_graphics_device_configuration_init() -> VZMacGraphicsDeviceConfiguration;
+    fn bridge_retained(self: &VZMacGraphicsDeviceConfiguration) -> VZMacGraphicsDeviceConfiguration;
+    fn bridge_borrowed(self: &VZMacGraphicsDeviceConfiguration) -> *const c_void;
+    fn vz_mac_graphics_device_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZMacGraphicsDeviceConfiguration, BridgedNil>;
+    fn ns_description(self: &VZMacGraphicsDeviceConfiguration) -> String;
+    fn vz_mac_graphics_device_configuration_displays(this: VZMacGraphicsDeviceConfiguration) -> *mut c_void;
+    fn vz_mac_graphics_device_configuration_set_displays(
+      this: VZMacGraphicsDeviceConfiguration,
+      displays: *const c_void,
+    );
+  }
+
+  // Graphics/MacGraphicsDisplay.swift
+
+  extern "Swift" {
+    type VZMacGraphicsDisplay;
+
+    fn bridge_retained(self: &VZMacGraphicsDisplay) -> VZMacGraphicsDisplay;
+    fn bridge_borrowed(self: &VZMacGraphicsDisplay) -> *const c_void;
+    fn vz_mac_graphics_display_bridge_cast(object: *const c_void) -> Result<VZMacGraphicsDisplay, BridgedNil>;
+    fn ns_description(self: &VZMacGraphicsDisplay) -> String;
+    fn vz_pixels_per_inch(self: &VZMacGraphicsDisplay) -> isize;
+  }
+
+  // Graphics/MacGraphicsDisplayConfiguration.swift
+
+  extern "Swift" {
+    type VZMacGraphicsDisplayConfiguration;
+
+    fn vz_mac_graphics_display_configuration_init(
+      width_in_pixels: isize,
+      height_in_pixels: isize,
+      pixels_per_inch: isize,
+    ) -> VZMacGraphicsDisplayConfiguration;
+    fn vz_mac_graphics_display_configuration_bridge_from(object: *const c_void) -> VZMacGraphicsDisplayConfiguration;
+    fn bridge_retained(self: &VZMacGraphicsDisplayConfiguration) -> VZMacGraphicsDisplayConfiguration;
+    fn bridge_borrowed(self: &VZMacGraphicsDisplayConfiguration) -> *const c_void;
+    fn vz_mac_graphics_display_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZMacGraphicsDisplayConfiguration, BridgedNil>;
+    fn ns_description(self: &VZMacGraphicsDisplayConfiguration) -> String;
+    fn vz_width_in_pixels(self: &VZMacGraphicsDisplayConfiguration) -> isize;
+    fn vz_set_width_in_pixels(self: &VZMacGraphicsDisplayConfiguration, width_in_pixels: isize);
+    fn vz_height_in_pixels(self: &VZMacGraphicsDisplayConfiguration) -> isize;
+    fn vz_set_height_in_pixels(self: &VZMacGraphicsDisplayConfiguration, height_in_pixels: isize);
+    fn vz_pixels_per_inch(self: &VZMacGraphicsDisplayConfiguration) -> isize;
+    fn vz_set_pixels_per_inch(self: &VZMacGraphicsDisplayConfiguration, pixels_per_inch: isize);
+  }
+
+  // Graphics/MacKeyboardConfiguration.swift
+
+  extern "Swift" {
+    type VZMacKeyboardConfiguration;
+
+    fn vz_mac_keyboard_configuration_init() -> VZMacKeyboardConfiguration;
+    fn bridge_retained(self: &VZMacKeyboardConfiguration) -> VZMacKeyboardConfiguration;
+    fn bridge_borrowed(self: &VZMacKeyboardConfiguration) -> *const c_void;
+    fn vz_mac_keyboard_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZMacKeyboardConfiguration, BridgedNil>;
+    fn ns_description(self: &VZMacKeyboardConfiguration) -> String;
+  }
+
+  // Graphics/MacTrackpadConfiguration.swift
+
+  extern "Swift" {
+    type VZMacTrackpadConfiguration;
+
+    fn vz_mac_trackpad_configuration_init() -> VZMacTrackpadConfiguration;
+    fn bridge_retained(self: &VZMacTrackpadConfiguration) -> VZMacTrackpadConfiguration;
+    fn bridge_borrowed(self: &VZMacTrackpadConfiguration) -> *const c_void;
+    fn vz_mac_trackpad_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZMacTrackpadConfiguration, BridgedNil>;
+    fn ns_description(self: &VZMacTrackpadConfiguration) -> String;
   }
 
   // Graphics/USBKeyboardConfiguration.swift
@@ -2503,6 +2601,107 @@ pub fn vz_host_audio_output_stream_sink_bridge_cast(object: &NSObject) -> Option
 }
 
 impl VZHostAudioOutputStreamSink {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/MacGraphicsDevice.swift
+
+pub fn vz_mac_graphics_device_bridge_cast(object: &NSObject) -> Option<VZMacGraphicsDevice> {
+  ffi::vz_mac_graphics_device_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacGraphicsDevice {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/MacGraphicsDeviceConfiguration.swift
+
+pub fn vz_mac_graphics_device_configuration_bridge_cast(object: &NSObject) -> Option<VZMacGraphicsDeviceConfiguration> {
+  ffi::vz_mac_graphics_device_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacGraphicsDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  pub fn vz_displays(&self) -> Vec<VZMacGraphicsDisplayConfiguration> {
+    // SAFETY: `displays`, a retained `NSArray`.
+    unsafe {
+      bridge_objects(ffi::vz_mac_graphics_device_configuration_displays(
+        self.bridge_retained(),
+      ))
+    }
+    .iter()
+    .map(|display| ffi::vz_mac_graphics_display_configuration_bridge_from(borrowed(&**display)))
+    .collect()
+  }
+
+  pub fn vz_set_displays(&self, displays: &[&VZMacGraphicsDisplayConfiguration]) {
+    let objects: Vec<_> = displays
+      .iter()
+      .map(|display| display.bridge_object())
+      .collect();
+
+    ffi::vz_mac_graphics_device_configuration_set_displays(self.bridge_retained(), borrowed(&*ns_array(&objects)));
+  }
+}
+
+// Graphics/MacGraphicsDisplay.swift
+
+pub fn vz_mac_graphics_display_bridge_cast(object: &NSObject) -> Option<VZMacGraphicsDisplay> {
+  ffi::vz_mac_graphics_display_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacGraphicsDisplay {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/MacGraphicsDisplayConfiguration.swift
+
+pub fn vz_mac_graphics_display_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZMacGraphicsDisplayConfiguration> {
+  ffi::vz_mac_graphics_display_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacGraphicsDisplayConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/MacKeyboardConfiguration.swift
+
+pub fn vz_mac_keyboard_configuration_bridge_cast(object: &NSObject) -> Option<VZMacKeyboardConfiguration> {
+  ffi::vz_mac_keyboard_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacKeyboardConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// Graphics/MacTrackpadConfiguration.swift
+
+pub fn vz_mac_trackpad_configuration_bridge_cast(object: &NSObject) -> Option<VZMacTrackpadConfiguration> {
+  ffi::vz_mac_trackpad_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacTrackpadConfiguration {
   pub fn bridge_object(&self) -> &NSObject {
     // SAFETY: this one's own object.
     unsafe { bridge_object(self, self.bridge_borrowed()) }

@@ -68,11 +68,12 @@ pub use crate::error::{Error, NSError};
 pub use crate::graphics::{
   AudioDeviceConfiguration, AudioInputStreamSource, AudioOutputStreamSink, GraphicsDevice, GraphicsDeviceConfiguration,
   GraphicsDisplay, GraphicsDisplayConfiguration, GraphicsDisplayObserver, HostAudioInputStreamSource,
-  HostAudioOutputStreamSink, KeyboardConfiguration, PointingDeviceConfiguration, USBKeyboardConfiguration,
-  USBScreenCoordinatePointingDeviceConfiguration, VirtioGraphicsDevice, VirtioGraphicsDeviceConfiguration,
-  VirtioGraphicsScanout, VirtioGraphicsScanoutConfiguration, VirtioSoundDeviceConfiguration,
-  VirtioSoundDeviceInputStreamConfiguration, VirtioSoundDeviceOutputStreamConfiguration,
-  VirtioSoundDeviceStreamConfiguration,
+  HostAudioOutputStreamSink, KeyboardConfiguration, MacGraphicsDevice, MacGraphicsDeviceConfiguration,
+  MacGraphicsDisplay, MacGraphicsDisplayConfiguration, MacKeyboardConfiguration, MacTrackpadConfiguration,
+  PointingDeviceConfiguration, USBKeyboardConfiguration, USBScreenCoordinatePointingDeviceConfiguration,
+  VirtioGraphicsDevice, VirtioGraphicsDeviceConfiguration, VirtioGraphicsScanout, VirtioGraphicsScanoutConfiguration,
+  VirtioSoundDeviceConfiguration, VirtioSoundDeviceInputStreamConfiguration,
+  VirtioSoundDeviceOutputStreamConfiguration, VirtioSoundDeviceStreamConfiguration,
 };
 pub use crate::network::{
   BridgedNetworkDeviceAttachment, BridgedNetworkInterface, FileHandleNetworkDeviceAttachment, MACAddress,

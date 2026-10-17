@@ -383,3 +383,195 @@ impl VZVirtioSoundDeviceOutputStreamConfiguration {
     match self.never {}
   }
 }
+
+pub(crate) struct VZMacGraphicsDevice {
+  never: Never,
+}
+
+pub(crate) fn vz_mac_graphics_device_bridge_cast(object: &NSObject) -> Option<VZMacGraphicsDevice> {
+  object.never()
+}
+
+impl VZMacGraphicsDevice {
+  pub(crate) fn bridge_retained(&self) -> VZMacGraphicsDevice {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZMacGraphicsDeviceConfiguration {
+  never: Never,
+}
+
+pub(crate) fn vz_mac_graphics_device_configuration_init() -> VZMacGraphicsDeviceConfiguration {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_mac_graphics_device_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZMacGraphicsDeviceConfiguration> {
+  object.never()
+}
+
+impl VZMacGraphicsDeviceConfiguration {
+  pub(crate) fn bridge_retained(&self) -> VZMacGraphicsDeviceConfiguration {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_displays(&self) -> Vec<VZMacGraphicsDisplayConfiguration> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_displays(&self, _displays: &[&VZMacGraphicsDisplayConfiguration]) {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZMacGraphicsDisplay {
+  never: Never,
+}
+
+pub(crate) fn vz_mac_graphics_display_bridge_cast(object: &NSObject) -> Option<VZMacGraphicsDisplay> {
+  object.never()
+}
+
+impl VZMacGraphicsDisplay {
+  pub(crate) fn bridge_retained(&self) -> VZMacGraphicsDisplay {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_pixels_per_inch(&self) -> isize {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZMacGraphicsDisplayConfiguration {
+  never: Never,
+}
+
+pub(crate) fn vz_mac_graphics_display_configuration_init(
+  _width_in_pixels: isize,
+  _height_in_pixels: isize,
+  _pixels_per_inch: isize,
+) -> VZMacGraphicsDisplayConfiguration {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_mac_graphics_display_configuration_bridge_cast(
+  object: &NSObject,
+) -> Option<VZMacGraphicsDisplayConfiguration> {
+  object.never()
+}
+
+impl VZMacGraphicsDisplayConfiguration {
+  pub(crate) fn bridge_retained(&self) -> VZMacGraphicsDisplayConfiguration {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_width_in_pixels(&self) -> isize {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_width_in_pixels(&self, _width_in_pixels: isize) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_height_in_pixels(&self) -> isize {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_height_in_pixels(&self, _height_in_pixels: isize) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_pixels_per_inch(&self) -> isize {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_pixels_per_inch(&self, _pixels_per_inch: isize) {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZMacKeyboardConfiguration {
+  never: Never,
+}
+
+pub(crate) fn vz_mac_keyboard_configuration_init() -> VZMacKeyboardConfiguration {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_mac_keyboard_configuration_bridge_cast(object: &NSObject) -> Option<VZMacKeyboardConfiguration> {
+  object.never()
+}
+
+impl VZMacKeyboardConfiguration {
+  pub(crate) fn bridge_retained(&self) -> VZMacKeyboardConfiguration {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+}
+
+pub(crate) struct VZMacTrackpadConfiguration {
+  never: Never,
+}
+
+pub(crate) fn vz_mac_trackpad_configuration_init() -> VZMacTrackpadConfiguration {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_mac_trackpad_configuration_bridge_cast(object: &NSObject) -> Option<VZMacTrackpadConfiguration> {
+  object.never()
+}
+
+impl VZMacTrackpadConfiguration {
+  pub(crate) fn bridge_retained(&self) -> VZMacTrackpadConfiguration {
+    match self.never {}
+  }
+
+  pub(crate) fn bridge_object(&self) -> &NSObject {
+    match self.never {}
+  }
+
+  pub(crate) fn ns_description(&self) -> String {
+    match self.never {}
+  }
+}
