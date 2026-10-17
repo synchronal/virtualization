@@ -53,6 +53,7 @@ mod serial_port;
 mod storage;
 mod virtual_machine;
 mod virtual_machine_configuration;
+mod virtual_machine_view;
 
 pub use accessory_access::io_usb_host;
 pub use {accessory_access, disk_image_kit, dispatch2, url, uuid, vmnet};
@@ -110,3 +111,4 @@ pub use crate::virtual_machine::{
   VirtualMachine, VirtualMachineDelegate, VirtualMachineStartOptions, VirtualMachineState,
 };
 pub use crate::virtual_machine_configuration::VirtualMachineConfiguration;
+pub use crate::virtual_machine_view::{VirtualMachineView, VirtualMachineViewAdaptor};

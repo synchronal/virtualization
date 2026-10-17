@@ -10,7 +10,7 @@ use crate::platform::{self, ffi};
 /// run: AppKit's take it, as objc2's do.
 #[derive(Clone, Copy)]
 pub struct MainThreadMarker {
-  inner: ffi::MainThreadMarker,
+  pub(crate) inner: ffi::MainThreadMarker,
 }
 
 impl MainThreadMarker {

@@ -56,18 +56,18 @@ use foundation_sys::objc::{
 };
 
 pub use self::ffi::{
-  BridgedCGSize, BridgedNil, BridgedThrown, VZBridgedNetworkDeviceAttachment, VZBridgedNetworkInterface,
-  VZDiskBlockDeviceStorageDeviceAttachment, VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment,
-  VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader, VZEFISignatureDatabaseConfiguration,
-  VZEFISignatureList, VZEFIVariableStore, VZErrorCode, VZFileHandleNetworkDeviceAttachment,
-  VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment, VZGenericMachineIdentifier,
-  VZGenericPlatformConfiguration, VZHostAudioInputStreamSource, VZHostAudioOutputStreamSink, VZLinuxBootLoader,
-  VZMACAddress, VZMacGraphicsDevice, VZMacGraphicsDeviceConfiguration, VZMacGraphicsDisplay,
-  VZMacGraphicsDisplayConfiguration, VZMacKeyboardConfiguration, VZMacTrackpadConfiguration, VZMultipleDirectoryShare,
-  VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration, VZNetworkBlockDeviceStorageDeviceAttachment,
-  VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare, VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration,
-  VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration, VZUSBPassthroughDevice,
-  VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
+  BridgedCGSize, BridgedNil, BridgedThrown, BridgedVZVirtualMachineViewAdaptor, VZBridgedNetworkDeviceAttachment,
+  VZBridgedNetworkInterface, VZDiskBlockDeviceStorageDeviceAttachment, VZDiskImageCachingMode,
+  VZDiskImageStorageDeviceAttachment, VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader,
+  VZEFISignatureDatabaseConfiguration, VZEFISignatureList, VZEFIVariableStore, VZErrorCode,
+  VZFileHandleNetworkDeviceAttachment, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment,
+  VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZHostAudioInputStreamSource,
+  VZHostAudioOutputStreamSink, VZLinuxBootLoader, VZMACAddress, VZMacGraphicsDevice, VZMacGraphicsDeviceConfiguration,
+  VZMacGraphicsDisplay, VZMacGraphicsDisplayConfiguration, VZMacKeyboardConfiguration, VZMacTrackpadConfiguration,
+  VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration,
+  VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
+  VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration, VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration,
+  VZUSBPassthroughDevice, VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
   VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice, VZVirtioConsoleDeviceConfiguration,
   VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort, VZVirtioConsolePortArray,
   VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioEntropyDeviceConfiguration,
@@ -77,13 +77,14 @@ pub use self::ffi::{
   VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener, VZVirtioSoundDeviceConfiguration,
   VZVirtioSoundDeviceInputStreamConfiguration, VZVirtioSoundDeviceOutputStreamConfiguration,
   VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
-  VZVirtualMachineConfiguration, VZVirtualMachineState, VZVmnetNetworkDeviceAttachment, VZXHCIController,
-  VZXHCIControllerConfiguration, vz_efi_boot_loader_init, vz_efi_variable_store_initialization_options_allow_overwrite,
-  vz_error_code_init_raw_value, vz_error_code_raw_value, vz_error_domain, vz_generic_machine_identifier_init,
-  vz_generic_platform_configuration_init, vz_generic_platform_configuration_is_nested_virtualization_supported,
-  vz_host_audio_input_stream_source_init, vz_host_audio_output_stream_sink_init,
-  vz_mac_address_random_locally_administered, vz_mac_graphics_device_configuration_init,
-  vz_mac_graphics_display_configuration_init, vz_mac_keyboard_configuration_init, vz_mac_trackpad_configuration_init,
+  VZVirtualMachineConfiguration, VZVirtualMachineState, VZVirtualMachineView, VZVmnetNetworkDeviceAttachment,
+  VZXHCIController, VZXHCIControllerConfiguration, vz_efi_boot_loader_init,
+  vz_efi_variable_store_initialization_options_allow_overwrite, vz_error_code_init_raw_value, vz_error_code_raw_value,
+  vz_error_domain, vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
+  vz_generic_platform_configuration_is_nested_virtualization_supported, vz_host_audio_input_stream_source_init,
+  vz_host_audio_output_stream_sink_init, vz_mac_address_random_locally_administered,
+  vz_mac_graphics_device_configuration_init, vz_mac_graphics_display_configuration_init,
+  vz_mac_keyboard_configuration_init, vz_mac_trackpad_configuration_init,
   vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
   vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
   vz_spice_agent_port_attachment_init, vz_spice_agent_port_attachment_spice_agent_port_name,
@@ -355,6 +356,37 @@ mod ffi {
     fn vz_set_label(self: &VZVirtualMachineConfiguration, label: Option<&str>);
     fn vz_validate(self: &VZVirtualMachineConfiguration) -> Result<(), BridgedThrown>;
     fn vz_validate_save_restore_support(self: &VZVirtualMachineConfiguration) -> Result<(), BridgedThrown>;
+  }
+
+  // VirtualMachineView.swift
+
+  extern "Swift" {
+    type VZVirtualMachineView;
+
+    fn vz_virtual_machine_view_init() -> VZVirtualMachineView;
+    fn bridge_retained(self: &VZVirtualMachineView) -> VZVirtualMachineView;
+    fn bridge_borrowed(self: &VZVirtualMachineView) -> *const c_void;
+    fn ns_description(self: &VZVirtualMachineView) -> String;
+    fn vz_virtual_machine(self: &VZVirtualMachineView) -> Result<VZVirtualMachine, BridgedNil>;
+    fn vz_set_virtual_machine(self: &VZVirtualMachineView, virtual_machine: VZVirtualMachine);
+    fn bridge_set_virtual_machine_nil(self: &VZVirtualMachineView);
+    fn vz_captures_system_keys(self: &VZVirtualMachineView) -> bool;
+    fn vz_set_captures_system_keys(self: &VZVirtualMachineView, captures_system_keys: bool);
+    fn vz_automatically_reconfigures_display(self: &VZVirtualMachineView) -> bool;
+    fn vz_set_automatically_reconfigures_display(self: &VZVirtualMachineView, automatically_reconfigures_display: bool);
+    fn vz_adaptor(self: &VZVirtualMachineView) -> Result<BridgedVZVirtualMachineViewAdaptor, BridgedNil>;
+    fn vz_set_adaptor(self: &VZVirtualMachineView, adaptor: BridgedVZVirtualMachineViewAdaptor);
+    fn bridge_set_adaptor_nil(self: &VZVirtualMachineView);
+  }
+
+  extern "Swift" {
+    type BridgedVZVirtualMachineViewAdaptor;
+
+    fn vz_virtual_machine_view_adaptor_init_virtual_machine(
+      virtual_machine: VZVirtualMachine,
+    ) -> BridgedVZVirtualMachineViewAdaptor;
+    fn bridge_retained(self: &BridgedVZVirtualMachineViewAdaptor) -> BridgedVZVirtualMachineViewAdaptor;
+    fn bridge_description(self: &BridgedVZVirtualMachineViewAdaptor) -> String;
   }
 
   // BootLoader/LinuxBootLoader.swift
@@ -2209,6 +2241,26 @@ impl VZVirtualMachineConfiguration {
       borrowed(&*ns_array(usb_controllers)),
     );
   }
+}
+
+// VirtualMachineView.swift
+
+/// AppKit's view, made only on the main thread, which `mtm` proves.
+pub fn vz_virtual_machine_view_init(_mtm: MainThreadMarker) -> VZVirtualMachineView {
+  ffi::vz_virtual_machine_view_init()
+}
+
+// SAFETY: Apple declares `VZVirtualMachineViewAdaptor` `Sendable`, and the
+// class that carries it holds only it.
+unsafe impl Send for BridgedVZVirtualMachineViewAdaptor {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for BridgedVZVirtualMachineViewAdaptor {}
+
+pub fn vz_virtual_machine_view_adaptor_init_virtual_machine(
+  virtual_machine: &VZVirtualMachine,
+) -> BridgedVZVirtualMachineViewAdaptor {
+  ffi::vz_virtual_machine_view_adaptor_init_virtual_machine(virtual_machine.bridge_retained())
 }
 
 // BootLoader/LinuxBootLoader.swift

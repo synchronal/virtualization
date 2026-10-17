@@ -9,6 +9,10 @@ impl MainThreadMarker {
   pub(crate) fn new() -> Option<MainThreadMarker> {
     unreachable!("{GUARDED}")
   }
+
+  pub(crate) fn never(&self) -> ! {
+    match self.never {}
+  }
 }
 
 pub(crate) struct NSScreen {

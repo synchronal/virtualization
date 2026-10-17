@@ -22,3 +22,7 @@ name = "ns_screen"
 [[test]]
 harness = false
 name = "mac_graphics_display_configuration"
+
+[[test]]
+harness = false
+name = "virtual_machine_view"

@@ -19,6 +19,7 @@ mod security;
 mod serial_port;
 mod storage;
 mod virtual_machine;
+mod virtual_machine_view;
 
 pub(crate) use self::app_kit::*;
 pub(crate) use self::boot_loader::*;
@@ -33,6 +34,7 @@ pub(crate) use self::security::*;
 pub(crate) use self::serial_port::*;
 pub(crate) use self::storage::*;
 pub(crate) use self::virtual_machine::*;
+pub(crate) use self::virtual_machine_view::*;
 
 #[derive(Clone, Copy)]
 pub(crate) enum Never {}

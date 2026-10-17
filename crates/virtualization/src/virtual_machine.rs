@@ -19,7 +19,7 @@ use crate::{
 /// to avoid, as in Swift. Completion handlers and the delegate are called on
 /// that queue.
 pub struct VirtualMachine {
-  inner: ffi::VZVirtualMachine,
+  pub(crate) inner: ffi::VZVirtualMachine,
 }
 
 impl VirtualMachine {
