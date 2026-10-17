@@ -2,11 +2,9 @@ use std::fmt;
 
 use crate::platform::{self, ffi};
 use crate::sealed::Sealed;
-use crate::{Error, GraphicsDisplayConfiguration};
+use crate::{CGSize, Error, GraphicsDisplayConfiguration, NSScreen};
 
 /// [`VZMacGraphicsDisplayConfiguration`](https://developer.apple.com/documentation/virtualization/vzmacgraphicsdisplayconfiguration)
-///
-/// `init(for:sizeInPoints:)` takes an AppKit `NSScreen`, so isn't bridged.
 pub struct MacGraphicsDisplayConfiguration {
   pub(crate) inner: ffi::VZMacGraphicsDisplayConfiguration,
 }
@@ -18,6 +16,16 @@ impl MacGraphicsDisplayConfiguration {
 
     Ok(Self {
       inner: ffi::vz_mac_graphics_display_configuration_init(width_in_pixels, height_in_pixels, pixels_per_inch),
+    })
+  }
+
+  /// [`init(for:sizeInPoints:)`](https://developer.apple.com/documentation/virtualization/vzmacgraphicsdisplayconfiguration/init(for:sizeinpoints:)).
+  /// `NSSize` is a `CGSize`.
+  pub fn with_for_and_size_in_points(screen: &NSScreen, size_in_points: CGSize) -> Result<Self, Error> {
+    platform::supported()?;
+
+    Ok(Self {
+      inner: ffi::vz_mac_graphics_display_configuration_init_for_size_in_points(&screen.inner, size_in_points.into()),
     })
   }
 

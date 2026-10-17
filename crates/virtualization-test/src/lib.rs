@@ -18,10 +18,11 @@ use virtualization::url::Url;
 use virtualization::vmnet::{Mode, Network, NetworkConfiguration};
 use virtualization::{
   DiskImageStorageDeviceAttachment, EFIVariableStore, EFIVariableStoreInitializationOptions, Error,
-  FileHandleSerialPortAttachment, LinuxBootLoader, NSError, NetworkDeviceConfiguration, SerialPortConfiguration,
-  USBMassStorageDevice, USBMassStorageDeviceConfiguration, VirtioConsoleDeviceSerialPortConfiguration,
-  VirtioNetworkDeviceConfiguration, VirtioSocketConnection, VirtioSocketDevice, VirtioSocketDeviceConfiguration,
-  VirtualMachine, VirtualMachineConfiguration, VmnetNetworkDeviceAttachment, XHCIController,
+  FileHandleSerialPortAttachment, LinuxBootLoader, MainThreadMarker, NSError, NetworkDeviceConfiguration,
+  SerialPortConfiguration, USBMassStorageDevice, USBMassStorageDeviceConfiguration,
+  VirtioConsoleDeviceSerialPortConfiguration, VirtioNetworkDeviceConfiguration, VirtioSocketConnection,
+  VirtioSocketDevice, VirtioSocketDeviceConfiguration, VirtualMachine, VirtualMachineConfiguration,
+  VmnetNetworkDeviceAttachment, XHCIController,
 };
 
 /// A path in the suites' scratch directory, named for the test that uses it.
@@ -879,5 +880,55 @@ pub fn ns_error<T: Debug>(result: Result<T, Error>) -> Box<NSError> {
   match result {
     Err(Error::NSError(error)) => error,
     other => panic!("expected Virtualization's error, got {other:?}"),
+  }
+}
+
+/// A test for `main_thread_tests`: its name and function.
+pub type MainThreadTest = (&'static str, fn(MainThreadMarker));
+
+/// Runs a suite's `tests` on the main thread, where AppKit's members run, for
+/// a suite built with `harness = false`: libtest runs each test on a thread of
+/// its own. Speaks as much of libtest's command line as nextest does: `--list
+/// --format terse` lists the tests (none of them ignored), and a name runs the
+/// tests it matches, or with `--exact`, the one it names. Exits nonzero if one
+/// panics.
+pub fn main_thread_tests(tests: &[MainThreadTest]) {
+  let arguments: Vec<String> = std::env::args().skip(1).collect();
+  let flag = |name: &str| arguments.iter().any(|argument| argument == name);
+
+  if flag("--list") {
+    if !flag("--ignored") {
+      for (name, _) in tests {
+        println!("{name}: test");
+      }
+    }
+    return;
+  }
+
+  let filter = arguments
+    .iter()
+    .find(|argument| !argument.starts_with("--"));
+  let mtm = MainThreadMarker::new()
+    .unwrap()
+    .expect("a suite's main runs on the main thread");
+  let mut failed = false;
+
+  for (name, test) in tests {
+    let runs = match filter {
+      None => true,
+      Some(filter) if flag("--exact") => name == filter,
+      Some(filter) => name.contains(filter.as_str()),
+    };
+
+    if runs {
+      let passed = std::panic::catch_unwind(|| test(mtm)).is_ok();
+
+      println!("test {name} ... {}", if passed { "ok" } else { "FAILED" });
+      failed |= !passed;
+    }
+  }
+
+  if failed {
+    std::process::exit(101);
   }
 }

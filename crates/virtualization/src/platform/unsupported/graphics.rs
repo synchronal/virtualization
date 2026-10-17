@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use super::{BridgedCGSize, BridgedThrown, GUARDED, NSObject, Never, Retained};
+use super::{BridgedCGSize, BridgedThrown, GUARDED, NSObject, NSScreen, Never, Retained};
 use crate::GraphicsDisplayObserver;
 
 pub(crate) fn vz_graphics_device_displays(this: &NSObject) -> Vec<Retained<NSObject>> {
@@ -476,6 +476,13 @@ pub(crate) fn vz_mac_graphics_display_configuration_init(
   _width_in_pixels: isize,
   _height_in_pixels: isize,
   _pixels_per_inch: isize,
+) -> VZMacGraphicsDisplayConfiguration {
+  unreachable!("{GUARDED}")
+}
+
+pub(crate) fn vz_mac_graphics_display_configuration_init_for_size_in_points(
+  _screen: &NSScreen,
+  _size_in_points: BridgedCGSize,
 ) -> VZMacGraphicsDisplayConfiguration {
   unreachable!("{GUARDED}")
 }

@@ -26,6 +26,8 @@
 //!   [`io_usb_host`]'s, re-exported. Security's
 //!   `SecCertificate` is [`SecCertificate`], made from and read as its DER
 //!   bytes. Core Graphics' `CGSize` is [`CGSize`], its `width` and `height`.
+//!   AppKit's `NSScreen` is [`NSScreen`], from `screens` and `main`, which
+//!   take a [`MainThreadMarker`]: they're `@MainActor`.
 //! - An enum has an `Unknown(rawValue)` case, for one newer than this crate.
 //! - Initializers, class members, throwing members, and members that take or
 //!   return a URL return `Result<_, Error>`.
@@ -35,6 +37,7 @@
 //!
 //! [Virtualization]: https://developer.apple.com/documentation/virtualization
 
+mod app_kit;
 mod boot_loader;
 mod core_graphics;
 mod directory_sharing;
@@ -54,6 +57,7 @@ mod virtual_machine_configuration;
 pub use accessory_access::io_usb_host;
 pub use {accessory_access, disk_image_kit, dispatch2, url, uuid, vmnet};
 
+pub use crate::app_kit::{MainThreadMarker, NSScreen};
 pub use crate::boot_loader::{
   BootLoader, EFIBootLoader, EFISignature, EFISignatureDatabaseConfiguration, EFISignatureList, EFIVariableStore,
   EFIVariableStoreInitializationOptions, GenericMachineIdentifier, GenericPlatformConfiguration, LinuxBootLoader,

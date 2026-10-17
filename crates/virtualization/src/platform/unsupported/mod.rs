@@ -6,6 +6,7 @@
 //! fails first. (Empty enums instead would make rustc warn that code after
 //! every entry point call is unreachable.)
 
+mod app_kit;
 mod boot_loader;
 mod core_graphics;
 mod directory_sharing;
@@ -18,6 +19,7 @@ mod serial_port;
 mod storage;
 mod virtual_machine;
 
+pub(crate) use self::app_kit::*;
 pub(crate) use self::boot_loader::*;
 pub(crate) use self::core_graphics::*;
 pub(crate) use self::directory_sharing::*;
@@ -30,6 +32,7 @@ pub(crate) use self::serial_port::*;
 pub(crate) use self::storage::*;
 pub(crate) use self::virtual_machine::*;
 
+#[derive(Clone, Copy)]
 pub(crate) enum Never {}
 
 const GUARDED: &str = "an entry point called a stand-in without checking `platform::supported`";

@@ -48,6 +48,7 @@ foundation-sys = { path = "crates/foundation-sys", version = "0.1.0" }
 io-usb-host = { path = "crates/io-usb-host", version = "0.1.0" }
 io-usb-host-sys = { path = "crates/io-usb-host-sys", version = "0.1.0" }
 objc2 = { version = "0.6.4", default-features = false, features = ["std"] }
+objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "NSScreen"] }
 objc2-foundation = { version = "0.3.2", default-features = false, features = [
   "std",
   "NSArray",

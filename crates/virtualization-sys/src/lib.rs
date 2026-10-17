@@ -632,6 +632,10 @@ mod ffi {
       height_in_pixels: isize,
       pixels_per_inch: isize,
     ) -> VZMacGraphicsDisplayConfiguration;
+    fn vz_mac_graphics_display_configuration_init_for_size_in_points(
+      screen: *const c_void,
+      size_in_points: BridgedCGSize,
+    ) -> VZMacGraphicsDisplayConfiguration;
     fn vz_mac_graphics_display_configuration_bridge_from(object: *const c_void) -> VZMacGraphicsDisplayConfiguration;
     fn bridge_retained(self: &VZMacGraphicsDisplayConfiguration) -> VZMacGraphicsDisplayConfiguration;
     fn bridge_borrowed(self: &VZMacGraphicsDisplayConfiguration) -> *const c_void;
@@ -1654,6 +1658,45 @@ impl SecCertificate {
   }
 }
 
+// AppKit, through objc2-app-kit: no Swift.
+
+/// Proof of being on the main thread, where AppKit's `@MainActor` members
+/// are called.
+pub use objc2::MainThreadMarker;
+
+/// [`NSScreen`](https://developer.apple.com/documentation/appkit/nsscreen),
+/// which `VZMacGraphicsDisplayConfiguration` is made for. An objc2 object,
+/// not an opaque Swift type: AppKit's classes come from objc2-app-kit.
+pub struct NSScreen {
+  object: Retained<objc2_app_kit::NSScreen>,
+}
+
+/// [`screens`](https://developer.apple.com/documentation/appkit/nsscreen/screens)
+pub fn ns_screen_screens(mtm: MainThreadMarker) -> Vec<NSScreen> {
+  objc2_app_kit::NSScreen::screens(mtm)
+    .to_vec()
+    .into_iter()
+    .map(|object| NSScreen { object })
+    .collect()
+}
+
+/// [`main`](https://developer.apple.com/documentation/appkit/nsscreen/main)
+pub fn ns_screen_main(mtm: MainThreadMarker) -> Option<NSScreen> {
+  objc2_app_kit::NSScreen::mainScreen(mtm).map(|object| NSScreen { object })
+}
+
+impl NSScreen {
+  pub fn bridge_retained(&self) -> Self {
+    Self {
+      object: self.object.clone(),
+    }
+  }
+
+  pub fn ns_description(&self) -> String {
+    ns_description(&self.object)
+  }
+}
+
 // VirtualMachine.swift
 
 pub fn vz_virtual_machine_init(configuration: &VZVirtualMachineConfiguration) -> VZVirtualMachine {
@@ -2668,6 +2711,13 @@ impl VZMacGraphicsDisplay {
 }
 
 // Graphics/MacGraphicsDisplayConfiguration.swift
+
+pub fn vz_mac_graphics_display_configuration_init_for_size_in_points(
+  screen: &NSScreen,
+  size_in_points: BridgedCGSize,
+) -> VZMacGraphicsDisplayConfiguration {
+  ffi::vz_mac_graphics_display_configuration_init_for_size_in_points(borrowed(&*screen.object), size_in_points)
+}
 
 pub fn vz_mac_graphics_display_configuration_bridge_cast(
   object: &NSObject,

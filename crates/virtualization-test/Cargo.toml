@@ -13,3 +13,12 @@ virtualization.workspace = true
 
 [lints.rust]
 unsafe_code = "forbid"
+
+# AppKit's members run on the main thread, where libtest runs no test.
+[[test]]
+harness = false
+name = "ns_screen"
+
+[[test]]
+harness = false
+name = "mac_graphics_display_configuration"

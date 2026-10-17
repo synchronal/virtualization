@@ -1,11 +1,11 @@
 //===----------------------------------------------------------------------===//
-// `VZMacGraphicsDisplayConfiguration`. `init(for:sizeInPoints:)` takes an
-// AppKit `NSScreen`, so isn't bridged.
+// `VZMacGraphicsDisplayConfiguration`.
 //===----------------------------------------------------------------------===//
 
 // Function names are Rust's, which are snake_case.
 // swift-format-ignore-file: AlwaysUseLowerCamelCase
 
+import AppKit
 import Virtualization
 
 func vz_mac_graphics_display_configuration_init(
@@ -18,6 +18,14 @@ func vz_mac_graphics_display_configuration_init(
     heightInPixels: height_in_pixels,
     pixelsPerInch: pixels_per_inch
   )
+}
+
+/// `screen` is an `NSScreen`, lent for the call.
+func vz_mac_graphics_display_configuration_init_for_size_in_points(
+  screen: UnsafeRawPointer,
+  size_in_points: BridgedCGSize
+) -> VZMacGraphicsDisplayConfiguration {
+  VZMacGraphicsDisplayConfiguration(for: bridging(borrowed: screen), sizeInPoints: CGSize(size_in_points))
 }
 
 /// An element of an array of them, which Rust holds.
