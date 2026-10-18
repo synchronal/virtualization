@@ -73,6 +73,12 @@ func bridging(retainedError result: Result<Void, any Error>) -> UInt {
   return bridging(retainedError: error)
 }
 
+/// A value Swift's concurrency checking can't see is safe to send: a
+/// swift-bridge closure, which Rust declares `Send`.
+struct Bridged<T>: @unchecked Sendable {
+  let value: T
+}
+
 extension BridgedNil: @unchecked Sendable, Error {}
 
 /// A Swift optional of an opaque type, as swift-bridge can return it.
@@ -108,4 +114,11 @@ func bridge_take_thrown_error() -> UnsafeMutableRawPointer {
   let error = Thread.current.threadDictionary[thrownErrorKey] as! NSError
   Thread.current.threadDictionary.removeObject(forKey: thrownErrorKey)
   return bridging(retained: error)
+}
+
+extension BridgedOperatingSystemVersion {
+  init(_ version: OperatingSystemVersion) {
+    self.init(
+      major_version: version.majorVersion, minor_version: version.minorVersion, patch_version: version.patchVersion)
+  }
 }

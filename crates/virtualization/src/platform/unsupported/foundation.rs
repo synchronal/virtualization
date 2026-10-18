@@ -4,6 +4,12 @@ pub(crate) type BridgedNil = Never;
 
 pub(crate) type BridgedThrown = Never;
 
+pub(crate) struct BridgedOperatingSystemVersion {
+  pub(crate) major_version: isize,
+  pub(crate) minor_version: isize,
+  pub(crate) patch_version: isize,
+}
+
 /// objc2's `Retained<T>`.
 pub(crate) struct Retained<T> {
   object: T,

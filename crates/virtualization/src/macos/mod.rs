@@ -1,0 +1,21 @@
+mod mac_auxiliary_storage;
+mod mac_guest_provisioning_options;
+mod mac_hardware_model;
+mod mac_machine_identifier;
+mod mac_platform_configuration;
+mod macos_boot_loader;
+mod macos_configuration_requirements;
+mod macos_installer;
+mod macos_restore_image;
+mod macos_virtual_machine_start_options;
+
+pub use self::mac_auxiliary_storage::{MacAuxiliaryStorage, MacAuxiliaryStorageInitializationOptions};
+pub use self::mac_guest_provisioning_options::MacGuestProvisioningOptions;
+pub use self::mac_hardware_model::MacHardwareModel;
+pub use self::mac_machine_identifier::MacMachineIdentifier;
+pub use self::mac_platform_configuration::MacPlatformConfiguration;
+pub use self::macos_boot_loader::MacOSBootLoader;
+pub use self::macos_configuration_requirements::MacOSConfigurationRequirements;
+pub use self::macos_installer::MacOSInstaller;
+pub use self::macos_restore_image::MacOSRestoreImage;
+pub use self::macos_virtual_machine_start_options::MacOSVirtualMachineStartOptions;

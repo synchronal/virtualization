@@ -56,18 +56,21 @@ use foundation_sys::objc::{
 };
 
 pub use self::ffi::{
-  BridgedCGSize, BridgedNil, BridgedThrown, BridgedVZVirtualMachineViewAdaptor, VZBridgedNetworkDeviceAttachment,
-  VZBridgedNetworkInterface, VZDiskBlockDeviceStorageDeviceAttachment, VZDiskImageCachingMode,
-  VZDiskImageStorageDeviceAttachment, VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader,
-  VZEFISignatureDatabaseConfiguration, VZEFISignatureList, VZEFIVariableStore, VZErrorCode,
-  VZFileHandleNetworkDeviceAttachment, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment,
-  VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZHostAudioInputStreamSource,
-  VZHostAudioOutputStreamSink, VZLinuxBootLoader, VZMACAddress, VZMacGraphicsDevice, VZMacGraphicsDeviceConfiguration,
-  VZMacGraphicsDisplay, VZMacGraphicsDisplayConfiguration, VZMacKeyboardConfiguration, VZMacTrackpadConfiguration,
-  VZMultipleDirectoryShare, VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration,
-  VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
-  VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration, VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration,
-  VZUSBPassthroughDevice, VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
+  BridgedCGSize, BridgedNil, BridgedOperatingSystemVersion, BridgedThrown, BridgedVZVirtualMachineViewAdaptor,
+  VZBridgedNetworkDeviceAttachment, VZBridgedNetworkInterface, VZDiskBlockDeviceStorageDeviceAttachment,
+  VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment, VZDiskImageSynchronizationMode,
+  VZDiskSynchronizationMode, VZEFIBootLoader, VZEFISignatureDatabaseConfiguration, VZEFISignatureList,
+  VZEFIVariableStore, VZErrorCode, VZFileHandleNetworkDeviceAttachment, VZFileHandleSerialPortAttachment,
+  VZFileSerialPortAttachment, VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZHostAudioInputStreamSource,
+  VZHostAudioOutputStreamSink, VZLinuxBootLoader, VZMACAddress, VZMacAuxiliaryStorage, VZMacGraphicsDevice,
+  VZMacGraphicsDeviceConfiguration, VZMacGraphicsDisplay, VZMacGraphicsDisplayConfiguration,
+  VZMacGuestProvisioningOptions, VZMacHardwareModel, VZMacKeyboardConfiguration, VZMacMachineIdentifier,
+  VZMacOSBootLoader, VZMacOSConfigurationRequirements, VZMacOSInstaller, VZMacOSRestoreImage,
+  VZMacOSVirtualMachineStartOptions, VZMacPlatformConfiguration, VZMacTrackpadConfiguration, VZMultipleDirectoryShare,
+  VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration, VZNetworkBlockDeviceStorageDeviceAttachment,
+  VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare, VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration,
+  VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration, VZUSBPassthroughDevice,
+  VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
   VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice, VZVirtioConsoleDeviceConfiguration,
   VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort, VZVirtioConsolePortArray,
   VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioEntropyDeviceConfiguration,
@@ -83,8 +86,10 @@ pub use self::ffi::{
   vz_error_domain, vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
   vz_generic_platform_configuration_is_nested_virtualization_supported, vz_host_audio_input_stream_source_init,
   vz_host_audio_output_stream_sink_init, vz_mac_address_random_locally_administered,
-  vz_mac_graphics_device_configuration_init, vz_mac_graphics_display_configuration_init,
-  vz_mac_keyboard_configuration_init, vz_mac_trackpad_configuration_init,
+  vz_mac_auxiliary_storage_initialization_options_allow_overwrite, vz_mac_graphics_device_configuration_init,
+  vz_mac_graphics_display_configuration_init, vz_mac_guest_provisioning_options_init,
+  vz_mac_keyboard_configuration_init, vz_mac_machine_identifier_init, vz_mac_platform_configuration_init,
+  vz_mac_trackpad_configuration_init, vz_macos_boot_loader_init, vz_macos_virtual_machine_start_options_init,
   vz_multiple_directory_share_canonicalized_name, vz_multiple_directory_share_init,
   vz_multiple_directory_share_validate_name, vz_nat_network_device_attachment_init,
   vz_spice_agent_port_attachment_init, vz_spice_agent_port_attachment_spice_agent_port_name,
@@ -125,6 +130,13 @@ mod ffi {
 
   extern "Swift" {
     fn bridge_take_thrown_error() -> *mut c_void;
+  }
+
+  #[swift_bridge(swift_repr = "struct")]
+  struct BridgedOperatingSystemVersion {
+    major_version: isize,
+    minor_version: isize,
+    patch_version: isize,
   }
 
   // Error.swift
@@ -387,6 +399,12 @@ mod ffi {
     ) -> BridgedVZVirtualMachineViewAdaptor;
     fn bridge_retained(self: &BridgedVZVirtualMachineViewAdaptor) -> BridgedVZVirtualMachineViewAdaptor;
     fn bridge_description(self: &BridgedVZVirtualMachineViewAdaptor) -> String;
+  }
+
+  // GuestProvisioningOptions.swift
+
+  extern "Swift" {
+    fn vz_guest_provisioning_options_validate(this: *const c_void) -> Result<(), BridgedThrown>;
   }
 
   // BootLoader/LinuxBootLoader.swift
@@ -910,6 +928,184 @@ mod ffi {
       this: VZVirtioSoundDeviceOutputStreamConfiguration,
       sink: usize,
     );
+  }
+
+  // MacOS/MacAuxiliaryStorage.swift
+
+  extern "Swift" {
+    type VZMacAuxiliaryStorage;
+
+    fn vz_mac_auxiliary_storage_init(url: *const c_void) -> VZMacAuxiliaryStorage;
+    fn vz_mac_auxiliary_storage_init_creating_storage_at_hardware_model_options(
+      url: *const c_void,
+      hardware_model: VZMacHardwareModel,
+      options: usize,
+    ) -> Result<VZMacAuxiliaryStorage, BridgedThrown>;
+    fn vz_mac_auxiliary_storage_initialization_options_allow_overwrite() -> usize;
+    fn bridge_retained(self: &VZMacAuxiliaryStorage) -> VZMacAuxiliaryStorage;
+    fn ns_description(self: &VZMacAuxiliaryStorage) -> String;
+    fn vz_mac_auxiliary_storage_url(this: VZMacAuxiliaryStorage) -> *mut c_void;
+  }
+
+  // MacOS/MacGuestProvisioningOptions.swift
+
+  extern "Swift" {
+    type VZMacGuestProvisioningOptions;
+
+    fn vz_mac_guest_provisioning_options_init() -> VZMacGuestProvisioningOptions;
+    fn bridge_retained(self: &VZMacGuestProvisioningOptions) -> VZMacGuestProvisioningOptions;
+    fn bridge_borrowed(self: &VZMacGuestProvisioningOptions) -> *const c_void;
+    fn vz_mac_guest_provisioning_options_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZMacGuestProvisioningOptions, BridgedNil>;
+    fn ns_description(self: &VZMacGuestProvisioningOptions) -> String;
+    fn vz_full_name(self: &VZMacGuestProvisioningOptions) -> String;
+    fn vz_set_full_name(self: &VZMacGuestProvisioningOptions, full_name: &str);
+    fn vz_username(self: &VZMacGuestProvisioningOptions) -> String;
+    fn vz_set_username(self: &VZMacGuestProvisioningOptions, username: &str);
+    fn vz_password(self: &VZMacGuestProvisioningOptions) -> String;
+    fn vz_set_password(self: &VZMacGuestProvisioningOptions, password: &str);
+    fn vz_logs_in_automatically(self: &VZMacGuestProvisioningOptions) -> bool;
+    fn vz_set_logs_in_automatically(self: &VZMacGuestProvisioningOptions, logs_in_automatically: bool);
+    fn vz_enables_remote_login(self: &VZMacGuestProvisioningOptions) -> bool;
+    fn vz_set_enables_remote_login(self: &VZMacGuestProvisioningOptions, enables_remote_login: bool);
+  }
+
+  // MacOS/MacHardwareModel.swift
+
+  extern "Swift" {
+    type VZMacHardwareModel;
+
+    fn vz_mac_hardware_model_init_data_representation(
+      data_representation: *const c_void,
+    ) -> Result<VZMacHardwareModel, BridgedNil>;
+    fn bridge_retained(self: &VZMacHardwareModel) -> VZMacHardwareModel;
+    fn ns_description(self: &VZMacHardwareModel) -> String;
+    fn vz_mac_hardware_model_data_representation(this: VZMacHardwareModel) -> *mut c_void;
+    fn vz_is_supported(self: &VZMacHardwareModel) -> bool;
+  }
+
+  // MacOS/MacMachineIdentifier.swift
+
+  extern "Swift" {
+    type VZMacMachineIdentifier;
+
+    fn vz_mac_machine_identifier_init() -> VZMacMachineIdentifier;
+    fn vz_mac_machine_identifier_init_data_representation(
+      data_representation: *const c_void,
+    ) -> Result<VZMacMachineIdentifier, BridgedNil>;
+    fn bridge_retained(self: &VZMacMachineIdentifier) -> VZMacMachineIdentifier;
+    fn ns_description(self: &VZMacMachineIdentifier) -> String;
+    fn ns_is_equal(self: &VZMacMachineIdentifier, object: VZMacMachineIdentifier) -> bool;
+    fn vz_mac_machine_identifier_data_representation(this: VZMacMachineIdentifier) -> *mut c_void;
+  }
+
+  // MacOS/MacOSBootLoader.swift
+
+  extern "Swift" {
+    type VZMacOSBootLoader;
+
+    fn vz_macos_boot_loader_init() -> VZMacOSBootLoader;
+    fn bridge_retained(self: &VZMacOSBootLoader) -> VZMacOSBootLoader;
+    fn bridge_borrowed(self: &VZMacOSBootLoader) -> *const c_void;
+    fn vz_macos_boot_loader_bridge_cast(object: *const c_void) -> Result<VZMacOSBootLoader, BridgedNil>;
+    fn ns_description(self: &VZMacOSBootLoader) -> String;
+  }
+
+  // MacOS/MacOSConfigurationRequirements.swift
+
+  extern "Swift" {
+    type VZMacOSConfigurationRequirements;
+
+    fn bridge_retained(self: &VZMacOSConfigurationRequirements) -> VZMacOSConfigurationRequirements;
+    fn ns_description(self: &VZMacOSConfigurationRequirements) -> String;
+    fn vz_hardware_model(self: &VZMacOSConfigurationRequirements) -> VZMacHardwareModel;
+    fn vz_minimum_supported_cpu_count(self: &VZMacOSConfigurationRequirements) -> isize;
+    fn vz_minimum_supported_memory_size(self: &VZMacOSConfigurationRequirements) -> u64;
+  }
+
+  // MacOS/MacOSInstaller.swift
+
+  extern "Swift" {
+    type VZMacOSInstaller;
+
+    fn vz_macos_installer_init_restoring_from_image_at(
+      virtual_machine: VZVirtualMachine,
+      restore_image_file_url: *const c_void,
+    ) -> VZMacOSInstaller;
+    fn bridge_retained(self: &VZMacOSInstaller) -> VZMacOSInstaller;
+    fn ns_description(self: &VZMacOSInstaller) -> String;
+    fn vz_macos_installer_install(this: VZMacOSInstaller, completion_handler: Box<dyn FnOnce(usize)>);
+    fn vz_macos_installer_progress(this: VZMacOSInstaller) -> *const c_void;
+    fn vz_virtual_machine(self: &VZMacOSInstaller) -> VZVirtualMachine;
+    fn vz_macos_installer_restore_image_url(this: VZMacOSInstaller) -> *mut c_void;
+  }
+
+  // MacOS/MacOSRestoreImage.swift
+
+  extern "Swift" {
+    type VZMacOSRestoreImage;
+
+    fn vz_macos_restore_image_bridge_from(object: *const c_void) -> VZMacOSRestoreImage;
+    fn bridge_retained(self: &VZMacOSRestoreImage) -> VZMacOSRestoreImage;
+    fn ns_description(self: &VZMacOSRestoreImage) -> String;
+    fn vz_macos_restore_image_load(file_url: *const c_void, completion_handler: Box<dyn FnOnce(usize, usize)>);
+    fn vz_macos_restore_image_fetch_latest_supported(completion_handler: Box<dyn FnOnce(usize, usize)>);
+    fn vz_is_supported(self: &VZMacOSRestoreImage) -> bool;
+    fn vz_macos_restore_image_url(this: VZMacOSRestoreImage) -> *mut c_void;
+    fn vz_build_version(self: &VZMacOSRestoreImage) -> String;
+    fn vz_operating_system_version(self: &VZMacOSRestoreImage) -> BridgedOperatingSystemVersion;
+    fn vz_most_featureful_supported_configuration(
+      self: &VZMacOSRestoreImage,
+    ) -> Result<VZMacOSConfigurationRequirements, BridgedNil>;
+  }
+
+  // MacOS/MacOSVirtualMachineStartOptions.swift
+
+  extern "Swift" {
+    type VZMacOSVirtualMachineStartOptions;
+
+    fn vz_macos_virtual_machine_start_options_init() -> VZMacOSVirtualMachineStartOptions;
+    fn bridge_retained(self: &VZMacOSVirtualMachineStartOptions) -> VZMacOSVirtualMachineStartOptions;
+    fn bridge_borrowed(self: &VZMacOSVirtualMachineStartOptions) -> *const c_void;
+    fn vz_macos_virtual_machine_start_options_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZMacOSVirtualMachineStartOptions, BridgedNil>;
+    fn ns_description(self: &VZMacOSVirtualMachineStartOptions) -> String;
+    fn vz_start_up_from_macos_recovery(self: &VZMacOSVirtualMachineStartOptions) -> bool;
+    fn vz_set_start_up_from_macos_recovery(
+      self: &VZMacOSVirtualMachineStartOptions,
+      start_up_from_macos_recovery: bool,
+    );
+    fn vz_guest_provisioning_options(
+      self: &VZMacOSVirtualMachineStartOptions,
+    ) -> Result<VZMacGuestProvisioningOptions, BridgedNil>;
+    fn vz_set_guest_provisioning(
+      self: &VZMacOSVirtualMachineStartOptions,
+      guest_provisioning_options: VZMacGuestProvisioningOptions,
+    ) -> Result<(), BridgedThrown>;
+    fn bridge_set_guest_provisioning_nil(self: &VZMacOSVirtualMachineStartOptions) -> Result<(), BridgedThrown>;
+  }
+
+  // MacOS/MacPlatformConfiguration.swift
+
+  extern "Swift" {
+    type VZMacPlatformConfiguration;
+
+    fn vz_mac_platform_configuration_init() -> VZMacPlatformConfiguration;
+    fn bridge_retained(self: &VZMacPlatformConfiguration) -> VZMacPlatformConfiguration;
+    fn bridge_borrowed(self: &VZMacPlatformConfiguration) -> *const c_void;
+    fn vz_mac_platform_configuration_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZMacPlatformConfiguration, BridgedNil>;
+    fn ns_description(self: &VZMacPlatformConfiguration) -> String;
+    fn vz_hardware_model(self: &VZMacPlatformConfiguration) -> VZMacHardwareModel;
+    fn vz_set_hardware_model(self: &VZMacPlatformConfiguration, hardware_model: VZMacHardwareModel);
+    fn vz_machine_identifier(self: &VZMacPlatformConfiguration) -> VZMacMachineIdentifier;
+    fn vz_set_machine_identifier(self: &VZMacPlatformConfiguration, machine_identifier: VZMacMachineIdentifier);
+    fn vz_auxiliary_storage(self: &VZMacPlatformConfiguration) -> Result<VZMacAuxiliaryStorage, BridgedNil>;
+    fn vz_set_auxiliary_storage(self: &VZMacPlatformConfiguration, auxiliary_storage: VZMacAuxiliaryStorage);
+    fn bridge_set_auxiliary_storage_nil(self: &VZMacPlatformConfiguration);
   }
 
   // Network/BridgedNetworkDeviceAttachment.swift
@@ -2263,6 +2459,13 @@ pub fn vz_virtual_machine_view_adaptor_init_virtual_machine(
   ffi::vz_virtual_machine_view_adaptor_init_virtual_machine(virtual_machine.bridge_retained())
 }
 
+// GuestProvisioningOptions.swift
+
+/// `this` is any `VZGuestProvisioningOptions`.
+pub fn vz_guest_provisioning_options_validate(this: &NSObject) -> Result<(), BridgedThrown> {
+  ffi::vz_guest_provisioning_options_validate(borrowed(this))
+}
+
 // BootLoader/LinuxBootLoader.swift
 
 pub fn vz_linux_boot_loader_init(kernel_url: &NSURL) -> VZLinuxBootLoader {
@@ -3044,6 +3247,216 @@ impl VZVirtioSoundDeviceOutputStreamConfiguration {
   /// `sink` is any `VZAudioOutputStreamSink`.
   pub fn vz_set_sink(&self, sink: Option<&NSObject>) {
     ffi::vz_virtio_sound_device_output_stream_configuration_set_sink(self.bridge_retained(), borrowed_or_nil(sink));
+  }
+}
+
+// MacOS/MacAuxiliaryStorage.swift
+
+pub fn vz_mac_auxiliary_storage_init(url: &NSURL) -> VZMacAuxiliaryStorage {
+  ffi::vz_mac_auxiliary_storage_init(borrowed(url))
+}
+
+/// `options` is a `VZMacAuxiliaryStorage.InitializationOptions`' raw value.
+pub fn vz_mac_auxiliary_storage_init_creating_storage_at_hardware_model_options(
+  url: &NSURL,
+  hardware_model: &VZMacHardwareModel,
+  options: usize,
+) -> Result<VZMacAuxiliaryStorage, BridgedThrown> {
+  ffi::vz_mac_auxiliary_storage_init_creating_storage_at_hardware_model_options(
+    borrowed(url),
+    hardware_model.bridge_retained(),
+    options,
+  )
+}
+
+impl VZMacAuxiliaryStorage {
+  pub fn vz_url(&self) -> Retained<NSURL> {
+    // SAFETY: `url`, a retained `NSURL`.
+    unsafe { retained(ffi::vz_mac_auxiliary_storage_url(self.bridge_retained())) }
+  }
+}
+
+// MacOS/MacGuestProvisioningOptions.swift
+
+// SAFETY: Apple declares `VZMacGuestProvisioningOptions` `Sendable`.
+unsafe impl Send for VZMacGuestProvisioningOptions {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for VZMacGuestProvisioningOptions {}
+
+pub fn vz_mac_guest_provisioning_options_bridge_cast(object: &NSObject) -> Option<VZMacGuestProvisioningOptions> {
+  ffi::vz_mac_guest_provisioning_options_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacGuestProvisioningOptions {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// MacOS/MacHardwareModel.swift
+
+/// `Data` is its bytes.
+pub fn vz_mac_hardware_model_init_data_representation(data_representation: &[u8]) -> Option<VZMacHardwareModel> {
+  ffi::vz_mac_hardware_model_init_data_representation(borrowed(&*ns_data(data_representation))).ok()
+}
+
+impl VZMacHardwareModel {
+  /// `Data` is its bytes.
+  pub fn vz_data_representation(&self) -> Vec<u8> {
+    // SAFETY: `dataRepresentation`, a retained `NSData`.
+    let data: Retained<NSData> =
+      unsafe { retained(ffi::vz_mac_hardware_model_data_representation(self.bridge_retained())) };
+
+    ns_data_bytes(&data)
+  }
+}
+
+// MacOS/MacMachineIdentifier.swift
+
+/// `Data` is its bytes.
+pub fn vz_mac_machine_identifier_init_data_representation(
+  data_representation: &[u8],
+) -> Option<VZMacMachineIdentifier> {
+  ffi::vz_mac_machine_identifier_init_data_representation(borrowed(&*ns_data(data_representation))).ok()
+}
+
+impl VZMacMachineIdentifier {
+  /// `Data` is its bytes.
+  pub fn vz_data_representation(&self) -> Vec<u8> {
+    // SAFETY: `dataRepresentation`, a retained `NSData`.
+    let data: Retained<NSData> = unsafe {
+      retained(ffi::vz_mac_machine_identifier_data_representation(
+        self.bridge_retained(),
+      ))
+    };
+
+    ns_data_bytes(&data)
+  }
+}
+
+// MacOS/MacOSBootLoader.swift
+
+pub fn vz_macos_boot_loader_bridge_cast(object: &NSObject) -> Option<VZMacOSBootLoader> {
+  ffi::vz_macos_boot_loader_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacOSBootLoader {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// MacOS/MacOSInstaller.swift
+
+/// Made on the machine's queue, as Virtualization requires.
+pub fn vz_macos_installer_init_restoring_from_image_at(
+  virtual_machine: &VZVirtualMachine,
+  restore_image_file_url: &NSURL,
+) -> VZMacOSInstaller {
+  ffi::vz_macos_installer_init_restoring_from_image_at(
+    virtual_machine.bridge_retained(),
+    borrowed(restore_image_file_url),
+  )
+}
+
+// SAFETY: as for `VZVirtualMachine`: Virtualization takes every call on an
+// installer on its machine's queue, which dispatch runs on any thread.
+// Calling it off that queue is the caller's to avoid, as in Swift.
+unsafe impl Send for VZMacOSInstaller {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for VZMacOSInstaller {}
+
+impl VZMacOSInstaller {
+  pub fn vz_install(&self, completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static) {
+    ffi::vz_macos_installer_install(self.bridge_retained(), bridge_completion_handler(completion_handler));
+  }
+
+  /// `progress`, a `Progress` (`NSProgress *`) the installer holds, which
+  /// stays valid as long as it.
+  pub fn vz_progress(&self) -> *const c_void {
+    ffi::vz_macos_installer_progress(self.bridge_retained())
+  }
+
+  pub fn vz_restore_image_url(&self) -> Retained<NSURL> {
+    // SAFETY: `restoreImageURL`, a retained `NSURL`.
+    unsafe { retained(ffi::vz_macos_installer_restore_image_url(self.bridge_retained())) }
+  }
+}
+
+// MacOS/MacOSRestoreImage.swift
+
+/// A completion handler as Swift calls it: with the restore image, then what
+/// failed, each by address, one of them `0`.
+fn bridge_restore_image_completion_handler(
+  completion_handler: impl FnOnce(Result<VZMacOSRestoreImage, Retained<NSError>>) + Send + 'static,
+) -> Box<dyn FnOnce(usize, usize)> {
+  Box::new(move |restore_image, error| {
+    // SAFETY: `bridging(retainedAddress:)`, a retained `VZMacOSRestoreImage`,
+    // or `0` when it failed.
+    let restore_image: Option<Retained<NSObject>> = unsafe { retained_or_nil(restore_image) };
+
+    completion_handler(match restore_image {
+      Some(restore_image) => Ok(ffi::vz_macos_restore_image_bridge_from(borrowed(&*restore_image))),
+      // SAFETY: `bridging(retainedError:)`, a retained `NSError`.
+      None => Err(unsafe { retained_or_nil(error) }.expect("Swift passes a restore image or an error")),
+    });
+  })
+}
+
+/// `completion_handler` is called on an arbitrary thread.
+pub fn vz_macos_restore_image_load(
+  file_url: &NSURL,
+  completion_handler: impl FnOnce(Result<VZMacOSRestoreImage, Retained<NSError>>) + Send + 'static,
+) {
+  ffi::vz_macos_restore_image_load(
+    borrowed(file_url),
+    bridge_restore_image_completion_handler(completion_handler),
+  );
+}
+
+/// `completion_handler` is called on an arbitrary thread.
+pub fn vz_macos_restore_image_fetch_latest_supported(
+  completion_handler: impl FnOnce(Result<VZMacOSRestoreImage, Retained<NSError>>) + Send + 'static,
+) {
+  ffi::vz_macos_restore_image_fetch_latest_supported(bridge_restore_image_completion_handler(completion_handler));
+}
+
+impl VZMacOSRestoreImage {
+  pub fn vz_url(&self) -> Retained<NSURL> {
+    // SAFETY: `url`, a retained `NSURL`.
+    unsafe { retained(ffi::vz_macos_restore_image_url(self.bridge_retained())) }
+  }
+}
+
+// MacOS/MacOSVirtualMachineStartOptions.swift
+
+pub fn vz_macos_virtual_machine_start_options_bridge_cast(
+  object: &NSObject,
+) -> Option<VZMacOSVirtualMachineStartOptions> {
+  ffi::vz_macos_virtual_machine_start_options_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacOSVirtualMachineStartOptions {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+}
+
+// MacOS/MacPlatformConfiguration.swift
+
+pub fn vz_mac_platform_configuration_bridge_cast(object: &NSObject) -> Option<VZMacPlatformConfiguration> {
+  ffi::vz_mac_platform_configuration_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZMacPlatformConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
   }
 }
 

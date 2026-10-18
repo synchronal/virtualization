@@ -1,5 +1,5 @@
 use virtualization::{ErrorCode, MacGraphicsDeviceConfiguration, MacGraphicsDisplayConfiguration};
-use virtualization_test::{linux_configuration, ns_error};
+use virtualization_test::{linux_configuration, macos_configuration, macos_requirements, ns_error};
 
 #[test]
 fn has_no_displays_when_new() {
@@ -44,6 +44,17 @@ fn fails_as_virtualization_does_to_validate_on_another_platform() {
     ErrorCode::InvalidVirtualMachineConfiguration,
     "{error:#?}"
   );
+}
+
+#[test]
+fn validates_on_the_macos_platform() {
+  let configuration = macos_configuration("validates_on_the_macos_platform", &macos_requirements());
+  let device = MacGraphicsDeviceConfiguration::new().unwrap();
+
+  device.set_displays(&[&MacGraphicsDisplayConfiguration::new(1920, 1080, 80).unwrap()]);
+  configuration.set_graphics_devices(&[&device]);
+
+  configuration.validate().unwrap();
 }
 
 #[test]

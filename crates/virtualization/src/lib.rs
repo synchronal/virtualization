@@ -7,15 +7,16 @@
 //!
 //! - Objects are shared references, as in Swift: [`Clone`] is the same
 //!   object, setters take `&self`, and nothing is `Send` or `Sync` but
-//!   [`VirtualMachine`], which moves onto its queue, and what Apple declares
-//!   `Sendable`. [`Debug`] is the object's `description`.
+//!   [`VirtualMachine`] and [`MacOSInstaller`], which move onto the machine's
+//!   queue, and what Apple declares `Sendable`. [`Debug`] is the object's `description`.
 //! - An abstract class is a sealed trait, implemented by its subclasses. A
 //!   member that returns one takes the subclass to cast it to, as Swift's
 //!   `as?`, and returns `None` when it is another. An array of one is a slice
 //!   of trait objects going in, and a `Vec` of each element cast coming out.
 //! - `URL` is [`url::Url`] and `UUID` is [`uuid::Uuid`], re-exported as
 //!   [`url`] and [`uuid`]; a dispatch queue is [`dispatch2`]'s, re-exported.
-//!   A `TimeInterval` is its seconds, an `f64`. A `FileHandle` is its descriptor: an
+//!   A `TimeInterval` is its seconds, an `f64`, and an `OperatingSystemVersion`
+//!   is [`OperatingSystemVersion`]. A `FileHandle` is its descriptor: an
 //!   [`OwnedFd`](std::os::fd::OwnedFd) going in, a
 //!   [`BorrowedFd`](std::os::fd::BorrowedFd) coming out.
 //! - A completion handler is a closure, called on the queue Virtualization
@@ -44,6 +45,8 @@ mod directory_sharing;
 mod error;
 mod foundation;
 mod graphics;
+mod guest_provisioning_options;
+mod macos;
 mod network;
 mod other_devices;
 mod platform;
@@ -70,6 +73,7 @@ pub use crate::directory_sharing::{
   SingleDirectoryShare, VirtioFileSystemDevice, VirtioFileSystemDeviceConfiguration,
 };
 pub use crate::error::{Error, ErrorCode, NSError, error_domain};
+pub use crate::foundation::OperatingSystemVersion;
 pub use crate::graphics::{
   AudioDeviceConfiguration, AudioInputStreamSource, AudioOutputStreamSink, GraphicsDevice, GraphicsDeviceConfiguration,
   GraphicsDisplay, GraphicsDisplayConfiguration, GraphicsDisplayObserver, HostAudioInputStreamSource,
@@ -79,6 +83,12 @@ pub use crate::graphics::{
   VirtioGraphicsDevice, VirtioGraphicsDeviceConfiguration, VirtioGraphicsScanout, VirtioGraphicsScanoutConfiguration,
   VirtioSoundDeviceConfiguration, VirtioSoundDeviceInputStreamConfiguration,
   VirtioSoundDeviceOutputStreamConfiguration, VirtioSoundDeviceStreamConfiguration,
+};
+pub use crate::guest_provisioning_options::GuestProvisioningOptions;
+pub use crate::macos::{
+  MacAuxiliaryStorage, MacAuxiliaryStorageInitializationOptions, MacGuestProvisioningOptions, MacHardwareModel,
+  MacMachineIdentifier, MacOSBootLoader, MacOSConfigurationRequirements, MacOSInstaller, MacOSRestoreImage,
+  MacOSVirtualMachineStartOptions, MacPlatformConfiguration,
 };
 pub use crate::network::{
   BridgedNetworkDeviceAttachment, BridgedNetworkInterface, FileHandleNetworkDeviceAttachment, MACAddress,

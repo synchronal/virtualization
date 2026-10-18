@@ -1,4 +1,5 @@
-//! Foundation's types across the bridge: `URL`, `UUID`, and thrown errors.
+//! Foundation's types across the bridge: `URL`, `UUID`, thrown errors, and
+//! `OperatingSystemVersion`.
 
 use url::Url;
 use uuid::Uuid;
@@ -39,4 +40,43 @@ pub(crate) fn error(error: &ffi::NSError) -> Error {
 /// What a completion handler was called with: an error, or `nil` for success.
 pub(crate) fn completed(error: Option<ffi::Retained<ffi::NSError>>) -> Result<(), Error> {
   error.map_or(Ok(()), |error| Err(self::error(&error)))
+}
+
+/// [`OperatingSystemVersion`](https://developer.apple.com/documentation/foundation/operatingsystemversion)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct OperatingSystemVersion {
+  pub major_version: isize,
+  pub minor_version: isize,
+  pub patch_version: isize,
+}
+
+impl From<ffi::BridgedOperatingSystemVersion> for OperatingSystemVersion {
+  fn from(version: ffi::BridgedOperatingSystemVersion) -> Self {
+    Self {
+      major_version: version.major_version,
+      minor_version: version.minor_version,
+      patch_version: version.patch_version,
+    }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn an_operating_system_version_keeps_each_part_from_virtualization_sys() {
+    assert_eq!(
+      OperatingSystemVersion::from(ffi::BridgedOperatingSystemVersion {
+        major_version: 27,
+        minor_version: 1,
+        patch_version: 2,
+      }),
+      OperatingSystemVersion {
+        major_version: 27,
+        minor_version: 1,
+        patch_version: 2,
+      }
+    );
+  }
 }

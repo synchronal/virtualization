@@ -18,8 +18,9 @@ use virtualization::url::Url;
 use virtualization::vmnet::{Mode, Network, NetworkConfiguration};
 use virtualization::{
   DiskImageStorageDeviceAttachment, EFIVariableStore, EFIVariableStoreInitializationOptions, Error,
-  FileHandleSerialPortAttachment, LinuxBootLoader, MainThreadMarker, NSError, NetworkDeviceConfiguration,
-  SerialPortConfiguration, USBMassStorageDevice, USBMassStorageDeviceConfiguration,
+  FileHandleSerialPortAttachment, LinuxBootLoader, MacAuxiliaryStorage, MacAuxiliaryStorageInitializationOptions,
+  MacHardwareModel, MacOSBootLoader, MacOSRestoreImage, MacPlatformConfiguration, MainThreadMarker, NSError,
+  NetworkDeviceConfiguration, SerialPortConfiguration, USBMassStorageDevice, USBMassStorageDeviceConfiguration,
   VirtioConsoleDeviceSerialPortConfiguration, VirtioNetworkDeviceConfiguration, VirtioSocketConnection,
   VirtioSocketDevice, VirtioSocketDeviceConfiguration, VirtualMachine, VirtualMachineConfiguration,
   VmnetNetworkDeviceAttachment, XHCIController,
@@ -374,6 +375,102 @@ pub fn linux_configuration(name: &str) -> VirtualMachineConfiguration {
   configuration.set_memory_size(512 * 1024 * 1024);
 
   configuration
+}
+
+/// Calls `load` with a completion handler, and waits for what `inspect` made
+/// of the restore image it was called with. `inspect` runs where
+/// Virtualization calls the handler: a restore image isn't `Send`, so stays on
+/// that thread.
+pub fn restore_image<T: Send + 'static>(
+  load: impl FnOnce(Box<dyn FnOnce(Result<MacOSRestoreImage, Error>) + Send>) -> Result<(), Error>,
+  inspect: impl FnOnce(Result<MacOSRestoreImage, Error>) -> T + Send + 'static,
+) -> T {
+  let (sender, receiver) = mpsc::channel();
+
+  load(Box::new(move |result| sender.send(inspect(result)).unwrap())).unwrap();
+
+  receiver.recv().unwrap()
+}
+
+/// What the latest macOS the host supports asks of a machine, as Apple's
+/// catalog lists it, fetched over the network.
+pub struct MacOSRequirements {
+  /// Its most featureful supported configuration's hardware model, as its
+  /// data representation.
+  pub hardware_model: Vec<u8>,
+  pub minimum_supported_cpu_count: isize,
+  pub minimum_supported_memory_size: u64,
+}
+
+/// `MacOSRequirements`, fetched.
+pub fn macos_requirements() -> MacOSRequirements {
+  restore_image(MacOSRestoreImage::fetch_latest_supported, |image| {
+    let requirements = image
+      .unwrap()
+      .most_featureful_supported_configuration()
+      .unwrap();
+
+    MacOSRequirements {
+      hardware_model: requirements.hardware_model().data_representation(),
+      minimum_supported_cpu_count: requirements.minimum_supported_cpu_count(),
+      minimum_supported_memory_size: requirements.minimum_supported_memory_size(),
+    }
+  })
+}
+
+/// The hardware model of `macos_requirements`.
+pub fn mac_hardware_model() -> MacHardwareModel {
+  MacHardwareModel::new(&macos_requirements().hardware_model)
+    .unwrap()
+    .unwrap()
+}
+
+/// New auxiliary storage for `hardware_model`, in the scratch directory.
+pub fn mac_auxiliary_storage(name: &str, hardware_model: &MacHardwareModel) -> MacAuxiliaryStorage {
+  MacAuxiliaryStorage::with_creating_storage_at_and_hardware_model_and_options(
+    &new_file_url(&format!("{name}.aux")),
+    hardware_model,
+    MacAuxiliaryStorageInitializationOptions::new(0),
+  )
+  .unwrap()
+}
+
+/// A macOS machine's configuration that validates, from `requirements`: its
+/// hardware model, new auxiliary storage, and its minimum CPUs and memory. It
+/// has no disk; it starts, with nothing to boot.
+pub fn macos_configuration(name: &str, requirements: &MacOSRequirements) -> VirtualMachineConfiguration {
+  let hardware_model = MacHardwareModel::new(&requirements.hardware_model)
+    .unwrap()
+    .unwrap();
+  let platform = MacPlatformConfiguration::new().unwrap();
+  let configuration = VirtualMachineConfiguration::new().unwrap();
+
+  platform.set_hardware_model(&hardware_model);
+  platform.set_auxiliary_storage(Some(&mac_auxiliary_storage(name, &hardware_model)));
+  configuration.set_boot_loader(Some(&MacOSBootLoader::new().unwrap()));
+  configuration.set_platform(&platform);
+  configuration.set_cpu_count(requirements.minimum_supported_cpu_count);
+  configuration.set_memory_size(requirements.minimum_supported_memory_size);
+
+  configuration
+}
+
+/// A machine from `macos_configuration`, made on its own queue. `configure`
+/// adds to the configuration before the machine is made from it.
+pub fn macos_machine(
+  name: &str,
+  configure: impl FnOnce(&VirtualMachineConfiguration) + Send,
+) -> (DispatchRetained<DispatchQueue>, VirtualMachine) {
+  let requirements = macos_requirements();
+  let queue = serial_queue(name);
+  let machine = on_queue(&queue, || {
+    let configuration = macos_configuration(name, &requirements);
+
+    configure(&configuration);
+    VirtualMachine::with_queue(&configuration, &queue).unwrap()
+  });
+
+  (queue, machine)
 }
 
 /// A machine booting the kernel `bin/dev/prepare-integration` downloaded,
