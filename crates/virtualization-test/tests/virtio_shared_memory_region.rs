@@ -114,6 +114,35 @@ fn maps_and_unmaps_memory() {
   assert_eq!(reported, ["mapped:Ok(())", "unmapped:Ok(())"]);
 }
 
+/// The first pages stay mapped, held by the region alone: the test keeps no
+/// clone of either.
+#[test]
+fn fails_to_map_over_what_is_mapped() {
+  let reported = operated("fails_to_map_over_what_is_mapped", 3, |region, sender| {
+    let size = ns_page_size().unwrap() as u64;
+    let again = region.clone();
+
+    region.map_memory(&page(), size, move |mapped| {
+      let _ = sender.send(format!("mapped:{mapped:?}"));
+      again.clone().map_memory(&page(), size, move |remapped| {
+        let _ = sender.send(remapped.unwrap_err().to_string());
+        again.unmap_memory(size, size, move |unmapped| {
+          let _ = sender.send(format!("unmapped:{unmapped:?}"));
+        });
+      });
+    });
+  });
+
+  assert_eq!(
+    reported,
+    [
+      "mapped:Ok(())",
+      "An unsupported operation. Failed to map Virtio shared memory. (VZErrorDomain 10)",
+      "unmapped:Ok(())",
+    ]
+  );
+}
+
 #[test]
 fn fails_to_unmap_what_isnt_mapped() {
   let reported = operated("fails_to_unmap_what_isnt_mapped", 1, |region, sender| {

@@ -26,8 +26,8 @@ func vz_virtio_shared_memory_region_map_memory(
   this.mapMemory(memory, atOffset: offset, size: size) { completionHandler.value(bridging(retainedError: $0)) }
 }
 
-/// `mapMemory` of all of `memory`, which the region holds until an unmap
-/// covering it completes, or mapping it fails.
+/// `mapMemory` of all of `memory`, which the region holds until mapping it
+/// fails or an unmap covering it completes.
 func vz_virtio_shared_memory_region_map_memory_pages(
   this: VZVirtioSharedMemoryRegion,
   memory: BridgedMemoryPages,
@@ -41,8 +41,9 @@ func vz_virtio_shared_memory_region_map_memory_pages(
 
   mapped.keep(memory, offset: offset, size: size)
   this.mapMemory(address, atOffset: offset, size: size) { error in
+    // Only these pages: others in the range may still be mapped there.
     if error != nil {
-      mapped.release(offset: offset, size: size)
+      mapped.release(memory)
     }
 
     completionHandler.value(bridging(retainedError: error))
@@ -61,7 +62,7 @@ func vz_virtio_shared_memory_region_unmap_memory(
 
   this.unmapMemory(atOffset: offset, size: size) { error in
     if error == nil {
-      mapped.release(offset: offset, size: size)
+      mapped.releaseUnmapped(offset: offset, size: size)
     }
 
     completionHandler.value(bridging(retainedError: error))
@@ -106,8 +107,14 @@ private final class MappedMemoryPages: NSObject, @unchecked Sendable {
     lock.withLock { pages.append((offset, size, memory)) }
   }
 
-  /// Drops the pages mapped wholly within `offset..<offset + size`.
-  func release(offset: UInt64, size: UInt64) {
+  /// Drops `memory`, kept for a map that failed.
+  func release(_ memory: BridgedMemoryPages) {
+    lock.withLock { pages.removeAll { $0.memory === memory } }
+  }
+
+  /// Drops the pages mapped wholly within `offset..<offset + size`, once
+  /// unmapped.
+  func releaseUnmapped(offset: UInt64, size: UInt64) {
     lock.withLock { pages.removeAll { $0.offset >= offset && $0.offset + $0.size <= offset + size } }
   }
 }
