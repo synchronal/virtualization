@@ -8,7 +8,9 @@
 //! - Objects are shared references, as in Swift: [`Clone`] is the same
 //!   object, setters take `&self`, and nothing is `Send` or `Sync` but
 //!   [`VirtualMachine`] and [`MacOSInstaller`], which move onto the machine's
-//!   queue, and what Apple declares `Sendable`. [`Debug`] is the object's `description`.
+//!   queue, a [`CustomVirtioDevice`] and its queues, their elements, and its
+//!   shared memory regions, which move onto the device's, and what Apple
+//!   declares `Sendable`. [`Debug`] is the object's `description`.
 //! - An abstract class is a sealed trait, implemented by its subclasses. A
 //!   member that returns one takes the subclass to cast it to, as Swift's
 //!   `as?`, and returns `None` when it is another. An array of one is a slice
@@ -29,6 +31,9 @@
 //!   bytes. Core Graphics' `CGSize` is [`CGSize`], its `width` and `height`.
 //!   AppKit's `NSScreen` is [`NSScreen`], from `screens` and `main`, which
 //!   take a [`MainThreadMarker`]: they're `@MainActor`.
+//! - Host memory a shared memory region maps is [`MemoryPages`], from
+//!   Foundation's `NSAllocateMemoryPages`, which the region holds while it's
+//!   mapped: never a raw pointer the guest could outlive.
 //! - An enum has an `Unknown(rawValue)` case, for one newer than this crate.
 //! - Initializers, class members, throwing members, and members that take or
 //!   return a URL return `Result<_, Error>`.
@@ -41,10 +46,12 @@
 mod app_kit;
 mod boot_loader;
 mod core_graphics;
+mod custom_virtio_devices;
 mod directory_sharing;
 mod error;
 mod foundation;
 mod graphics;
+mod guest_memory_mapping;
 mod guest_provisioning_options;
 mod macos;
 mod network;
@@ -68,12 +75,18 @@ pub use crate::boot_loader::{
   PlatformConfiguration,
 };
 pub use crate::core_graphics::CGSize;
+pub use crate::custom_virtio_devices::{
+  CustomVirtioDevice, CustomVirtioDeviceConfiguration, CustomVirtioDeviceConfigurationDelegate,
+  CustomVirtioDeviceDelegate, CustomVirtioDeviceDelegateProvider, CustomVirtioDeviceProvider,
+  NegotiatedVirtioFeatureSet, VirtioDeviceSpecificConfiguration, VirtioFeatureSet, VirtioQueue, VirtioQueueElement,
+  VirtioSharedMemoryRegion, VirtioSharedMemoryRegionConfiguration,
+};
 pub use crate::directory_sharing::{
   DirectoryShare, DirectorySharingDevice, DirectorySharingDeviceConfiguration, MultipleDirectoryShare, SharedDirectory,
   SingleDirectoryShare, VirtioFileSystemDevice, VirtioFileSystemDeviceConfiguration,
 };
 pub use crate::error::{Error, ErrorCode, NSError, error_domain};
-pub use crate::foundation::OperatingSystemVersion;
+pub use crate::foundation::{MemoryPages, OperatingSystemVersion, ns_page_size};
 pub use crate::graphics::{
   AudioDeviceConfiguration, AudioInputStreamSource, AudioOutputStreamSink, GraphicsDevice, GraphicsDeviceConfiguration,
   GraphicsDisplay, GraphicsDisplayConfiguration, GraphicsDisplayObserver, HostAudioInputStreamSource,
@@ -84,6 +97,7 @@ pub use crate::graphics::{
   VirtioSoundDeviceConfiguration, VirtioSoundDeviceInputStreamConfiguration,
   VirtioSoundDeviceOutputStreamConfiguration, VirtioSoundDeviceStreamConfiguration,
 };
+pub use crate::guest_memory_mapping::GuestMemoryMapping;
 pub use crate::guest_provisioning_options::GuestProvisioningOptions;
 pub use crate::macos::{
   MacAuxiliaryStorage, MacAuxiliaryStorageInitializationOptions, MacGuestProvisioningOptions, MacHardwareModel,

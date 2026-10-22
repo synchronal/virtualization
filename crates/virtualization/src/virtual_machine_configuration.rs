@@ -3,11 +3,11 @@ use std::fmt;
 use crate::platform::{self, ffi};
 use crate::sealed::{bridge_cast_each, bridge_objects};
 use crate::{
-  AudioDeviceConfiguration, BootLoader, ConsoleDeviceConfiguration, DirectorySharingDeviceConfiguration,
-  EntropyDeviceConfiguration, Error, GraphicsDeviceConfiguration, KeyboardConfiguration,
-  MemoryBalloonDeviceConfiguration, NetworkDeviceConfiguration, PlatformConfiguration, PointingDeviceConfiguration,
-  SerialPortConfiguration, SocketDeviceConfiguration, StorageDeviceConfiguration, USBControllerConfiguration,
-  foundation,
+  AudioDeviceConfiguration, BootLoader, ConsoleDeviceConfiguration, CustomVirtioDeviceConfiguration,
+  DirectorySharingDeviceConfiguration, EntropyDeviceConfiguration, Error, GraphicsDeviceConfiguration,
+  KeyboardConfiguration, MemoryBalloonDeviceConfiguration, NetworkDeviceConfiguration, PlatformConfiguration,
+  PointingDeviceConfiguration, SerialPortConfiguration, SocketDeviceConfiguration, StorageDeviceConfiguration,
+  USBControllerConfiguration, foundation,
 };
 
 /// [`VZVirtualMachineConfiguration`](https://developer.apple.com/documentation/virtualization/vzvirtualmachineconfiguration)
@@ -262,6 +262,28 @@ impl VirtualMachineConfiguration {
     self
       .inner
       .vz_set_usb_controllers(&bridge_objects(usb_controllers));
+  }
+
+  /// [`customVirtioDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachineconfiguration/customvirtiodevices)
+  pub fn custom_virtio_devices(&self) -> Vec<CustomVirtioDeviceConfiguration> {
+    self
+      .inner
+      .vz_custom_virtio_devices()
+      .into_iter()
+      .map(|inner| CustomVirtioDeviceConfiguration { inner })
+      .collect()
+  }
+
+  /// [`customVirtioDevices`](https://developer.apple.com/documentation/virtualization/vzvirtualmachineconfiguration/customvirtiodevices)
+  pub fn set_custom_virtio_devices(&self, custom_virtio_devices: &[&CustomVirtioDeviceConfiguration]) {
+    let custom_virtio_devices: Vec<_> = custom_virtio_devices
+      .iter()
+      .map(|device| &device.inner)
+      .collect();
+
+    self
+      .inner
+      .vz_set_custom_virtio_devices(&custom_virtio_devices);
   }
 
   /// [`label`](https://developer.apple.com/documentation/virtualization/vzvirtualmachineconfiguration/label)

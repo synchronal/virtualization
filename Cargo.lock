@@ -561,6 +561,7 @@ dependencies = [
  "foundation-sys",
  "objc2",
  "objc2-app-kit",
+ "objc2-foundation",
  "swift-bridge",
  "swift-bridge-build",
  "vmnet-sys",

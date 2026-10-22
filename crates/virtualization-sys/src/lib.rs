@@ -41,6 +41,7 @@ use std::ffi::c_void;
 use std::os::fd::{BorrowedFd, OwnedFd};
 use std::ptr::{self, NonNull};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU8, Ordering};
 
 use dispatch2::{DispatchQueue, DispatchRetained};
 use foundation_sys::objc::{
@@ -57,31 +58,34 @@ use foundation_sys::objc::{
 
 pub use self::ffi::{
   BridgedCGSize, BridgedNil, BridgedOperatingSystemVersion, BridgedThrown, BridgedVZVirtualMachineViewAdaptor,
-  VZBridgedNetworkDeviceAttachment, VZBridgedNetworkInterface, VZDiskBlockDeviceStorageDeviceAttachment,
-  VZDiskImageCachingMode, VZDiskImageStorageDeviceAttachment, VZDiskImageSynchronizationMode,
-  VZDiskSynchronizationMode, VZEFIBootLoader, VZEFISignatureDatabaseConfiguration, VZEFISignatureList,
-  VZEFIVariableStore, VZErrorCode, VZFileHandleNetworkDeviceAttachment, VZFileHandleSerialPortAttachment,
-  VZFileSerialPortAttachment, VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZHostAudioInputStreamSource,
+  VZBridgedNetworkDeviceAttachment, VZBridgedNetworkInterface, VZCustomVirtioDevice, VZCustomVirtioDeviceConfiguration,
+  VZCustomVirtioDeviceDelegateProvider, VZDiskBlockDeviceStorageDeviceAttachment, VZDiskImageCachingMode,
+  VZDiskImageStorageDeviceAttachment, VZDiskImageSynchronizationMode, VZDiskSynchronizationMode, VZEFIBootLoader,
+  VZEFISignatureDatabaseConfiguration, VZEFISignatureList, VZEFIVariableStore, VZErrorCode,
+  VZFileHandleNetworkDeviceAttachment, VZFileHandleSerialPortAttachment, VZFileSerialPortAttachment,
+  VZGenericMachineIdentifier, VZGenericPlatformConfiguration, VZGuestMemoryMapping, VZHostAudioInputStreamSource,
   VZHostAudioOutputStreamSink, VZLinuxBootLoader, VZMACAddress, VZMacAuxiliaryStorage, VZMacGraphicsDevice,
   VZMacGraphicsDeviceConfiguration, VZMacGraphicsDisplay, VZMacGraphicsDisplayConfiguration,
   VZMacGuestProvisioningOptions, VZMacHardwareModel, VZMacKeyboardConfiguration, VZMacMachineIdentifier,
   VZMacOSBootLoader, VZMacOSConfigurationRequirements, VZMacOSInstaller, VZMacOSRestoreImage,
   VZMacOSVirtualMachineStartOptions, VZMacPlatformConfiguration, VZMacTrackpadConfiguration, VZMultipleDirectoryShare,
-  VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration, VZNetworkBlockDeviceStorageDeviceAttachment,
-  VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare, VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration,
-  VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration, VZUSBPassthroughDevice,
-  VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
+  VZNATNetworkDeviceAttachment, VZNVMExpressControllerDeviceConfiguration, VZNegotiatedVirtioFeatureSet,
+  VZNetworkBlockDeviceStorageDeviceAttachment, VZNetworkDevice, VZSharedDirectory, VZSingleDirectoryShare,
+  VZSpiceAgentPortAttachment, VZUSBKeyboardConfiguration, VZUSBMassStorageDevice, VZUSBMassStorageDeviceConfiguration,
+  VZUSBPassthroughDevice, VZUSBPassthroughDeviceConfiguration, VZUSBScreenCoordinatePointingDeviceConfiguration,
   VZVirtioBlockDeviceConfiguration, VZVirtioConsoleDevice, VZVirtioConsoleDeviceConfiguration,
   VZVirtioConsoleDeviceSerialPortConfiguration, VZVirtioConsolePort, VZVirtioConsolePortArray,
-  VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioEntropyDeviceConfiguration,
-  VZVirtioFileSystemDevice, VZVirtioFileSystemDeviceConfiguration, VZVirtioGraphicsDevice,
-  VZVirtioGraphicsDeviceConfiguration, VZVirtioGraphicsScanout, VZVirtioGraphicsScanoutConfiguration,
-  VZVirtioNetworkDeviceConfiguration, VZVirtioSocketConnection, VZVirtioSocketDevice,
-  VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener, VZVirtioSoundDeviceConfiguration,
+  VZVirtioConsolePortConfiguration, VZVirtioConsolePortConfigurationArray, VZVirtioDeviceSpecificConfiguration,
+  VZVirtioEntropyDeviceConfiguration, VZVirtioFeatureSet, VZVirtioFileSystemDevice,
+  VZVirtioFileSystemDeviceConfiguration, VZVirtioGraphicsDevice, VZVirtioGraphicsDeviceConfiguration,
+  VZVirtioGraphicsScanout, VZVirtioGraphicsScanoutConfiguration, VZVirtioNetworkDeviceConfiguration, VZVirtioQueue,
+  VZVirtioQueueElement, VZVirtioSharedMemoryRegion, VZVirtioSharedMemoryRegionConfiguration, VZVirtioSocketConnection,
+  VZVirtioSocketDevice, VZVirtioSocketDeviceConfiguration, VZVirtioSocketListener, VZVirtioSoundDeviceConfiguration,
   VZVirtioSoundDeviceInputStreamConfiguration, VZVirtioSoundDeviceOutputStreamConfiguration,
   VZVirtioTraditionalMemoryBalloonDevice, VZVirtioTraditionalMemoryBalloonDeviceConfiguration, VZVirtualMachine,
   VZVirtualMachineConfiguration, VZVirtualMachineState, VZVirtualMachineView, VZVmnetNetworkDeviceAttachment,
-  VZXHCIController, VZXHCIControllerConfiguration, vz_efi_boot_loader_init,
+  VZXHCIController, VZXHCIControllerConfiguration, vz_custom_virtio_device_configuration_init,
+  vz_custom_virtio_device_configuration_maximum_allowed_shared_memory_region_count, vz_efi_boot_loader_init,
   vz_efi_variable_store_initialization_options_allow_overwrite, vz_error_code_init_raw_value, vz_error_code_raw_value,
   vz_error_domain, vz_generic_machine_identifier_init, vz_generic_platform_configuration_init,
   vz_generic_platform_configuration_is_nested_virtualization_supported, vz_host_audio_input_stream_source_init,
@@ -100,9 +104,9 @@ pub use self::ffi::{
   vz_virtio_file_system_device_configuration_macos_guest_automount_tag,
   vz_virtio_file_system_device_configuration_validate_tag, vz_virtio_graphics_device_configuration_init,
   vz_virtio_graphics_scanout_configuration_init, vz_virtio_network_device_configuration_init,
-  vz_virtio_socket_device_configuration_init, vz_virtio_socket_listener_init,
-  vz_virtio_sound_device_configuration_init, vz_virtio_sound_device_input_stream_configuration_init,
-  vz_virtio_sound_device_output_stream_configuration_init,
+  vz_virtio_shared_memory_region_configuration_init, vz_virtio_socket_device_configuration_init,
+  vz_virtio_socket_listener_init, vz_virtio_sound_device_configuration_init,
+  vz_virtio_sound_device_input_stream_configuration_init, vz_virtio_sound_device_output_stream_configuration_init,
   vz_virtio_traditional_memory_balloon_device_configuration_init, vz_virtual_machine_configuration_init,
   vz_virtual_machine_configuration_maximum_allowed_cpu_count,
   vz_virtual_machine_configuration_maximum_allowed_memory_size,
@@ -360,6 +364,11 @@ mod ffi {
       this: VZVirtualMachineConfiguration,
       usb_controllers: *const c_void,
     );
+    fn vz_virtual_machine_configuration_custom_virtio_devices(this: VZVirtualMachineConfiguration) -> *mut c_void;
+    fn vz_virtual_machine_configuration_set_custom_virtio_devices(
+      this: VZVirtualMachineConfiguration,
+      custom_virtio_devices: *const c_void,
+    );
     fn vz_memory_size(self: &VZVirtualMachineConfiguration) -> u64;
     fn vz_set_memory_size(self: &VZVirtualMachineConfiguration, memory_size: u64);
     fn vz_cpu_count(self: &VZVirtualMachineConfiguration) -> isize;
@@ -399,6 +408,18 @@ mod ffi {
     ) -> BridgedVZVirtualMachineViewAdaptor;
     fn bridge_retained(self: &BridgedVZVirtualMachineViewAdaptor) -> BridgedVZVirtualMachineViewAdaptor;
     fn bridge_description(self: &BridgedVZVirtualMachineViewAdaptor) -> String;
+  }
+
+  // GuestMemoryMapping.swift
+
+  extern "Swift" {
+    type VZGuestMemoryMapping;
+
+    fn bridge_retained(self: &VZGuestMemoryMapping) -> VZGuestMemoryMapping;
+    fn ns_description(self: &VZGuestMemoryMapping) -> String;
+    fn vz_mutable_bytes(self: &VZGuestMemoryMapping) -> *mut c_void;
+    fn vz_physical_address(self: &VZGuestMemoryMapping) -> u64;
+    fn vz_length(self: &VZGuestMemoryMapping) -> isize;
   }
 
   // GuestProvisioningOptions.swift
@@ -538,6 +559,278 @@ mod ffi {
     fn ns_description(self: &VZGenericMachineIdentifier) -> String;
     fn ns_is_equal(self: &VZGenericMachineIdentifier, object: VZGenericMachineIdentifier) -> bool;
     fn vz_generic_machine_identifier_data_representation(this: VZGenericMachineIdentifier) -> *mut c_void;
+  }
+
+  // CustomVirtioDevices/CustomVirtioDevice.swift
+
+  extern "Swift" {
+    type VZCustomVirtioDevice;
+
+    fn bridge_retained(self: &VZCustomVirtioDevice) -> VZCustomVirtioDevice;
+    fn ns_description(self: &VZCustomVirtioDevice) -> String;
+    fn vz_custom_virtio_device_delegate(this: VZCustomVirtioDevice) -> usize;
+    fn vz_custom_virtio_device_set_delegate(this: VZCustomVirtioDevice, delegate: VZCustomVirtioDeviceDelegateBridge);
+    fn bridge_set_delegate_nil(self: &VZCustomVirtioDevice);
+    fn vz_custom_virtio_device_device_queue(this: VZCustomVirtioDevice) -> *mut c_void;
+    fn vz_negotiated_features(self: &VZCustomVirtioDevice) -> Result<VZNegotiatedVirtioFeatureSet, BridgedNil>;
+    fn vz_custom_virtio_device_shared_memory_regions(this: VZCustomVirtioDevice) -> *mut c_void;
+    fn vz_guest_memory_mapping(
+      self: &VZCustomVirtioDevice,
+      physical_address: u64,
+      length: isize,
+    ) -> Result<VZGuestMemoryMapping, BridgedNil>;
+    fn vz_queue(self: &VZCustomVirtioDevice, index: u16) -> Result<VZVirtioQueue, BridgedNil>;
+    fn vz_request_reset(self: &VZCustomVirtioDevice);
+    fn vz_custom_virtio_device_update(
+      this: VZCustomVirtioDevice,
+      new_configuration: VZVirtioDeviceSpecificConfiguration,
+      completion_handler: Box<dyn FnOnce(usize)>,
+    );
+  }
+
+  extern "Rust" {
+    type VZCustomVirtioDeviceDelegateBridge;
+
+    fn bridge_retained(self: &VZCustomVirtioDeviceDelegateBridge) -> usize;
+    fn custom_virtio_device_did_receive_notification_for(
+      self: &VZCustomVirtioDeviceDelegateBridge,
+      device: VZCustomVirtioDevice,
+      queue: VZVirtioQueue,
+    );
+    fn custom_virtio_device_did_accept_driver_ok(
+      self: &VZCustomVirtioDeviceDelegateBridge,
+      device: VZCustomVirtioDevice,
+    );
+    fn custom_virtio_device_will_stop(self: &VZCustomVirtioDeviceDelegateBridge, device: VZCustomVirtioDevice);
+    fn custom_virtio_device_will_pause(self: &VZCustomVirtioDeviceDelegateBridge, device: VZCustomVirtioDevice);
+    fn custom_virtio_device_will_resume(self: &VZCustomVirtioDeviceDelegateBridge, device: VZCustomVirtioDevice);
+    fn custom_virtio_device_will_reset(self: &VZCustomVirtioDeviceDelegateBridge, device: VZCustomVirtioDevice);
+    fn custom_virtio_device_save_state_for_restore(
+      self: &VZCustomVirtioDeviceDelegateBridge,
+      device: VZCustomVirtioDevice,
+    ) -> usize;
+    fn custom_virtio_device_should_restore_save_state(
+      self: &VZCustomVirtioDeviceDelegateBridge,
+      device: VZCustomVirtioDevice,
+      save_state: *mut c_void,
+    ) -> bool;
+  }
+
+  // CustomVirtioDevices/CustomVirtioDeviceConfiguration.swift
+
+  extern "Swift" {
+    type VZCustomVirtioDeviceConfiguration;
+
+    fn vz_custom_virtio_device_configuration_init() -> VZCustomVirtioDeviceConfiguration;
+    fn vz_custom_virtio_device_configuration_bridge_from(object: *const c_void) -> VZCustomVirtioDeviceConfiguration;
+    fn bridge_retained(self: &VZCustomVirtioDeviceConfiguration) -> VZCustomVirtioDeviceConfiguration;
+    fn bridge_borrowed(self: &VZCustomVirtioDeviceConfiguration) -> *const c_void;
+    fn ns_description(self: &VZCustomVirtioDeviceConfiguration) -> String;
+    fn vz_custom_virtio_device_configuration_maximum_allowed_shared_memory_region_count() -> isize;
+    fn vz_device_id(self: &VZCustomVirtioDeviceConfiguration) -> u16;
+    fn vz_set_device_id(self: &VZCustomVirtioDeviceConfiguration, device_id: u16);
+    fn vz_pci_class_id(self: &VZCustomVirtioDeviceConfiguration) -> u8;
+    fn vz_set_pci_class_id(self: &VZCustomVirtioDeviceConfiguration, pci_class_id: u8);
+    fn vz_pci_subclass_id(self: &VZCustomVirtioDeviceConfiguration) -> u8;
+    fn vz_set_pci_subclass_id(self: &VZCustomVirtioDeviceConfiguration, pci_subclass_id: u8);
+    fn vz_virtio_queue_count(self: &VZCustomVirtioDeviceConfiguration) -> u16;
+    fn vz_set_virtio_queue_count(self: &VZCustomVirtioDeviceConfiguration, virtio_queue_count: u16);
+    fn vz_mandatory_features(self: &VZCustomVirtioDeviceConfiguration) -> VZVirtioFeatureSet;
+    fn vz_optional_features(self: &VZCustomVirtioDeviceConfiguration) -> VZVirtioFeatureSet;
+    fn vz_device_specific_configuration(
+      self: &VZCustomVirtioDeviceConfiguration,
+    ) -> Result<VZVirtioDeviceSpecificConfiguration, BridgedNil>;
+    fn vz_set_device_specific_configuration(
+      self: &VZCustomVirtioDeviceConfiguration,
+      device_specific_configuration: VZVirtioDeviceSpecificConfiguration,
+    );
+    fn bridge_set_device_specific_configuration_nil(self: &VZCustomVirtioDeviceConfiguration);
+    fn vz_custom_virtio_device_configuration_provider(this: VZCustomVirtioDeviceConfiguration) -> usize;
+    fn vz_custom_virtio_device_configuration_set_provider(this: VZCustomVirtioDeviceConfiguration, provider: usize);
+    fn vz_custom_virtio_device_configuration_shared_memory_regions(
+      this: VZCustomVirtioDeviceConfiguration,
+    ) -> *mut c_void;
+    fn vz_custom_virtio_device_configuration_set_shared_memory_regions(
+      this: VZCustomVirtioDeviceConfiguration,
+      shared_memory_regions: *const c_void,
+    );
+    fn vz_supports_save_restore(self: &VZCustomVirtioDeviceConfiguration) -> bool;
+    fn vz_set_supports_save_restore(self: &VZCustomVirtioDeviceConfiguration, supports_save_restore: bool);
+  }
+
+  // CustomVirtioDevices/CustomVirtioDeviceDelegateProvider.swift
+
+  extern "Swift" {
+    type VZCustomVirtioDeviceDelegateProvider;
+
+    fn vz_custom_virtio_device_delegate_provider_init(
+      device_queue: *const c_void,
+      delegate: VZCustomVirtioDeviceConfigurationDelegateBridge,
+    ) -> VZCustomVirtioDeviceDelegateProvider;
+    fn bridge_retained(self: &VZCustomVirtioDeviceDelegateProvider) -> VZCustomVirtioDeviceDelegateProvider;
+    fn bridge_borrowed(self: &VZCustomVirtioDeviceDelegateProvider) -> *const c_void;
+    fn vz_custom_virtio_device_delegate_provider_bridge_cast(
+      object: *const c_void,
+    ) -> Result<VZCustomVirtioDeviceDelegateProvider, BridgedNil>;
+    fn ns_description(self: &VZCustomVirtioDeviceDelegateProvider) -> String;
+    fn vz_custom_virtio_device_delegate_provider_device_queue(
+      this: VZCustomVirtioDeviceDelegateProvider,
+    ) -> *mut c_void;
+    fn vz_custom_virtio_device_delegate_provider_delegate(this: VZCustomVirtioDeviceDelegateProvider) -> usize;
+  }
+
+  extern "Rust" {
+    type VZCustomVirtioDeviceConfigurationDelegateBridge;
+
+    fn bridge_retained(self: &VZCustomVirtioDeviceConfigurationDelegateBridge) -> usize;
+    fn custom_virtio_configuration_did_create_device(
+      self: &VZCustomVirtioDeviceConfigurationDelegateBridge,
+      device_configuration: VZCustomVirtioDeviceConfiguration,
+      device: VZCustomVirtioDevice,
+    );
+  }
+
+  // CustomVirtioDevices/NegotiatedVirtioFeatureSet.swift
+
+  extern "Swift" {
+    type VZNegotiatedVirtioFeatureSet;
+
+    fn bridge_retained(self: &VZNegotiatedVirtioFeatureSet) -> VZNegotiatedVirtioFeatureSet;
+    fn ns_description(self: &VZNegotiatedVirtioFeatureSet) -> String;
+    fn vz_subset0(self: &VZNegotiatedVirtioFeatureSet) -> u32;
+    fn vz_subset1(self: &VZNegotiatedVirtioFeatureSet) -> u32;
+  }
+
+  // CustomVirtioDevices/VirtioDeviceSpecificConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioDeviceSpecificConfiguration;
+
+    fn vz_virtio_device_specific_configuration_init(
+      configuration_data: *const c_void,
+    ) -> VZVirtioDeviceSpecificConfiguration;
+    fn bridge_retained(self: &VZVirtioDeviceSpecificConfiguration) -> VZVirtioDeviceSpecificConfiguration;
+    fn ns_description(self: &VZVirtioDeviceSpecificConfiguration) -> String;
+    fn vz_virtio_device_specific_configuration_configuration_data(
+      this: VZVirtioDeviceSpecificConfiguration,
+    ) -> *mut c_void;
+  }
+
+  // CustomVirtioDevices/VirtioFeatureSet.swift
+
+  extern "Swift" {
+    type VZVirtioFeatureSet;
+
+    fn bridge_retained(self: &VZVirtioFeatureSet) -> VZVirtioFeatureSet;
+    fn ns_description(self: &VZVirtioFeatureSet) -> String;
+    fn vz_subset0(self: &VZVirtioFeatureSet) -> u32;
+    fn vz_set_subset0(self: &VZVirtioFeatureSet, subset0: u32);
+    fn vz_subset1(self: &VZVirtioFeatureSet) -> u32;
+    fn vz_set_subset1(self: &VZVirtioFeatureSet, subset1: u32);
+  }
+
+  // CustomVirtioDevices/VirtioQueue.swift
+
+  extern "Swift" {
+    type VZVirtioQueue;
+
+    fn bridge_retained(self: &VZVirtioQueue) -> VZVirtioQueue;
+    fn ns_description(self: &VZVirtioQueue) -> String;
+    fn vz_next_element(self: &VZVirtioQueue) -> Result<VZVirtioQueueElement, BridgedNil>;
+    fn vz_queue_index(self: &VZVirtioQueue) -> u16;
+    fn vz_queue_size(self: &VZVirtioQueue) -> u16;
+  }
+
+  // CustomVirtioDevices/VirtioQueueElement.swift
+
+  extern "Swift" {
+    type VZVirtioQueueElement;
+
+    fn bridge_retained(self: &VZVirtioQueueElement) -> VZVirtioQueueElement;
+    fn ns_description(self: &VZVirtioQueueElement) -> String;
+    fn vz_read_buffers_byte_count(self: &VZVirtioQueueElement) -> isize;
+    fn vz_read_buffers_available_byte_count(self: &VZVirtioQueueElement) -> isize;
+    fn vz_write_buffers_byte_count(self: &VZVirtioQueueElement) -> isize;
+    fn vz_write_buffers_available_byte_count(self: &VZVirtioQueueElement) -> isize;
+    fn vz_written_byte_count(self: &VZVirtioQueueElement) -> isize;
+    fn vz_virtio_queue_element_read_buffers(this: VZVirtioQueueElement) -> *mut c_void;
+    fn vz_virtio_queue_element_peek_into_read_buffers(
+      this: VZVirtioQueueElement,
+      exact_length: isize,
+    ) -> Result<usize, BridgedThrown>;
+    fn vz_virtio_queue_element_read_bytes(
+      this: VZVirtioQueueElement,
+      exact_length: isize,
+    ) -> Result<usize, BridgedThrown>;
+    fn vz_virtio_queue_element_read_bytes_into_buffer(
+      this: VZVirtioQueueElement,
+      buffer: *mut c_void,
+      exact_length: isize,
+    ) -> Result<(), BridgedThrown>;
+    fn vz_virtio_queue_element_write(this: VZVirtioQueueElement, data: *const c_void) -> Result<(), BridgedThrown>;
+    fn vz_virtio_queue_element_write_buffer(
+      this: VZVirtioQueueElement,
+      buffer: *const c_void,
+      exact_length: isize,
+    ) -> Result<(), BridgedThrown>;
+    fn vz_return_to_queue(self: &VZVirtioQueueElement);
+  }
+
+  // CustomVirtioDevices/VirtioSharedMemoryRegion.swift
+
+  extern "Swift" {
+    type VZVirtioSharedMemoryRegion;
+
+    fn vz_virtio_shared_memory_region_bridge_from(object: *const c_void) -> VZVirtioSharedMemoryRegion;
+    fn bridge_retained(self: &VZVirtioSharedMemoryRegion) -> VZVirtioSharedMemoryRegion;
+    fn ns_description(self: &VZVirtioSharedMemoryRegion) -> String;
+    fn vz_region_id(self: &VZVirtioSharedMemoryRegion) -> u8;
+    fn vz_size(self: &VZVirtioSharedMemoryRegion) -> u64;
+    fn vz_virtio_shared_memory_region_map_memory(
+      this: VZVirtioSharedMemoryRegion,
+      memory: *mut c_void,
+      offset: u64,
+      size: u64,
+      completion_handler: Box<dyn FnOnce(usize)>,
+    );
+    fn vz_virtio_shared_memory_region_map_memory_pages(
+      this: VZVirtioSharedMemoryRegion,
+      memory: BridgedMemoryPages,
+      offset: u64,
+      completion_handler: Box<dyn FnOnce(usize)>,
+    );
+    fn vz_virtio_shared_memory_region_unmap_memory(
+      this: VZVirtioSharedMemoryRegion,
+      offset: u64,
+      size: u64,
+      completion_handler: Box<dyn FnOnce(usize)>,
+    );
+  }
+
+  extern "Rust" {
+    type BridgedMemoryPages;
+
+    fn bridge_address(self: &BridgedMemoryPages) -> usize;
+    fn bridge_length(self: &BridgedMemoryPages) -> usize;
+  }
+
+  // CustomVirtioDevices/VirtioSharedMemoryRegionConfiguration.swift
+
+  extern "Swift" {
+    type VZVirtioSharedMemoryRegionConfiguration;
+
+    fn vz_virtio_shared_memory_region_configuration_init(
+      region_id: u8,
+      size: u64,
+    ) -> VZVirtioSharedMemoryRegionConfiguration;
+    fn vz_virtio_shared_memory_region_configuration_bridge_from(
+      object: *const c_void,
+    ) -> VZVirtioSharedMemoryRegionConfiguration;
+    fn bridge_retained(self: &VZVirtioSharedMemoryRegionConfiguration) -> VZVirtioSharedMemoryRegionConfiguration;
+    fn bridge_borrowed(self: &VZVirtioSharedMemoryRegionConfiguration) -> *const c_void;
+    fn ns_description(self: &VZVirtioSharedMemoryRegionConfiguration) -> String;
+    fn vz_region_id(self: &VZVirtioSharedMemoryRegionConfiguration) -> u8;
+    fn vz_size(self: &VZVirtioSharedMemoryRegionConfiguration) -> u64;
   }
 
   // DirectorySharing/MultipleDirectoryShare.swift
@@ -1969,6 +2262,112 @@ impl NSScreen {
   }
 }
 
+// Foundation's memory pages, through objc2-foundation: no Swift.
+
+/// [`NSPageSize()`](https://developer.apple.com/documentation/foundation/nspagesize()),
+/// the size `VZVirtioSharedMemoryRegion` aligns what it maps to.
+pub fn ns_page_size() -> usize {
+  objc2_foundation::NSPageSize()
+}
+
+/// Pages from [`NSAllocateMemoryPages(_:)`](https://developer.apple.com/documentation/foundation/nsallocatememorypages(_:)),
+/// which `NSDeallocateMemoryPages(_:_:)` frees once the last reference goes.
+/// They are page-aligned, as `VZVirtioSharedMemoryRegion` maps memory.
+///
+/// A shared reference: [`Clone`] is the same pages. A guest may write pages
+/// mapped into it at any time, so Rust reaches them only a byte at a time,
+/// atomically, and never by reference.
+#[derive(Clone)]
+pub struct MemoryPages {
+  pages: Arc<Pages>,
+}
+
+struct Pages {
+  address: NonNull<c_void>,
+  length: usize,
+}
+
+// SAFETY: the pages are memory no thread owns, which Rust reaches only
+// atomically.
+unsafe impl Send for Pages {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for Pages {}
+
+impl Drop for Pages {
+  fn drop(&mut self) {
+    // SAFETY: `NSAllocateMemoryPages` allocated `length` bytes here, and the
+    // last reference to them is going.
+    unsafe { objc2_foundation::NSDeallocateMemoryPages(self.address, self.length) }
+  }
+}
+
+/// [`NSAllocateMemoryPages(_:)`](https://developer.apple.com/documentation/foundation/nsallocatememorypages(_:)).
+pub fn ns_allocate_memory_pages(bytes: usize) -> MemoryPages {
+  MemoryPages {
+    pages: Arc::new(Pages {
+      address: objc2_foundation::NSAllocateMemoryPages(bytes),
+      length: bytes,
+    }),
+  }
+}
+
+impl MemoryPages {
+  pub fn length(&self) -> usize {
+    self.pages.length
+  }
+
+  /// The pages as bytes another party may change at any moment.
+  fn bytes(&self) -> &[AtomicU8] {
+    // SAFETY: `length` bytes Foundation allocated, which live as long as
+    // `pages`. `AtomicU8` is a `u8` in memory, and is only reached
+    // atomically.
+    unsafe { std::slice::from_raw_parts(self.pages.address.as_ptr().cast(), self.pages.length) }
+  }
+
+  /// Copies the bytes from `offset` into `buffer`, as many as it holds.
+  ///
+  /// # Panics
+  ///
+  /// When they run past the pages' end.
+  pub fn read(&self, offset: usize, buffer: &mut [u8]) {
+    let page_bytes = &self.bytes()[offset..offset + buffer.len()];
+
+    for (byte, page_byte) in buffer.iter_mut().zip(page_bytes) {
+      *byte = page_byte.load(Ordering::Relaxed);
+    }
+  }
+
+  /// Copies `bytes` into the pages from `offset`.
+  ///
+  /// # Panics
+  ///
+  /// When they run past the pages' end.
+  pub fn write(&self, offset: usize, bytes: &[u8]) {
+    for (byte, page_byte) in bytes
+      .iter()
+      .zip(&self.bytes()[offset..offset + bytes.len()])
+    {
+      page_byte.store(*byte, Ordering::Relaxed);
+    }
+  }
+}
+
+/// [`MemoryPages`] as Swift holds them, keeping them alive while mapped.
+pub struct BridgedMemoryPages {
+  memory: MemoryPages,
+}
+
+impl BridgedMemoryPages {
+  fn bridge_address(&self) -> usize {
+    self.memory.pages.address.as_ptr().expose_provenance()
+  }
+
+  fn bridge_length(&self) -> usize {
+    self.memory.pages.length
+  }
+}
+
 // VirtualMachine.swift
 
 pub fn vz_virtual_machine_init(configuration: &VZVirtualMachineConfiguration) -> VZVirtualMachine {
@@ -2437,6 +2836,30 @@ impl VZVirtualMachineConfiguration {
       borrowed(&*ns_array(usb_controllers)),
     );
   }
+
+  pub fn vz_custom_virtio_devices(&self) -> Vec<VZCustomVirtioDeviceConfiguration> {
+    // SAFETY: `customVirtioDevices`, a retained `NSArray`.
+    unsafe {
+      bridge_objects(ffi::vz_virtual_machine_configuration_custom_virtio_devices(
+        self.bridge_retained(),
+      ))
+    }
+    .iter()
+    .map(|device| ffi::vz_custom_virtio_device_configuration_bridge_from(borrowed(&**device)))
+    .collect()
+  }
+
+  pub fn vz_set_custom_virtio_devices(&self, custom_virtio_devices: &[&VZCustomVirtioDeviceConfiguration]) {
+    let objects: Vec<_> = custom_virtio_devices
+      .iter()
+      .map(|device| device.bridge_object())
+      .collect();
+
+    ffi::vz_virtual_machine_configuration_set_custom_virtio_devices(
+      self.bridge_retained(),
+      borrowed(&*ns_array(&objects)),
+    );
+  }
 }
 
 // VirtualMachineView.swift
@@ -2718,6 +3141,455 @@ impl VZGenericMachineIdentifier {
     };
 
     ns_data_bytes(&data)
+  }
+}
+
+// CustomVirtioDevices/CustomVirtioDevice.swift
+
+// SAFETY: as for `VZVirtualMachine`: Virtualization takes every call on a
+// device on its queue, which dispatch runs on any thread. Calling it off that
+// queue is the caller's to avoid, as in Swift.
+unsafe impl Send for VZCustomVirtioDevice {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for VZCustomVirtioDevice {}
+
+impl VZCustomVirtioDevice {
+  /// The delegate set with [`Self::vz_set_delegate`].
+  pub fn vz_delegate(&self) -> Option<Arc<dyn VZCustomVirtioDeviceDelegate>> {
+    let address = ffi::vz_custom_virtio_device_delegate(self.bridge_retained());
+
+    // SAFETY: `VZCustomVirtioDeviceDelegateBridge::bridge_retained`'s
+    // address, taken once, or `0` for none.
+    (address != 0).then(|| *unsafe { Box::from_raw(address as *mut Arc<dyn VZCustomVirtioDeviceDelegate>) })
+  }
+
+  pub fn vz_set_delegate(&self, delegate: Option<Arc<dyn VZCustomVirtioDeviceDelegate>>) {
+    match delegate {
+      Some(delegate) => {
+        ffi::vz_custom_virtio_device_set_delegate(
+          self.bridge_retained(),
+          VZCustomVirtioDeviceDelegateBridge { delegate },
+        );
+      }
+      None => self.bridge_set_delegate_nil(),
+    }
+  }
+
+  pub fn vz_device_queue(&self) -> DispatchRetained<DispatchQueue> {
+    let queue = ffi::vz_custom_virtio_device_device_queue(self.bridge_retained());
+
+    // SAFETY: `deviceQueue`, a retained `dispatch_queue_t`, never `nil`.
+    unsafe { DispatchRetained::from_raw(NonNull::new_unchecked(queue.cast())) }
+  }
+
+  pub fn vz_shared_memory_regions(&self) -> Vec<VZVirtioSharedMemoryRegion> {
+    // SAFETY: `sharedMemoryRegions`, a retained `NSArray`.
+    unsafe {
+      bridge_objects(ffi::vz_custom_virtio_device_shared_memory_regions(
+        self.bridge_retained(),
+      ))
+    }
+    .iter()
+    .map(|region| ffi::vz_virtio_shared_memory_region_bridge_from(borrowed(&**region)))
+    .collect()
+  }
+
+  /// `completion_handler` is called on the device's queue.
+  pub fn vz_update(
+    &self,
+    new_configuration: &VZVirtioDeviceSpecificConfiguration,
+    completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    ffi::vz_custom_virtio_device_update(
+      self.bridge_retained(),
+      new_configuration.bridge_retained(),
+      bridge_completion_handler(completion_handler),
+    );
+  }
+}
+
+/// `VZCustomVirtioDeviceDelegate`, which Rust implements. Virtualization calls
+/// it on the device's queue.
+pub trait VZCustomVirtioDeviceDelegate: Any + Send + Sync {
+  fn custom_virtio_device_did_receive_notification_for(&self, device: VZCustomVirtioDevice, queue: VZVirtioQueue);
+
+  fn custom_virtio_device_did_accept_driver_ok(&self, device: VZCustomVirtioDevice);
+
+  fn custom_virtio_device_will_stop(&self, device: VZCustomVirtioDevice);
+
+  fn custom_virtio_device_will_pause(&self, device: VZCustomVirtioDevice);
+
+  fn custom_virtio_device_will_resume(&self, device: VZCustomVirtioDevice);
+
+  fn custom_virtio_device_will_reset(&self, device: VZCustomVirtioDevice);
+
+  /// `Data` is its bytes.
+  fn custom_virtio_device_save_state_for_restore(&self, device: VZCustomVirtioDevice) -> Option<Vec<u8>>;
+
+  /// `Data` is its bytes.
+  fn custom_virtio_device_should_restore_save_state(&self, device: VZCustomVirtioDevice, save_state: Vec<u8>) -> bool;
+}
+
+/// A [`VZCustomVirtioDeviceDelegate`] as Swift holds it.
+pub struct VZCustomVirtioDeviceDelegateBridge {
+  delegate: Arc<dyn VZCustomVirtioDeviceDelegate>,
+}
+
+impl VZCustomVirtioDeviceDelegateBridge {
+  /// Another reference to the delegate, for
+  /// [`VZCustomVirtioDevice::vz_delegate`] to take, by address.
+  /// (swift-bridge's code for returning this type by value fails clippy.)
+  fn bridge_retained(&self) -> usize {
+    Box::into_raw(Box::new(Arc::clone(&self.delegate))) as usize
+  }
+
+  fn custom_virtio_device_did_receive_notification_for(&self, device: VZCustomVirtioDevice, queue: VZVirtioQueue) {
+    self
+      .delegate
+      .custom_virtio_device_did_receive_notification_for(device, queue);
+  }
+
+  fn custom_virtio_device_did_accept_driver_ok(&self, device: VZCustomVirtioDevice) {
+    self
+      .delegate
+      .custom_virtio_device_did_accept_driver_ok(device);
+  }
+
+  fn custom_virtio_device_will_stop(&self, device: VZCustomVirtioDevice) {
+    self.delegate.custom_virtio_device_will_stop(device);
+  }
+
+  fn custom_virtio_device_will_pause(&self, device: VZCustomVirtioDevice) {
+    self.delegate.custom_virtio_device_will_pause(device);
+  }
+
+  fn custom_virtio_device_will_resume(&self, device: VZCustomVirtioDevice) {
+    self.delegate.custom_virtio_device_will_resume(device);
+  }
+
+  fn custom_virtio_device_will_reset(&self, device: VZCustomVirtioDevice) {
+    self.delegate.custom_virtio_device_will_reset(device);
+  }
+
+  /// A retained `NSData` Swift takes over, by address: `0` for `nil`.
+  fn custom_virtio_device_save_state_for_restore(&self, device: VZCustomVirtioDevice) -> usize {
+    self
+      .delegate
+      .custom_virtio_device_save_state_for_restore(device)
+      .map_or(0, |save_state| {
+        Retained::into_raw(ns_data(&save_state)).expose_provenance()
+      })
+  }
+
+  fn custom_virtio_device_should_restore_save_state(
+    &self,
+    device: VZCustomVirtioDevice,
+    save_state: *mut c_void,
+  ) -> bool {
+    // SAFETY: `save_state`, a retained `NSData`.
+    let save_state: Retained<NSData> = unsafe { retained(save_state) };
+
+    self
+      .delegate
+      .custom_virtio_device_should_restore_save_state(device, ns_data_bytes(&save_state))
+  }
+}
+
+// CustomVirtioDevices/CustomVirtioDeviceConfiguration.swift
+
+impl VZCustomVirtioDeviceConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  /// Any `VZCustomVirtioDeviceProvider`.
+  pub fn vz_provider(&self) -> Option<Retained<NSObject>> {
+    // SAFETY: `provider`, a retained `VZCustomVirtioDeviceProvider` or `nil`.
+    unsafe {
+      retained_or_nil(ffi::vz_custom_virtio_device_configuration_provider(
+        self.bridge_retained(),
+      ))
+    }
+  }
+
+  /// `provider` is any `VZCustomVirtioDeviceProvider`.
+  pub fn vz_set_provider(&self, provider: Option<&NSObject>) {
+    ffi::vz_custom_virtio_device_configuration_set_provider(self.bridge_retained(), borrowed_or_nil(provider));
+  }
+
+  pub fn vz_shared_memory_regions(&self) -> Vec<VZVirtioSharedMemoryRegionConfiguration> {
+    // SAFETY: `sharedMemoryRegions`, a retained `NSArray`.
+    unsafe {
+      bridge_objects(ffi::vz_custom_virtio_device_configuration_shared_memory_regions(
+        self.bridge_retained(),
+      ))
+    }
+    .iter()
+    .map(|region| ffi::vz_virtio_shared_memory_region_configuration_bridge_from(borrowed(&**region)))
+    .collect()
+  }
+
+  pub fn vz_set_shared_memory_regions(&self, shared_memory_regions: &[&VZVirtioSharedMemoryRegionConfiguration]) {
+    let objects: Vec<_> = shared_memory_regions
+      .iter()
+      .map(|region| region.bridge_object())
+      .collect();
+
+    ffi::vz_custom_virtio_device_configuration_set_shared_memory_regions(
+      self.bridge_retained(),
+      borrowed(&*ns_array(&objects)),
+    );
+  }
+}
+
+// CustomVirtioDevices/CustomVirtioDeviceDelegateProvider.swift
+
+pub fn vz_custom_virtio_device_delegate_provider_init(
+  device_queue: &DispatchQueue,
+  delegate: Arc<dyn VZCustomVirtioDeviceConfigurationDelegate>,
+) -> VZCustomVirtioDeviceDelegateProvider {
+  ffi::vz_custom_virtio_device_delegate_provider_init(
+    ptr::from_ref(device_queue).cast(),
+    VZCustomVirtioDeviceConfigurationDelegateBridge { delegate },
+  )
+}
+
+pub fn vz_custom_virtio_device_delegate_provider_bridge_cast(
+  object: &NSObject,
+) -> Option<VZCustomVirtioDeviceDelegateProvider> {
+  ffi::vz_custom_virtio_device_delegate_provider_bridge_cast(borrowed(object)).ok()
+}
+
+impl VZCustomVirtioDeviceDelegateProvider {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
+  }
+
+  pub fn vz_device_queue(&self) -> DispatchRetained<DispatchQueue> {
+    let queue = ffi::vz_custom_virtio_device_delegate_provider_device_queue(self.bridge_retained());
+
+    // SAFETY: `deviceQueue`, a retained `dispatch_queue_t`, never `nil`.
+    unsafe { DispatchRetained::from_raw(NonNull::new_unchecked(queue.cast())) }
+  }
+
+  /// The delegate the provider was made with.
+  pub fn vz_delegate(&self) -> Option<Arc<dyn VZCustomVirtioDeviceConfigurationDelegate>> {
+    let address = ffi::vz_custom_virtio_device_delegate_provider_delegate(self.bridge_retained());
+
+    // SAFETY: `VZCustomVirtioDeviceConfigurationDelegateBridge::bridge_retained`'s
+    // address, taken once, or `0` for none.
+    (address != 0)
+      .then(|| *unsafe { Box::from_raw(address as *mut Arc<dyn VZCustomVirtioDeviceConfigurationDelegate>) })
+  }
+}
+
+/// `VZCustomVirtioDeviceConfigurationDelegate`, which Rust implements.
+/// Virtualization calls it on the machine's queue.
+pub trait VZCustomVirtioDeviceConfigurationDelegate: Any + Send + Sync {
+  fn custom_virtio_configuration_did_create_device(
+    &self,
+    device_configuration: VZCustomVirtioDeviceConfiguration,
+    device: VZCustomVirtioDevice,
+  );
+}
+
+/// A [`VZCustomVirtioDeviceConfigurationDelegate`] as Swift holds it.
+pub struct VZCustomVirtioDeviceConfigurationDelegateBridge {
+  delegate: Arc<dyn VZCustomVirtioDeviceConfigurationDelegate>,
+}
+
+impl VZCustomVirtioDeviceConfigurationDelegateBridge {
+  /// Another reference to the delegate, for
+  /// [`VZCustomVirtioDeviceDelegateProvider::vz_delegate`] to take, by
+  /// address. (swift-bridge's code for returning this type by value fails
+  /// clippy.)
+  fn bridge_retained(&self) -> usize {
+    Box::into_raw(Box::new(Arc::clone(&self.delegate))) as usize
+  }
+
+  fn custom_virtio_configuration_did_create_device(
+    &self,
+    device_configuration: VZCustomVirtioDeviceConfiguration,
+    device: VZCustomVirtioDevice,
+  ) {
+    self
+      .delegate
+      .custom_virtio_configuration_did_create_device(device_configuration, device);
+  }
+}
+
+// CustomVirtioDevices/VirtioDeviceSpecificConfiguration.swift
+
+/// `Data` is its bytes.
+pub fn vz_virtio_device_specific_configuration_init(configuration_data: &[u8]) -> VZVirtioDeviceSpecificConfiguration {
+  ffi::vz_virtio_device_specific_configuration_init(borrowed(&*ns_data(configuration_data)))
+}
+
+impl VZVirtioDeviceSpecificConfiguration {
+  /// `Data` is its bytes.
+  pub fn vz_configuration_data(&self) -> Vec<u8> {
+    // SAFETY: `configurationData`, a retained `NSData`.
+    let data: Retained<NSData> = unsafe {
+      retained(ffi::vz_virtio_device_specific_configuration_configuration_data(
+        self.bridge_retained(),
+      ))
+    };
+
+    ns_data_bytes(&data)
+  }
+}
+
+// CustomVirtioDevices/VirtioQueue.swift
+
+// SAFETY: as for `VZCustomVirtioDevice`, whose queue takes every call on its
+// queues.
+unsafe impl Send for VZVirtioQueue {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for VZVirtioQueue {}
+
+// CustomVirtioDevices/VirtioQueueElement.swift
+
+// SAFETY: as for `VZCustomVirtioDevice`, whose queue takes every call on its
+// queues' elements.
+unsafe impl Send for VZVirtioQueueElement {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for VZVirtioQueueElement {}
+
+impl VZVirtioQueueElement {
+  /// Each `Data` is its bytes, copied.
+  pub fn vz_read_buffers(&self) -> Vec<Vec<u8>> {
+    // SAFETY: `readBuffers()`, a retained `NSArray` of `NSData`.
+    let buffers =
+      unsafe { retained::<NSArray<NSData>>(ffi::vz_virtio_queue_element_read_buffers(self.bridge_retained())) };
+
+    ns_array_objects(&buffers)
+      .iter()
+      .map(|buffer| ns_data_bytes(buffer))
+      .collect()
+  }
+
+  /// `Data` is its bytes.
+  pub fn vz_peek_into_read_buffers(&self, exact_length: isize) -> Result<Vec<u8>, BridgedThrown> {
+    let address = ffi::vz_virtio_queue_element_peek_into_read_buffers(self.bridge_retained(), exact_length)?;
+
+    // SAFETY: `bridging(retainedAddress:)`, a retained `NSData`.
+    let data: Retained<NSData> = unsafe { retained_or_nil(address) }.expect("Swift passes the data it copied");
+
+    Ok(ns_data_bytes(&data))
+  }
+
+  /// `Data` is its bytes.
+  pub fn vz_read_bytes(&self, exact_length: isize) -> Result<Vec<u8>, BridgedThrown> {
+    let address = ffi::vz_virtio_queue_element_read_bytes(self.bridge_retained(), exact_length)?;
+
+    // SAFETY: `bridging(retainedAddress:)`, a retained `NSData`.
+    let data: Retained<NSData> = unsafe { retained_or_nil(address) }.expect("Swift passes the data it copied");
+
+    Ok(ns_data_bytes(&data))
+  }
+
+  /// `buffer` is the buffer, and its length the exact length.
+  pub fn vz_read_bytes_into_buffer(&self, buffer: &mut [u8]) -> Result<(), BridgedThrown> {
+    ffi::vz_virtio_queue_element_read_bytes_into_buffer(
+      self.bridge_retained(),
+      buffer.as_mut_ptr().cast(),
+      buffer.len().cast_signed(),
+    )
+  }
+
+  /// `Data` is its bytes.
+  pub fn vz_write(&self, data: &[u8]) -> Result<(), BridgedThrown> {
+    ffi::vz_virtio_queue_element_write(self.bridge_retained(), borrowed(&*ns_data(data)))
+  }
+
+  /// `buffer` is the buffer, and its length the exact length.
+  pub fn vz_write_buffer(&self, buffer: &[u8]) -> Result<(), BridgedThrown> {
+    ffi::vz_virtio_queue_element_write_buffer(
+      self.bridge_retained(),
+      buffer.as_ptr().cast(),
+      buffer.len().cast_signed(),
+    )
+  }
+}
+
+// CustomVirtioDevices/VirtioSharedMemoryRegion.swift
+
+// SAFETY: as for `VZCustomVirtioDevice`, whose queue takes every call on its
+// regions, and calls their completion handlers.
+unsafe impl Send for VZVirtioSharedMemoryRegion {}
+
+// SAFETY: as for `Send`.
+unsafe impl Sync for VZVirtioSharedMemoryRegion {}
+
+impl VZVirtioSharedMemoryRegion {
+  /// `completion_handler` is called on the device's queue.
+  ///
+  /// # Safety
+  ///
+  /// `memory` is `size` bytes of host memory, which stay allocated, and which
+  /// nothing else reaches as Rust memory, until they're unmapped or mapping
+  /// them fails.
+  pub unsafe fn vz_map_memory(
+    &self,
+    memory: NonNull<c_void>,
+    offset: u64,
+    size: u64,
+    completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    ffi::vz_virtio_shared_memory_region_map_memory(
+      self.bridge_retained(),
+      memory.as_ptr(),
+      offset,
+      size,
+      bridge_completion_handler(completion_handler),
+    );
+  }
+
+  /// [`Self::vz_map_memory`] of all of `memory`, which the region holds until
+  /// an unmap covering it completes, or mapping it fails.
+  /// `completion_handler` is called on the device's queue.
+  pub fn vz_map_memory_pages(
+    &self,
+    memory: &MemoryPages,
+    offset: u64,
+    completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    ffi::vz_virtio_shared_memory_region_map_memory_pages(
+      self.bridge_retained(),
+      BridgedMemoryPages { memory: memory.clone() },
+      offset,
+      bridge_completion_handler(completion_handler),
+    );
+  }
+
+  /// Releases the [`MemoryPages`] mapped wholly within what it unmaps.
+  /// `completion_handler` is called on the device's queue.
+  pub fn vz_unmap_memory(
+    &self,
+    offset: u64,
+    size: u64,
+    completion_handler: impl FnOnce(Option<Retained<NSError>>) + Send + 'static,
+  ) {
+    ffi::vz_virtio_shared_memory_region_unmap_memory(
+      self.bridge_retained(),
+      offset,
+      size,
+      bridge_completion_handler(completion_handler),
+    );
+  }
+}
+
+// CustomVirtioDevices/VirtioSharedMemoryRegionConfiguration.swift
+
+impl VZVirtioSharedMemoryRegionConfiguration {
+  pub fn bridge_object(&self) -> &NSObject {
+    // SAFETY: this one's own object.
+    unsafe { bridge_object(self, self.bridge_borrowed()) }
   }
 }
 

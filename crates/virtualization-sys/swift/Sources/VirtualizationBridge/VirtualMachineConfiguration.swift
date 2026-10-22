@@ -204,6 +204,20 @@ func vz_virtual_machine_configuration_set_usb_controllers(
   this.usbControllers = bridging(borrowedArray: usb_controllers)
 }
 
+func vz_virtual_machine_configuration_custom_virtio_devices(this: VZVirtualMachineConfiguration)
+  -> UnsafeMutableRawPointer
+{
+  bridging(retained: this.customVirtioDevices as NSArray)
+}
+
+/// `custom_virtio_devices` is an array of `VZCustomVirtioDeviceConfiguration`.
+func vz_virtual_machine_configuration_set_custom_virtio_devices(
+  this: VZVirtualMachineConfiguration,
+  custom_virtio_devices: UnsafeRawPointer
+) {
+  this.customVirtioDevices = bridging(borrowedArray: custom_virtio_devices)
+}
+
 extension VZVirtualMachineConfiguration {
   func vz_memory_size() -> UInt64 {
     memorySize

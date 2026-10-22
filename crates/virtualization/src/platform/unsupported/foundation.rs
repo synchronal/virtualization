@@ -67,6 +67,33 @@ pub(crate) fn bridge_take_thrown_error() -> Retained<NSError> {
   unreachable!("{GUARDED}")
 }
 
+pub(crate) fn ns_page_size() -> usize {
+  unreachable!("{GUARDED}")
+}
+
+#[derive(Clone)]
+pub(crate) struct MemoryPages {
+  never: Never,
+}
+
+pub(crate) fn ns_allocate_memory_pages(_bytes: usize) -> MemoryPages {
+  unreachable!("{GUARDED}")
+}
+
+impl MemoryPages {
+  pub(crate) fn length(&self) -> usize {
+    match self.never {}
+  }
+
+  pub(crate) fn read(&self, _offset: usize, _buffer: &mut [u8]) {
+    match self.never {}
+  }
+
+  pub(crate) fn write(&self, _offset: usize, _bytes: &[u8]) {
+    match self.never {}
+  }
+}
+
 /// `crate::error` reads an `NSError` through objc2 on macOS.
 impl From<&NSError> for crate::NSError {
   fn from(error: &NSError) -> Self {

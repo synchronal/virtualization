@@ -3,7 +3,9 @@ use std::sync::Arc;
 
 use dispatch2::{DispatchQueue, DispatchRetained};
 
-use super::{BridgedThrown, GUARDED, NSError, NSObject, NSURL, Never, Retained, VZNetworkDevice};
+use super::{
+  BridgedThrown, GUARDED, NSError, NSObject, NSURL, Never, Retained, VZCustomVirtioDeviceConfiguration, VZNetworkDevice,
+};
 
 pub(crate) enum VZVirtualMachineState {
   Stopped,
@@ -328,6 +330,14 @@ impl VZVirtualMachineConfiguration {
   }
 
   pub(crate) fn vz_set_usb_controllers(&self, _usb_controllers: &[&NSObject]) {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_custom_virtio_devices(&self) -> Vec<VZCustomVirtioDeviceConfiguration> {
+    match self.never {}
+  }
+
+  pub(crate) fn vz_set_custom_virtio_devices(&self, _custom_virtio_devices: &[&VZCustomVirtioDeviceConfiguration]) {
     match self.never {}
   }
 

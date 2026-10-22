@@ -57,6 +57,12 @@ func bridging(retainedAddress object: AnyObject?) -> UInt {
   UInt(bitPattern: object.map { bridging(retained: $0) })
 }
 
+/// An optional Foundation object Swift takes over from Rust, by address: `0`
+/// is `nil`.
+func bridging<T: AnyObject>(takenAddress address: UInt) -> T? {
+  UnsafeRawPointer(bitPattern: address).map { Unmanaged<T>.fromOpaque($0).takeRetainedValue() }
+}
+
 /// What a completion handler failed with, for Rust, by address: `0` is
 /// success.
 func bridging(retainedError error: (any Error)?) -> UInt {

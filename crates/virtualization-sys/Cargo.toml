@@ -30,6 +30,7 @@ dispatch2.workspace = true
 foundation-sys.workspace = true
 objc2.workspace = true
 objc2-app-kit.workspace = true
+objc2-foundation = { workspace = true, features = ["NSZone"] }
 swift-bridge.workspace = true
 vmnet-sys.workspace = true
 

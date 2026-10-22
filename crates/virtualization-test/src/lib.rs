@@ -17,13 +17,15 @@ use virtualization::io_usb_host::{Device, DeviceMatchingDictionaryArguments, Pro
 use virtualization::url::Url;
 use virtualization::vmnet::{Mode, Network, NetworkConfiguration};
 use virtualization::{
-  DiskImageStorageDeviceAttachment, EFIVariableStore, EFIVariableStoreInitializationOptions, Error,
-  FileHandleSerialPortAttachment, LinuxBootLoader, MacAuxiliaryStorage, MacAuxiliaryStorageInitializationOptions,
-  MacHardwareModel, MacOSBootLoader, MacOSRestoreImage, MacPlatformConfiguration, MainThreadMarker, NSError,
-  NetworkDeviceConfiguration, SerialPortConfiguration, USBMassStorageDevice, USBMassStorageDeviceConfiguration,
-  VirtioConsoleDeviceSerialPortConfiguration, VirtioNetworkDeviceConfiguration, VirtioSocketConnection,
-  VirtioSocketDevice, VirtioSocketDeviceConfiguration, VirtualMachine, VirtualMachineConfiguration,
-  VmnetNetworkDeviceAttachment, XHCIController,
+  CustomVirtioDevice, CustomVirtioDeviceConfiguration, CustomVirtioDeviceConfigurationDelegate,
+  CustomVirtioDeviceDelegate, CustomVirtioDeviceDelegateProvider, DiskImageStorageDeviceAttachment, EFIVariableStore,
+  EFIVariableStoreInitializationOptions, Error, FileHandleSerialPortAttachment, LinuxBootLoader, MacAuxiliaryStorage,
+  MacAuxiliaryStorageInitializationOptions, MacHardwareModel, MacOSBootLoader, MacOSRestoreImage,
+  MacPlatformConfiguration, MainThreadMarker, NSError, NetworkDeviceConfiguration, SerialPortConfiguration,
+  USBMassStorageDevice, USBMassStorageDeviceConfiguration, VirtioConsoleDeviceSerialPortConfiguration,
+  VirtioNetworkDeviceConfiguration, VirtioQueue, VirtioQueueElement, VirtioSocketConnection, VirtioSocketDevice,
+  VirtioSocketDeviceConfiguration, VirtualMachine, VirtualMachineConfiguration, VmnetNetworkDeviceAttachment,
+  XHCIController,
 };
 
 /// A path in the suites' scratch directory, named for the test that uses it.
@@ -877,6 +879,228 @@ pub fn connect_once_listening<T: Send + 'static>(
 
   panic!("the guest never listened on {port}: {failed:?}");
 }
+
+/// What to report when a custom device is made from its configuration.
+pub type Created = Box<dyn Fn(&CustomVirtioDeviceConfiguration, &CustomVirtioDevice) -> String + Send + Sync>;
+
+/// How a custom device answers an element the guest put on a queue, and what
+/// to report of it.
+pub type Answer = Box<dyn Fn(&CustomVirtioDevice, &VirtioQueue, &VirtioQueueElement) -> String + Send + Sync>;
+
+/// What a custom device does, each event reported as a line of text: a
+/// closure for each event a check needs to look at it on the device's queue,
+/// where the device stays.
+pub struct CustomDevice {
+  pub created: Created,
+  /// What to report when the guest's driver sets `DRIVER_OK`.
+  pub driver_ok: Box<dyn Fn(&CustomVirtioDevice) -> String + Send + Sync>,
+  /// The element is returned to the queue after.
+  pub element: Answer,
+  /// The state to save, for a device that supports saving.
+  pub save_state: Option<Vec<u8>>,
+}
+
+impl Default for CustomDevice {
+  /// Reports nothing of the device, fills each element's write buffers with
+  /// `ENTROPY`, reporting how many bytes it wrote, and has no state to save.
+  fn default() -> Self {
+    Self {
+      created: Box::new(|_, _| String::new()),
+      driver_ok: Box::new(|_| String::new()),
+      element: Box::new(|_, _, element| fill_with_entropy(element).to_string()),
+      save_state: None,
+    }
+  }
+}
+
+/// The byte a `CustomDevice` gives the guest as random.
+pub const ENTROPY: u8 = 0x5a;
+
+/// Fills `element`'s write buffers with `ENTROPY`, and returns how many bytes
+/// that was.
+pub fn fill_with_entropy(element: &VirtioQueueElement) -> isize {
+  let available = element.write_buffers_available_byte_count();
+
+  element
+    .write_buffer(&vec![ENTROPY; available.cast_unsigned()])
+    .unwrap();
+
+  available
+}
+
+/// A `CustomDevice` as both its configuration's delegate, which makes it the
+/// device's delegate, and the device's.
+struct CustomDeviceDelegate {
+  me: std::sync::Weak<CustomDeviceDelegate>,
+  events: Mutex<mpsc::Sender<String>>,
+  device: CustomDevice,
+}
+
+impl CustomDeviceDelegate {
+  fn tell(&self, event: String) {
+    let _ = self.events.lock().unwrap().send(event);
+  }
+}
+
+impl CustomVirtioDeviceConfigurationDelegate for CustomDeviceDelegate {
+  fn custom_virtio_configuration_did_create_device(
+    &self,
+    device_configuration: &CustomVirtioDeviceConfiguration,
+    device: &CustomVirtioDevice,
+  ) {
+    let me: Arc<dyn CustomVirtioDeviceDelegate> = self.me.upgrade().unwrap();
+
+    device.set_delegate(Some(&me));
+    self.tell(format!(
+      "created:{}",
+      (self.device.created)(device_configuration, device)
+    ));
+  }
+}
+
+impl CustomVirtioDeviceDelegate for CustomDeviceDelegate {
+  fn custom_virtio_device_did_receive_notification_for(&self, device: &CustomVirtioDevice, queue: &VirtioQueue) {
+    while let Some(element) = queue.next_element() {
+      self.tell(format!("element:{}", (self.device.element)(device, queue, &element)));
+      element.return_to_queue();
+    }
+  }
+
+  fn custom_virtio_device_did_accept_driver_ok(&self, device: &CustomVirtioDevice) {
+    self.tell(format!("driver_ok:{}", (self.device.driver_ok)(device)));
+  }
+
+  fn custom_virtio_device_will_stop(&self, _device: &CustomVirtioDevice) {
+    self.tell("will_stop".to_owned());
+  }
+
+  fn custom_virtio_device_will_pause(&self, _device: &CustomVirtioDevice) {
+    self.tell("will_pause".to_owned());
+  }
+
+  fn custom_virtio_device_will_resume(&self, _device: &CustomVirtioDevice) {
+    self.tell("will_resume".to_owned());
+  }
+
+  fn custom_virtio_device_will_reset(&self, _device: &CustomVirtioDevice) {
+    self.tell("will_reset".to_owned());
+  }
+
+  fn custom_virtio_device_save_state_for_restore(&self, _device: &CustomVirtioDevice) -> Option<Vec<u8>> {
+    self.tell("save_state".to_owned());
+
+    self.device.save_state.clone()
+  }
+
+  /// Reports the state it's given, and restores.
+  fn custom_virtio_device_should_restore_save_state(&self, _device: &CustomVirtioDevice, save_state: &[u8]) -> bool {
+    self.tell(format!("should_restore:{save_state:?}"));
+
+    true
+  }
+}
+
+/// A provider on a queue of its own whose delegate is gone, for a
+/// configuration that needs one: its devices are made with no one told.
+pub fn custom_virtio_device_provider(name: &str) -> CustomVirtioDeviceDelegateProvider {
+  struct Nothing;
+
+  impl CustomVirtioDeviceConfigurationDelegate for Nothing {}
+
+  let delegate: Arc<dyn CustomVirtioDeviceConfigurationDelegate> = Arc::new(Nothing);
+
+  CustomVirtioDeviceDelegateProvider::new(&serial_queue(&format!("{name}.device")), &delegate).unwrap()
+}
+
+/// The Virtio device ID a custom device takes to be an entropy device, which
+/// the guest's own `virtio_rng` drives: it puts an element with a write buffer
+/// on queue 0 for each read of `/dev/hwrng`.
+pub const ENTROPY_DEVICE_ID: u16 = 4;
+
+/// A machine from `booting_machine`, with a custom entropy device that
+/// `device` implements on a queue of its own.
+pub struct CustomDeviceMachine {
+  pub queue: DispatchRetained<DispatchQueue>,
+  pub device_queue: DispatchRetained<DispatchQueue>,
+  pub machine: VirtualMachine,
+  pub console: Console,
+  /// What the device reported, in order.
+  pub events: mpsc::Receiver<String>,
+  /// The device's provider holds its delegate weakly.
+  _delegate: Arc<CustomDeviceDelegate>,
+}
+
+impl CustomDeviceMachine {
+  /// The next event the device reported that starts with `name`, with what it
+  /// reported after the `:`. Panics if none comes within 30 seconds.
+  pub fn event(&self, name: &str) -> String {
+    loop {
+      let event = self
+        .events
+        .recv_timeout(Duration::from_secs(30))
+        .unwrap_or_else(|error| panic!("no {name} event: {error}"));
+
+      if let Some(reported) = event.strip_prefix(name) {
+        return reported.strip_prefix(':').unwrap_or(reported).to_owned();
+      }
+    }
+  }
+}
+
+/// A `CustomDeviceMachine` whose initial ramdisk runs `script`: a custom
+/// device with `ENTROPY_DEVICE_ID`, PCI class `0xff` (unclassified), and one
+/// queue. `configure` adds to the device's configuration before the machine
+/// is made from it.
+pub fn custom_device_machine(
+  name: &str,
+  script: &str,
+  device: CustomDevice,
+  configure: impl FnOnce(&CustomVirtioDeviceConfiguration) + Send,
+) -> CustomDeviceMachine {
+  custom_device_machine_configured(name, script, device, |_, device| configure(device))
+}
+
+/// As `custom_device_machine`, with `configure` given the machine's
+/// configuration too.
+pub fn custom_device_machine_configured(
+  name: &str,
+  script: &str,
+  device: CustomDevice,
+  configure: impl FnOnce(&VirtualMachineConfiguration, &CustomVirtioDeviceConfiguration) + Send,
+) -> CustomDeviceMachine {
+  let (sender, events) = mpsc::channel();
+  let delegate = Arc::new_cyclic(|me| CustomDeviceDelegate {
+    me: me.clone(),
+    events: Mutex::new(sender),
+    device,
+  });
+  let device_queue = serial_queue(&format!("{name}.device"));
+  let (queue, machine, console) = booting_machine(name, Some(&initial_ramdisk(name, script)), |configuration| {
+    let configuration_delegate: Arc<dyn CustomVirtioDeviceConfigurationDelegate> = delegate.clone();
+    let device = CustomVirtioDeviceConfiguration::new().unwrap();
+
+    device.set_device_id(ENTROPY_DEVICE_ID);
+    device.set_pci_class_id(0xff);
+    device.set_virtio_queue_count(1);
+    device.set_provider(Some(
+      &CustomVirtioDeviceDelegateProvider::new(&device_queue, &configuration_delegate).unwrap(),
+    ));
+    configure(configuration, &device);
+    configuration.set_custom_virtio_devices(&[&device]);
+  });
+
+  CustomDeviceMachine {
+    queue,
+    device_queue,
+    machine,
+    console,
+    events,
+    _delegate: delegate,
+  }
+}
+
+/// Reads 16 bytes of `/dev/hwrng`, and reports them in hex after `rng:`.
+pub const READ_HWRNG: &str = "echo \"rng:$(head -c 16 /dev/hwrng | od -An -tx1 | tr -d ' \\n')\"";
 
 /// A file in a cpio archive.
 struct CpioEntry<'a> {

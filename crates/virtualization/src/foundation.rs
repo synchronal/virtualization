@@ -1,11 +1,13 @@
-//! Foundation's types across the bridge: `URL`, `UUID`, thrown errors, and
-//! `OperatingSystemVersion`.
+//! Foundation's types across the bridge: `URL`, `UUID`, thrown errors,
+//! `OperatingSystemVersion`, and the memory pages a shared memory region maps.
+
+use std::fmt;
 
 use url::Url;
 use uuid::Uuid;
 
 use crate::Error;
-use crate::platform::ffi;
+use crate::platform::{self, ffi};
 
 /// `NSURL(string:)`.
 pub(crate) fn ns_url(url: &Url) -> Result<ffi::Retained<ffi::NSURL>, Error> {
@@ -60,9 +62,121 @@ impl From<ffi::BridgedOperatingSystemVersion> for OperatingSystemVersion {
   }
 }
 
+/// [`NSPageSize()`](https://developer.apple.com/documentation/foundation/nspagesize()):
+/// what [`VirtioSharedMemoryRegion`](crate::VirtioSharedMemoryRegion) aligns
+/// offsets and sizes to.
+pub fn ns_page_size() -> Result<usize, Error> {
+  platform::supported()?;
+
+  Ok(ffi::ns_page_size())
+}
+
+/// Host memory from
+/// [`NSAllocateMemoryPages(_:)`](https://developer.apple.com/documentation/foundation/nsallocatememorypages(_:)),
+/// page-aligned, for
+/// [`VirtioSharedMemoryRegion::map_memory`](crate::VirtioSharedMemoryRegion::map_memory).
+/// `NSDeallocateMemoryPages(_:_:)` frees it once nothing holds it, a region it
+/// is mapped into included.
+///
+/// Not Foundation's type: Rust's, so that the guest never sees mapped memory
+/// freed. A shared reference: [`Clone`] is the same pages. A guest may change
+/// mapped pages at any moment, so they're read and written only by copying.
+#[derive(Clone)]
+pub struct MemoryPages {
+  pub(crate) inner: ffi::MemoryPages,
+}
+
+impl MemoryPages {
+  /// [`NSAllocateMemoryPages(_:)`](https://developer.apple.com/documentation/foundation/nsallocatememorypages(_:)):
+  /// `bytes`, zeroed.
+  pub fn new(bytes: usize) -> Result<Self, Error> {
+    platform::supported()?;
+
+    Ok(Self {
+      inner: ffi::ns_allocate_memory_pages(bytes),
+    })
+  }
+
+  /// How many bytes were asked for.
+  pub fn length(&self) -> usize {
+    self.inner.length()
+  }
+
+  /// Copies the bytes from `offset` into `buffer`, as many as it holds.
+  ///
+  /// # Panics
+  ///
+  /// When they run past [`length`](Self::length).
+  pub fn read(&self, offset: usize, buffer: &mut [u8]) {
+    self.inner.read(offset, buffer);
+  }
+
+  /// Copies `bytes` in from `offset`.
+  ///
+  /// # Panics
+  ///
+  /// When they run past [`length`](Self::length).
+  pub fn write(&self, offset: usize, bytes: &[u8]) {
+    self.inner.write(offset, bytes);
+  }
+}
+
+impl fmt::Debug for MemoryPages {
+  fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+    formatter
+      .debug_struct("MemoryPages")
+      .field("length", &self.length())
+      .finish()
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[cfg(not(target_os = "macos"))]
+  #[test]
+  fn memory_pages_are_unsupported_off_macos() {
+    assert!(matches!(ns_page_size(), Err(Error::Unsupported)));
+    assert!(matches!(MemoryPages::new(0), Err(Error::Unsupported)));
+  }
+
+  #[cfg(target_os = "macos")]
+  #[test]
+  fn memory_pages_start_zeroed() {
+    let memory = MemoryPages::new(3).unwrap();
+    let mut bytes = [0xff; 3];
+
+    memory.read(0, &mut bytes);
+
+    assert_eq!(bytes, [0; 3]);
+  }
+
+  #[cfg(target_os = "macos")]
+  #[test]
+  fn memory_pages_read_what_was_written_through_any_clone() {
+    let memory = MemoryPages::new(8).unwrap();
+    let mut bytes = [0; 3];
+
+    memory.clone().write(4, &[1, 2, 3]);
+    memory.read(4, &mut bytes);
+
+    assert_eq!(bytes, [1, 2, 3]);
+  }
+
+  #[cfg(target_os = "macos")]
+  #[test]
+  #[should_panic]
+  fn memory_pages_refuse_writes_past_their_length() {
+    MemoryPages::new(2).unwrap().write(1, &[1, 2]);
+  }
+
+  #[cfg(target_os = "macos")]
+  #[test]
+  #[should_panic]
+  fn memory_pages_refuse_reads_past_their_length() {
+    MemoryPages::new(2).unwrap().read(1, &mut [0; 2]);
+  }
 
   #[test]
   fn an_operating_system_version_keeps_each_part_from_virtualization_sys() {
