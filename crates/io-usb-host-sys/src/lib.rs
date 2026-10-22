@@ -200,6 +200,7 @@ mod ffi {
     fn iousbhost_object_descriptor_with_type(
       this: *const c_void,
       descriptor_type: IOUSBDescriptorType,
+      length: isize,
       index: isize,
       language_id: isize,
       request_type: IOUSBDeviceRequestTypeValue,
@@ -414,10 +415,12 @@ pub fn iousbhost_object_configuration_descriptor_with_configuration_value(
 }
 
 /// The descriptor's `length` bytes. `descriptor_type` is `type`: swift-bridge
-/// 0.1.59 can't parse a parameter named `r#type`.
+/// 0.1.59 can't parse a parameter named `r#type`. `length` is Apple's on
+/// input; the bytes are its value on output.
 pub fn iousbhost_object_descriptor_with_type(
   this: &NSObject,
   descriptor_type: IOUSBDescriptorType,
+  length: isize,
   index: isize,
   language_id: isize,
   request_type: IOUSBDeviceRequestTypeValue,
@@ -426,6 +429,7 @@ pub fn iousbhost_object_descriptor_with_type(
   let address = ffi::iousbhost_object_descriptor_with_type(
     borrowed(this),
     descriptor_type,
+    length,
     index,
     language_id,
     request_type,

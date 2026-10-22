@@ -57,10 +57,14 @@ pub trait Object: Sealed {
   }
 
   /// [`descriptorWithType:length:index:languageID:requestType:requestRecipient:error:`](https://developer.apple.com/documentation/iousbhost/iousbhostobject/descriptorwithtype:length:index:languageid:requesttype:requestrecipient:error:):
-  /// its `length` bytes. `descriptor_type` is `type`.
+  /// its `length` bytes. `descriptor_type` is `type`. `length` is the
+  /// `wLength` for a variable-length configuration or BOS descriptor, or a
+  /// nonstandard descriptor type; the descriptor's length is the bytes'
+  /// `len()`.
   fn descriptor_with_type(
     &self,
     descriptor_type: DescriptorType,
+    length: isize,
     index: isize,
     language_id: isize,
     request_type: DeviceRequestTypeValue,
@@ -69,6 +73,7 @@ pub trait Object: Sealed {
     ffi::iousbhost_object_descriptor_with_type(
       self.bridge_object(),
       descriptor_type.into(),
+      length,
       index,
       language_id,
       request_type.into(),

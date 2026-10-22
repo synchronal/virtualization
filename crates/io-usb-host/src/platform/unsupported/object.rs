@@ -47,6 +47,7 @@ pub(crate) fn iousbhost_object_configuration_descriptor_with_configuration_value
 pub(crate) fn iousbhost_object_descriptor_with_type(
   this: &NSObject,
   _descriptor_type: IOUSBDescriptorType,
+  _length: isize,
   _index: isize,
   _language_id: isize,
   _request_type: IOUSBDeviceRequestTypeValue,

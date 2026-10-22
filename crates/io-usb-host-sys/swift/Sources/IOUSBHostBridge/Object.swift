@@ -85,16 +85,18 @@ func bridging(configurationDescriptor descriptor: UnsafePointer<IOUSBConfigurati
   bridging(descriptor: descriptor, length: Int(UInt16(littleEndian: descriptor.pointee.wTotalLength)))
 }
 
-/// The descriptor's `length` bytes, as an `NSData`.
+/// The descriptor's `length` bytes, as an `NSData`. `length` goes in as
+/// Apple's does, and comes out as the bytes' count.
 func iousbhost_object_descriptor_with_type(
   this: UnsafeRawPointer,
   descriptor_type: BridgedIOUSBDescriptorType,
+  length: Int,
   index: Int,
   language_id: Int,
   request_type: BridgedIOUSBDeviceRequestTypeValue,
   request_recipient: BridgedIOUSBDeviceRequestRecipientValue
 ) throws(IOUSBHostThrown) -> UInt {
-  var length = 0
+  var length = length
   let descriptor = try bridging {
     try bridging(hostObject: this).__descriptor(
       with: tIOUSBDescriptorType(descriptor_type),
