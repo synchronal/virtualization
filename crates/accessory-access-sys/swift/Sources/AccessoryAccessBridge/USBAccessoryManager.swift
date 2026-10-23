@@ -24,11 +24,14 @@ func aa_usb_accessory_manager_register_listener(
   completion_handler: @escaping (UInt, UInt) -> Void
 ) {
   let completionHandler = Bridged(value: completion_handler)
+  let (bridged, isNew) = bridging(registeringListener: listener, key: key)
 
-  this.registerListener(
-    bridging(registeringListener: listener, key: key),
-    matchingCriteria: bridging(borrowedArray: matching_criteria)
-  ) { accessories, error in
+  this.registerListener(bridged, matchingCriteria: bridging(borrowedArray: matching_criteria)) {
+    accessories, error in
+    if error != nil && isNew {
+      bridging(failedListener: bridged, key: key)
+    }
+
     completionHandler.value(bridging(retainedAddress: accessories as NSArray), bridging(retainedError: error))
   }
 }
@@ -43,8 +46,6 @@ func aa_usb_accessory_manager_unregister_listener(
   let completionHandler = Bridged(value: completion_handler)
   let bridged = bridging(unregisteringListener: listener, key: key)
 
-  this.unregisterListener(bridged) {
-    bridging(unregisteredListener: bridged, key: key)
-    completionHandler.value()
-  }
+  // No longer kept: held until AccessoryAccess is done with it.
+  this.unregisterListener(bridged) { withExtendedLifetime(bridged) { completionHandler.value() } }
 }

@@ -4,6 +4,7 @@
 
 use std::sync::Arc;
 use std::sync::mpsc;
+use std::time::Duration;
 
 use virtualization::accessory_access::{
   Error, ErrorCode, USBAccessoryListener, USBAccessoryManager, USBAccessoryMatchingCriteria,
@@ -36,15 +37,19 @@ fn a_clone_is_the_same_object() {
   assert_eq!(format!("{:?}", manager.clone()), format!("{manager:?}"));
 }
 
+/// Apple's accessories.
+fn criteria() -> USBAccessoryMatchingCriteria {
+  USBAccessoryMatchingCriteria::with_device_matching_criteria(&USBAccessoryMatchingCriteriaDeviceMatchingCriteria {
+    vendor_id: Some(0x05ac),
+    ..Default::default()
+  })
+  .unwrap()
+}
+
 #[test]
 fn fails_to_register_a_listener_without_the_entitlement() {
   let manager = USBAccessoryManager::shared().unwrap();
-  let criteria =
-    USBAccessoryMatchingCriteria::with_device_matching_criteria(&USBAccessoryMatchingCriteriaDeviceMatchingCriteria {
-      vendor_id: Some(0x05ac),
-      ..Default::default()
-    })
-    .unwrap();
+  let criteria = criteria();
   let (sender, receiver) = mpsc::channel();
 
   manager.register_listener(&listener(), &[&criteria], move |result| {
@@ -62,6 +67,30 @@ fn fails_to_register_a_listener_without_the_entitlement() {
     error.localized_failure_reason.as_deref(),
     Some("Unable to communicate with service.")
   );
+}
+
+/// Swift releases the listener once the registration's completion handler
+/// returns, so the test polls for its release.
+#[test]
+fn keeps_no_listener_it_failed_to_register() {
+  let manager = USBAccessoryManager::shared().unwrap();
+  let listener = listener();
+  let registered = Arc::downgrade(&listener);
+  let (sender, receiver) = mpsc::channel();
+
+  manager.register_listener(&listener, &[&criteria()], move |result| {
+    sender.send(result.is_err()).unwrap();
+  });
+
+  assert!(receiver.recv().unwrap());
+  drop(listener);
+
+  let released = (0..50).any(|_| {
+    std::thread::sleep(Duration::from_millis(100));
+    registered.upgrade().is_none()
+  });
+
+  assert!(released);
 }
 
 #[test]
