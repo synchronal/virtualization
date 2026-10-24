@@ -1,5 +1,4 @@
 [package]
-build = "build.rs"
 categories.workspace = true
 description = "FFI to Apple's IOUSBHost framework, through swift-bridge. Use the `io-usb-host` crate instead."
 edition.workspace = true
@@ -29,4 +28,4 @@ foundation-sys.workspace = true
 swift-bridge.workspace = true
 
 [build-dependencies]
-swift-bridge-build.workspace = true
+virtualization-build.workspace = true

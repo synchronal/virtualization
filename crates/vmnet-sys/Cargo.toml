@@ -1,5 +1,4 @@
 [package]
-build = "build.rs"
 categories.workspace = true
 description = "FFI to Apple's vmnet framework, through swift-bridge. Use the `vmnet` crate instead."
 edition.workspace = true
@@ -27,4 +26,4 @@ include = [
 swift-bridge.workspace = true
 
 [build-dependencies]
-swift-bridge-build.workspace = true
+virtualization-build.workspace = true

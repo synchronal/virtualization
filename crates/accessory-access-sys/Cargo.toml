@@ -1,5 +1,4 @@
 [package]
-build = "build.rs"
 categories.workspace = true
 description = "FFI to Apple's AccessoryAccess framework, through swift-bridge. Use the `accessory-access` crate instead."
 edition.workspace = true
@@ -30,4 +29,4 @@ io-usb-host-sys.workspace = true
 swift-bridge.workspace = true
 
 [build-dependencies]
-swift-bridge-build.workspace = true
+virtualization-build.workspace = true

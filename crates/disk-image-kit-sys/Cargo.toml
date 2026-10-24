@@ -1,5 +1,4 @@
 [package]
-build = "build.rs"
 categories.workspace = true
 description = "FFI to Apple's DiskImageKit framework, through swift-bridge. Use the `disk-image-kit` crate instead."
 edition.workspace = true
@@ -28,4 +27,4 @@ foundation-sys.workspace = true
 swift-bridge.workspace = true
 
 [build-dependencies]
-swift-bridge-build.workspace = true
+virtualization-build.workspace = true

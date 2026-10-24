@@ -8,6 +8,7 @@ members = [
   "crates/io-usb-host",
   "crates/io-usb-host-sys",
   "crates/virtualization",
+  "crates/virtualization-build",
   "crates/virtualization-sys",
   "crates/virtualization-test",
   "crates/vmnet",
@@ -23,6 +24,7 @@ default-members = [
   "crates/io-usb-host",
   "crates/io-usb-host-sys",
   "crates/virtualization",
+  "crates/virtualization-build",
   "crates/virtualization-sys",
   "crates/vmnet",
   "crates/vmnet-sys",
@@ -70,6 +72,7 @@ swift-bridge-build = "0.1.59"
 url = "2"
 uuid = { version = "1", default-features = false }
 virtualization = { path = "crates/virtualization", version = "0.1.0" }
+virtualization-build = { path = "crates/virtualization-build", version = "0.1.0" }
 virtualization-sys = { path = "crates/virtualization-sys", version = "0.1.0" }
 vmnet = { path = "crates/vmnet", version = "0.1.0" }
 vmnet-sys = { path = "crates/vmnet-sys", version = "0.1.0" }

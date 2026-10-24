@@ -20,7 +20,7 @@ dependencies = [
  "foundation-sys",
  "io-usb-host-sys",
  "swift-bridge",
- "swift-bridge-build",
+ "virtualization-build",
 ]
 
 [[package]]
@@ -51,7 +51,7 @@ version = "0.1.0"
 dependencies = [
  "foundation-sys",
  "swift-bridge",
- "swift-bridge-build",
+ "virtualization-build",
 ]
 
 [[package]]
@@ -239,7 +239,7 @@ dependencies = [
  "dispatch2",
  "foundation-sys",
  "swift-bridge",
- "swift-bridge-build",
+ "virtualization-build",
 ]
 
 [[package]]
@@ -552,6 +552,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "virtualization-build"
+version = "0.1.0"
+dependencies = [
+ "swift-bridge-build",
+]
+
+[[package]]
 name = "virtualization-sys"
 version = "0.1.0"
 dependencies = [
@@ -563,7 +570,7 @@ dependencies = [
  "objc2-app-kit",
  "objc2-foundation",
  "swift-bridge",
- "swift-bridge-build",
+ "virtualization-build",
  "vmnet-sys",
 ]
 
@@ -587,7 +594,7 @@ name = "vmnet-sys"
 version = "0.1.0"
 dependencies = [
  "swift-bridge",
- "swift-bridge-build",
+ "virtualization-build",
 ]
 
 [[package]]

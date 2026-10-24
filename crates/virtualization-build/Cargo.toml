@@ -1,0 +1,13 @@
+[package]
+categories.workspace = true
+description = "The build script the `-sys` crates of `virtualization` share: generates swift-bridge's glue, builds the Swift package, and links it. Internal; no stability promise."
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+name = "virtualization-build"
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+swift-bridge-build.workspace = true
