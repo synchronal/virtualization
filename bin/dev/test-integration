@@ -11,6 +11,10 @@
 # usually takes one:
 #
 #   bin/dev/test-integration -E 'test(exit_code)'
+#
+# Only options that choose and run tests: one that changes the build
+# (`--release`, `--cargo-profile`, `--features`) makes nextest build unsigned
+# binaries, which Virtualization refuses.
 
 set -euo pipefail
 

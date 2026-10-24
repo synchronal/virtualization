@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
+#
+# Lints the Swift sources with swift-format, strictly: a warning fails too.
 
-check_swift() {
-  output="$(find . -name '*.swift' -not -path './target/*' -not -path '*/.build/*' -exec swift-format lint --configuration .swift-format.json -s {} 2>&1 \;)"
+set -euo pipefail
 
-  if [[ -z "${output}" ]]; then
-    exit 0
-  else
-    echo "Swift-format lint produced errors!" >&2
-    echo >&2
-    echo "${output}" >&2
-    exit 1
-  fi
-}
+root="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$root"
 
-check_swift
+if ! command -v swift-format >/dev/null; then
+  echo "bin/dev/lint-swift: swift-format isn't on PATH" >&2
+  exit 1
+fi
+
+find . -name '*.swift' -not -path './target/*' -not -path '*/.build/*' -print0 |
+  xargs -0 swift-format lint --strict --configuration .swift-format.json

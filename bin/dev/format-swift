@@ -1,37 +1,50 @@
 #!/usr/bin/env bash
+#
+# Formats the Swift sources with swift-format (`--all`), or names each file
+# that isn't formatted (`--check`).
 
-format_swift() {
-  find . -name '*.swift' -not -path './target/*' -not -path '*/.build/*' -exec swift-format format --configuration .swift-format.json -i {} \;
+set -euo pipefail
+
+root="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$root"
+
+if ! command -v swift-format >/dev/null; then
+  echo "bin/dev/format-swift: swift-format isn't on PATH" >&2
+  exit 1
+fi
+
+sources() {
+  find . -name '*.swift' -not -path './target/*' -not -path '*/.build/*' -print0
 }
 
-check_swift() {
-  contents="$(find . -name '*.swift' -not -path './target/*' -not -path '*/.build/*' -exec cat \{\} \;)"
-  formatted="$(find . -name '*.swift' -not -path './target/*' -not -path '*/.build/*' -exec swift-format format --configuration .swift-format.json \{\} \;)"
-
-  if [[ "${contents}" == "${formatted}" ]]; then
-    exit 0
-  else
-    echo "Swift files have not been properly formatted" >&2
-    exit 1
-  fi
-}
-
-case $1 in
+case "${1:-}" in
   --all)
-    format_swift
+    sources | xargs -0 swift-format format --configuration .swift-format.json -i
     ;;
 
   --check)
-    check_swift
+    formatted="$(mktemp)"
+    trap 'rm -f "$formatted"' EXIT
+    unformatted=0
+
+    while IFS= read -r -d '' file; do
+      swift-format format --configuration .swift-format.json "$file" >"$formatted"
+
+      if ! cmp -s "$formatted" "$file"; then
+        echo "bin/dev/format-swift: not formatted: $file" >&2
+        unformatted=1
+      fi
+    done < <(sources)
+
+    exit "$unformatted"
     ;;
 
   *)
-    echo "unknown flag: '$1'" >&2
+    echo "unknown flag: '${1:-}'" >&2
     echo "" >&2
     echo "USAGE" >&2
     echo "  $0 --all" >&2
     echo "  $0 --check" >&2
     exit 1
     ;;
-
 esac

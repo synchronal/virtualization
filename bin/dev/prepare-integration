@@ -20,6 +20,7 @@ cache="${HOME:?}/.cache/virtualization-tests"
 kernel_version="3.17.0"
 kernel_in_archive="opt/kata/share/kata-containers/vmlinux.container"
 kernel_url="https://github.com/kata-containers/kata-containers/releases/download/${kernel_version}/kata-static-${kernel_version}-arm64.tar.xz"
+kernel_sha256="647c7612e6edf789d5e14698c48c99d8bac15ad139ffaa1c8bb7d229f748d181"
 kernel="${cache}/kernels/vmlinux-${kernel_version}"
 
 busybox_version="1.37.0-6"
@@ -38,8 +39,9 @@ if [ ! -f "$kernel" ]; then
   echo "bin/dev/prepare-integration: downloading the kernel from ${kernel_url}" >&2
   staging="$(mktemp -d "${cache}/staging.XXXXXX")"
 
-  curl --fail --location --silent --show-error "$kernel_url" |
-    /usr/bin/tar -xJf - -C "$staging" "opt/kata/share/kata-containers/vmlinux*"
+  curl --fail --location --silent --show-error --output "${staging}/kata-static.tar.xz" "$kernel_url"
+  echo "${kernel_sha256}  ${staging}/kata-static.tar.xz" | shasum -a 256 --check --status
+  /usr/bin/tar -xJf "${staging}/kata-static.tar.xz" -C "$staging" "opt/kata/share/kata-containers/vmlinux*"
 
   mv "$(realpath "${staging}/${kernel_in_archive}")" "$kernel"
   rm -rf "$staging"

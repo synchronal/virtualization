@@ -3,6 +3,9 @@
 # own test binaries — needs this rpath or dies in dyld at launch. A rustflag is
 # the one mechanism that reaches every kind of target.
 #
+# `/usr/lib/swift` is also the runtime directory each `-sys` crate's build.rs
+# (`SWIFT_RUNTIME_DIR`) links against: change both together.
+#
 # This file covers builds of this repository only. A crate depending on
 # `virtualization` needs the same rustflag in its own `.cargo/config.toml`.
 [target.'cfg(target_os = "macos")']

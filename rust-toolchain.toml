@@ -2,6 +2,6 @@
 # `rust-version` in Cargo.toml is a floor; this is the toolchain the crates are
 # developed and tested against.
 [toolchain]
-channel = "1.98.1"
+channel = "1.99.0"
 # Linux is only checked, never run: `virtualization` must compile off macOS.
 targets = ["aarch64-apple-darwin", "x86_64-unknown-linux-gnu"]
