@@ -1,9 +1,10 @@
 use std::ffi::c_void;
 
-use super::Never;
+use super::{Local, Never};
 
 pub(crate) struct VZGuestMemoryMapping {
   never: Never,
+  local: Local,
 }
 
 impl VZGuestMemoryMapping {

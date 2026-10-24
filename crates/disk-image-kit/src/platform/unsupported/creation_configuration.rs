@@ -1,7 +1,8 @@
-use super::{BridgedDiskImageLayerType, DiskImageBlockSize, GUARDED, NSURL, Never};
+use super::{BridgedDiskImageLayerType, DiskImageBlockSize, GUARDED, Local, NSURL, Never};
 
 pub(crate) struct BridgedASIFCreationConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn dik_asif_creation_configuration_asif(
@@ -31,6 +32,7 @@ impl BridgedASIFCreationConfiguration {
 
 pub(crate) struct BridgedASIFLayerCreationConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn dik_asif_layer_creation_configuration_asif_layer(
@@ -52,6 +54,7 @@ impl BridgedASIFLayerCreationConfiguration {
 
 pub(crate) struct BridgedRAWCreationConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn dik_raw_creation_configuration_raw(_url: &NSURL, _block_count: isize) -> BridgedRAWCreationConfiguration {

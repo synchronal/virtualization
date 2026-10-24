@@ -56,6 +56,14 @@ pub use crate::object::{
   AbortOption, CompletionHandler, Object, ObjectDataOptions, ObjectDestroyOptions, ObjectInitOptions,
 };
 
+// Each type is `Send + Sync` off macOS exactly where io-usb-host-sys makes it
+// so on macOS.
+#[cfg(test)]
+foundation_sys::assert_auto_traits! {
+  send_sync: [],
+  local: [Device, NSMutableData],
+}
+
 /// What another crate's bridge passes on, e.g. AccessoryAccess's
 /// `open(serviceQueue:completionHandler:)`. Not for callers.
 #[doc(hidden)]

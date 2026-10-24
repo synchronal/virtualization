@@ -13,6 +13,9 @@ pub struct NSMutableData {
   object: crate::objc::Retained<crate::objc::NSMutableData>,
   #[cfg(not(target_os = "macos"))]
   never: Never,
+  /// Neither `Send` nor `Sync`, as objc2's `NSMutableData` isn't.
+  #[cfg(not(target_os = "macos"))]
+  local: std::marker::PhantomData<*const ()>,
 }
 
 #[cfg(not(target_os = "macos"))]

@@ -4,7 +4,8 @@ use std::sync::Arc;
 use dispatch2::{DispatchQueue, DispatchRetained};
 
 use super::{
-  BridgedThrown, GUARDED, NSError, NSObject, NSURL, Never, Retained, VZCustomVirtioDeviceConfiguration, VZNetworkDevice,
+  BridgedThrown, GUARDED, Local, NSError, NSObject, NSURL, Never, Retained, VZCustomVirtioDeviceConfiguration,
+  VZNetworkDevice,
 };
 
 pub(crate) enum VZVirtualMachineState {
@@ -166,6 +167,7 @@ impl<T: Any + Send + Sync> VZVirtualMachineDelegate for T {}
 
 pub(crate) struct VZVirtualMachineConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtual_machine_configuration_init() -> VZVirtualMachineConfiguration {

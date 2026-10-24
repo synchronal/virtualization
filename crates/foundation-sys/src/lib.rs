@@ -14,6 +14,7 @@
 //!
 //! [Foundation]: https://developer.apple.com/documentation/foundation
 
+mod auto_traits;
 mod error;
 mod mutable_data;
 #[cfg(target_os = "macos")]
@@ -23,3 +24,10 @@ mod property_list;
 pub use self::error::NSError;
 pub use self::mutable_data::NSMutableData;
 pub use self::property_list::PropertyListValue;
+
+// Each type is `Send + Sync` off macOS exactly where it is on macOS.
+#[cfg(test)]
+assert_auto_traits! {
+  send_sync: [NSError, PropertyListValue],
+  local: [NSMutableData],
+}

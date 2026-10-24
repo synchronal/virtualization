@@ -4,7 +4,10 @@
 //! Each class holds a [`Never`], so no instance exists and its methods are
 //! unreachable. Free functions are entry points, which [`super::supported`]
 //! fails first. (Empty enums instead would make rustc warn that code after
-//! every entry point call is unreachable.)
+//! every entry point call is unreachable.) One that isn't `Send` and `Sync`
+//! on macOS holds a [`Local`] too, so its auto traits are the same here.
+
+use std::marker::PhantomData;
 
 mod app_kit;
 mod boot_loader;
@@ -46,5 +49,9 @@ pub(crate) use self::virtual_machine_view::*;
 
 #[derive(Clone, Copy)]
 pub(crate) enum Never {}
+
+/// Held beside a [`Never`] by each class virtualization-sys doesn't make
+/// `Send` and `Sync`, so it is neither here either.
+pub(crate) type Local = PhantomData<*const ()>;
 
 const GUARDED: &str = "an entry point called a stand-in without checking `platform::supported`";

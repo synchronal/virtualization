@@ -1,9 +1,10 @@
 use std::os::fd::{BorrowedFd, OwnedFd};
 
-use super::{GUARDED, NSObject, Never, Retained};
+use super::{GUARDED, Local, NSObject, Never, Retained};
 
 pub(crate) struct VZBridgedNetworkDeviceAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_bridged_network_device_attachment_init(
@@ -38,6 +39,7 @@ impl VZBridgedNetworkDeviceAttachment {
 
 pub(crate) struct VZBridgedNetworkInterface {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_bridged_network_interface_network_interfaces() -> Vec<VZBridgedNetworkInterface> {
@@ -64,6 +66,7 @@ impl VZBridgedNetworkInterface {
 
 pub(crate) struct VZFileHandleNetworkDeviceAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_file_handle_network_device_attachment_init(
@@ -106,6 +109,7 @@ impl VZFileHandleNetworkDeviceAttachment {
 
 pub(crate) struct VZMACAddress {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_address_init_ethernet_address(_ethernet_address: [u8; 6]) -> VZMACAddress {
@@ -160,6 +164,7 @@ impl VZMACAddress {
 
 pub(crate) struct VZNATNetworkDeviceAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_nat_network_device_attachment_init() -> VZNATNetworkDeviceAttachment {
@@ -186,6 +191,7 @@ impl VZNATNetworkDeviceAttachment {
 
 pub(crate) struct VZNetworkDevice {
   never: Never,
+  local: Local,
 }
 
 impl VZNetworkDevice {
@@ -224,6 +230,7 @@ pub(crate) fn vz_network_device_configuration_set_attachment(this: &NSObject, _a
 
 pub(crate) struct VZVirtioNetworkDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_network_device_configuration_init() -> VZVirtioNetworkDeviceConfiguration {
@@ -252,6 +259,7 @@ impl VZVirtioNetworkDeviceConfiguration {
 
 pub(crate) struct VZVmnetNetworkDeviceAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_vmnet_network_device_attachment_init(_network: &vmnet::Network) -> VZVmnetNetworkDeviceAttachment {

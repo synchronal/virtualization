@@ -4,7 +4,7 @@ use std::sync::Arc;
 use dispatch2::{DispatchQueue, DispatchRetained};
 
 use super::{
-  BridgedNil, BridgedThrown, GUARDED, MemoryPages, NSError, NSObject, Never, Retained, VZGuestMemoryMapping,
+  BridgedNil, BridgedThrown, GUARDED, Local, MemoryPages, NSError, NSObject, Never, Retained, VZGuestMemoryMapping,
 };
 
 pub(crate) struct VZCustomVirtioDevice {
@@ -71,6 +71,7 @@ impl<T: Any + Send + Sync> VZCustomVirtioDeviceDelegate for T {}
 
 pub(crate) struct VZCustomVirtioDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_custom_virtio_device_configuration_init() -> VZCustomVirtioDeviceConfiguration {
@@ -175,6 +176,7 @@ impl VZCustomVirtioDeviceConfiguration {
 
 pub(crate) struct VZCustomVirtioDeviceDelegateProvider {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_custom_virtio_device_delegate_provider_init(
@@ -218,6 +220,7 @@ impl<T: Any + Send + Sync> VZCustomVirtioDeviceConfigurationDelegate for T {}
 
 pub(crate) struct VZNegotiatedVirtioFeatureSet {
   never: Never,
+  local: Local,
 }
 
 impl VZNegotiatedVirtioFeatureSet {
@@ -240,6 +243,7 @@ impl VZNegotiatedVirtioFeatureSet {
 
 pub(crate) struct VZVirtioDeviceSpecificConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_device_specific_configuration_init(
@@ -264,6 +268,7 @@ impl VZVirtioDeviceSpecificConfiguration {
 
 pub(crate) struct VZVirtioFeatureSet {
   never: Never,
+  local: Local,
 }
 
 impl VZVirtioFeatureSet {
@@ -422,6 +427,7 @@ impl VZVirtioSharedMemoryRegion {
 
 pub(crate) struct VZVirtioSharedMemoryRegionConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_shared_memory_region_configuration_init(

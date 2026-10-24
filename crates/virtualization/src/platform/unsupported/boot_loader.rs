@@ -1,7 +1,8 @@
-use super::{BridgedNil, BridgedThrown, GUARDED, NSObject, NSURL, Never, Retained, SecCertificate};
+use super::{BridgedNil, BridgedThrown, GUARDED, Local, NSObject, NSURL, Never, Retained, SecCertificate};
 
 pub(crate) struct VZLinuxBootLoader {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_linux_boot_loader_init(_kernel_url: &NSURL) -> VZLinuxBootLoader {
@@ -52,6 +53,7 @@ impl VZLinuxBootLoader {
 
 pub(crate) struct VZEFIBootLoader {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_efi_boot_loader_init() -> VZEFIBootLoader {
@@ -90,6 +92,7 @@ impl VZEFIBootLoader {
 
 pub(crate) struct VZEFIVariableStore {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_efi_variable_store_init(_url: &NSURL) -> VZEFIVariableStore {
@@ -226,6 +229,7 @@ impl VZEFISignatureDatabaseConfiguration {
 
 pub(crate) struct VZGenericPlatformConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_generic_platform_configuration_init() -> VZGenericPlatformConfiguration {
@@ -274,6 +278,7 @@ impl VZGenericPlatformConfiguration {
 
 pub(crate) struct VZGenericMachineIdentifier {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_generic_machine_identifier_init() -> VZGenericMachineIdentifier {

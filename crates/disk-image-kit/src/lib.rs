@@ -44,6 +44,20 @@ pub use crate::error::{
 };
 pub use crate::open_configuration::{OpenConfiguration, OpenConfigurationMode, OpenConfigurationProtocol};
 
+// Each type is `Send + Sync` off macOS exactly where disk-image-kit-sys makes
+// it so on macOS.
+#[cfg(test)]
+foundation_sys::assert_auto_traits! {
+  send_sync: [DiskImageLayerType],
+  local: [
+    ASIFCreationConfiguration,
+    ASIFLayerCreationConfiguration,
+    DiskImage,
+    RAWCreationConfiguration,
+    StackedImage,
+  ],
+}
+
 /// What another crate's bridge passes on, e.g. `virtualization`'s
 /// `VZDiskImageStorageDeviceAttachment(diskImage:…)`. Not for callers.
 #[doc(hidden)]

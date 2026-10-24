@@ -1,9 +1,10 @@
 use std::ffi::c_void;
 
-use super::{BridgedNil, GUARDED, MainThreadMarker, Never, VZVirtualMachine};
+use super::{BridgedNil, GUARDED, Local, MainThreadMarker, Never, VZVirtualMachine};
 
 pub(crate) struct VZVirtualMachineView {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtual_machine_view_init(mtm: MainThreadMarker) -> VZVirtualMachineView {

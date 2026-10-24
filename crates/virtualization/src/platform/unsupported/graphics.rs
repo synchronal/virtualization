@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use super::{BridgedCGSize, BridgedThrown, GUARDED, NSObject, NSScreen, Never, Retained};
+use super::{BridgedCGSize, BridgedThrown, GUARDED, Local, NSObject, NSScreen, Never, Retained};
 use crate::GraphicsDisplayObserver;
 
 pub(crate) fn vz_graphics_device_displays(this: &NSObject) -> Vec<Retained<NSObject>> {
@@ -43,6 +43,7 @@ pub(crate) fn vz_graphics_display_remove_observer(
 
 pub(crate) struct VZHostAudioInputStreamSource {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_host_audio_input_stream_source_init() -> VZHostAudioInputStreamSource {
@@ -69,6 +70,7 @@ impl VZHostAudioInputStreamSource {
 
 pub(crate) struct VZHostAudioOutputStreamSink {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_host_audio_output_stream_sink_init() -> VZHostAudioOutputStreamSink {
@@ -95,6 +97,7 @@ impl VZHostAudioOutputStreamSink {
 
 pub(crate) struct VZUSBKeyboardConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_usb_keyboard_configuration_init() -> VZUSBKeyboardConfiguration {
@@ -121,6 +124,7 @@ impl VZUSBKeyboardConfiguration {
 
 pub(crate) struct VZUSBScreenCoordinatePointingDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_usb_screen_coordinate_pointing_device_configuration_init()
@@ -150,6 +154,7 @@ impl VZUSBScreenCoordinatePointingDeviceConfiguration {
 
 pub(crate) struct VZVirtioGraphicsDevice {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_graphics_device_bridge_cast(object: &NSObject) -> Option<VZVirtioGraphicsDevice> {
@@ -172,6 +177,7 @@ impl VZVirtioGraphicsDevice {
 
 pub(crate) struct VZVirtioGraphicsDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_graphics_device_configuration_init() -> VZVirtioGraphicsDeviceConfiguration {
@@ -208,6 +214,7 @@ impl VZVirtioGraphicsDeviceConfiguration {
 
 pub(crate) struct VZVirtioGraphicsScanout {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_graphics_scanout_bridge_cast(object: &NSObject) -> Option<VZVirtioGraphicsScanout> {
@@ -230,6 +237,7 @@ impl VZVirtioGraphicsScanout {
 
 pub(crate) struct VZVirtioGraphicsScanoutConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_graphics_scanout_configuration_init(
@@ -277,6 +285,7 @@ impl VZVirtioGraphicsScanoutConfiguration {
 
 pub(crate) struct VZVirtioSoundDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_sound_device_configuration_init() -> VZVirtioSoundDeviceConfiguration {
@@ -313,6 +322,7 @@ impl VZVirtioSoundDeviceConfiguration {
 
 pub(crate) struct VZVirtioSoundDeviceInputStreamConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_sound_device_input_stream_configuration_init() -> VZVirtioSoundDeviceInputStreamConfiguration {
@@ -349,6 +359,7 @@ impl VZVirtioSoundDeviceInputStreamConfiguration {
 
 pub(crate) struct VZVirtioSoundDeviceOutputStreamConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_sound_device_output_stream_configuration_init() -> VZVirtioSoundDeviceOutputStreamConfiguration
@@ -386,6 +397,7 @@ impl VZVirtioSoundDeviceOutputStreamConfiguration {
 
 pub(crate) struct VZMacGraphicsDevice {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_graphics_device_bridge_cast(object: &NSObject) -> Option<VZMacGraphicsDevice> {
@@ -408,6 +420,7 @@ impl VZMacGraphicsDevice {
 
 pub(crate) struct VZMacGraphicsDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_graphics_device_configuration_init() -> VZMacGraphicsDeviceConfiguration {
@@ -444,6 +457,7 @@ impl VZMacGraphicsDeviceConfiguration {
 
 pub(crate) struct VZMacGraphicsDisplay {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_graphics_display_bridge_cast(object: &NSObject) -> Option<VZMacGraphicsDisplay> {
@@ -470,6 +484,7 @@ impl VZMacGraphicsDisplay {
 
 pub(crate) struct VZMacGraphicsDisplayConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_graphics_display_configuration_init(
@@ -533,6 +548,7 @@ impl VZMacGraphicsDisplayConfiguration {
 
 pub(crate) struct VZMacKeyboardConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_keyboard_configuration_init() -> VZMacKeyboardConfiguration {
@@ -559,6 +575,7 @@ impl VZMacKeyboardConfiguration {
 
 pub(crate) struct VZMacTrackpadConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_trackpad_configuration_init() -> VZMacTrackpadConfiguration {

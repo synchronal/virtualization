@@ -1,6 +1,6 @@
 use super::{
   BridgedASIFCreationConfiguration, BridgedASIFLayerCreationConfiguration, BridgedRAWCreationConfiguration,
-  DiskImageKitError, DiskImageKitNil, GUARDED, NSURL, NSUUID, Never, OpenConfigurationMode, Retained,
+  DiskImageKitError, DiskImageKitNil, GUARDED, Local, NSURL, NSUUID, Never, OpenConfigurationMode, Retained,
 };
 
 pub(crate) enum DiskImageFormat {
@@ -18,6 +18,7 @@ pub(crate) enum DiskImageBlockSize {
 
 pub(crate) struct DiskImage {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn dik_disk_image_init_creating_asif(

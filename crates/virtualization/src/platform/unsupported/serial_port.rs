@@ -2,7 +2,7 @@ use std::any::Any;
 use std::os::fd::{BorrowedFd, OwnedFd};
 use std::sync::Arc;
 
-use super::{BridgedNil, BridgedThrown, GUARDED, NSError, NSObject, NSURL, Never, Retained};
+use super::{BridgedNil, BridgedThrown, GUARDED, Local, NSError, NSObject, NSURL, Never, Retained};
 
 pub(crate) fn vz_console_port_configuration_attachment(this: &NSObject) -> Option<Retained<NSObject>> {
   this.never()
@@ -14,6 +14,7 @@ pub(crate) fn vz_console_port_configuration_set_attachment(this: &NSObject, _att
 
 pub(crate) struct VZFileHandleSerialPortAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_file_handle_serial_port_attachment_init(
@@ -53,6 +54,7 @@ impl VZFileHandleSerialPortAttachment {
 
 pub(crate) struct VZFileSerialPortAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_file_serial_port_attachment_init(
@@ -98,6 +100,7 @@ pub(crate) fn vz_serial_port_configuration_set_attachment(this: &NSObject, _atta
 
 pub(crate) struct VZSpiceAgentPortAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_spice_agent_port_attachment_init() -> VZSpiceAgentPortAttachment {
@@ -136,6 +139,7 @@ impl VZSpiceAgentPortAttachment {
 
 pub(crate) struct VZVirtioConsoleDevice {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_console_device_bridge_cast(object: &NSObject) -> Option<VZVirtioConsoleDevice> {
@@ -174,6 +178,7 @@ impl<T: Any + Send + Sync> VZVirtioConsoleDeviceDelegate for T {}
 
 pub(crate) struct VZVirtioConsoleDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_console_device_configuration_init() -> VZVirtioConsoleDeviceConfiguration {
@@ -206,6 +211,7 @@ impl VZVirtioConsoleDeviceConfiguration {
 
 pub(crate) struct VZVirtioConsoleDeviceSerialPortConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_console_device_serial_port_configuration_init() -> VZVirtioConsoleDeviceSerialPortConfiguration
@@ -235,6 +241,7 @@ impl VZVirtioConsoleDeviceSerialPortConfiguration {
 
 pub(crate) struct VZVirtioConsolePort {
   never: Never,
+  local: Local,
 }
 
 impl VZVirtioConsolePort {
@@ -261,6 +268,7 @@ impl VZVirtioConsolePort {
 
 pub(crate) struct VZVirtioConsolePortArray {
   never: Never,
+  local: Local,
 }
 
 impl VZVirtioConsolePortArray {
@@ -283,6 +291,7 @@ impl VZVirtioConsolePortArray {
 
 pub(crate) struct VZVirtioConsolePortConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_console_port_configuration_init() -> VZVirtioConsolePortConfiguration {
@@ -327,6 +336,7 @@ impl VZVirtioConsolePortConfiguration {
 
 pub(crate) struct VZVirtioConsolePortConfigurationArray {
   never: Never,
+  local: Local,
 }
 
 impl VZVirtioConsolePortConfigurationArray {
@@ -361,6 +371,7 @@ impl VZVirtioConsolePortConfigurationArray {
 
 pub(crate) struct VZVirtioSocketConnection {
   never: Never,
+  local: Local,
 }
 
 impl VZVirtioSocketConnection {
@@ -391,6 +402,7 @@ impl VZVirtioSocketConnection {
 
 pub(crate) struct VZVirtioSocketDevice {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_socket_device_bridge_cast(object: &NSObject) -> Option<VZVirtioSocketDevice> {
@@ -429,6 +441,7 @@ impl VZVirtioSocketDevice {
 
 pub(crate) struct VZVirtioSocketDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_socket_device_configuration_init() -> VZVirtioSocketDeviceConfiguration {
@@ -457,6 +470,7 @@ impl VZVirtioSocketDeviceConfiguration {
 
 pub(crate) struct VZVirtioSocketListener {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_socket_listener_init() -> VZVirtioSocketListener {

@@ -2,7 +2,7 @@ use std::any::Any;
 use std::os::fd::{BorrowedFd, OwnedFd};
 use std::sync::Arc;
 
-use super::{BridgedThrown, GUARDED, NSObject, NSURL, Never, Retained};
+use super::{BridgedThrown, GUARDED, Local, NSObject, NSURL, Never, Retained};
 
 pub(crate) enum VZDiskSynchronizationMode {
   Full,
@@ -12,6 +12,7 @@ pub(crate) enum VZDiskSynchronizationMode {
 
 pub(crate) struct VZDiskBlockDeviceStorageDeviceAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_disk_block_device_storage_device_attachment_init(
@@ -70,6 +71,7 @@ pub(crate) enum VZDiskImageSynchronizationMode {
 
 pub(crate) struct VZDiskImageStorageDeviceAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_disk_image_storage_device_attachment_init(
@@ -134,6 +136,7 @@ impl VZDiskImageStorageDeviceAttachment {
 
 pub(crate) struct VZNVMExpressControllerDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_nvm_express_controller_device_configuration_init(
@@ -164,6 +167,7 @@ impl VZNVMExpressControllerDeviceConfiguration {
 
 pub(crate) struct VZNetworkBlockDeviceStorageDeviceAttachment {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_network_block_device_storage_device_attachment_init(
@@ -242,6 +246,7 @@ pub(crate) fn vz_storage_device_configuration_attachment(this: &NSObject) -> Ret
 
 pub(crate) struct VZUSBMassStorageDevice {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_usb_mass_storage_device_init(
@@ -270,6 +275,7 @@ impl VZUSBMassStorageDevice {
 
 pub(crate) struct VZUSBMassStorageDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_usb_mass_storage_device_configuration_init(
@@ -300,6 +306,7 @@ impl VZUSBMassStorageDeviceConfiguration {
 
 pub(crate) struct VZVirtioBlockDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_block_device_configuration_init(_attachment: &NSObject) -> VZVirtioBlockDeviceConfiguration {

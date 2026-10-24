@@ -56,6 +56,13 @@ pub use crate::usb_accessory_matching_criteria::{
   USBAccessoryMatchingCriteriaInterfaceMatchingCriteria, USBAccessoryMatchingCriteriaInterfaceMatchingOption,
 };
 
+// Every class is `Sendable`, so `Send + Sync`, on macOS or off it.
+#[cfg(test)]
+foundation_sys::assert_auto_traits! {
+  send_sync: [USBAccessory, USBAccessoryManager, USBAccessoryMatchingCriteria],
+  local: [],
+}
+
 /// What another crate's bridge passes on, e.g. Virtualization's
 /// `VZUSBPassthroughDeviceConfiguration(device:)`. Not for callers.
 #[doc(hidden)]

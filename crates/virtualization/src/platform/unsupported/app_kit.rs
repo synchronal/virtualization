@@ -1,8 +1,9 @@
-use super::{GUARDED, Never};
+use super::{GUARDED, Local, Never};
 
 #[derive(Clone, Copy)]
 pub(crate) struct MainThreadMarker {
   never: Never,
+  local: Local,
 }
 
 impl MainThreadMarker {
@@ -17,6 +18,7 @@ impl MainThreadMarker {
 
 pub(crate) struct NSScreen {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn ns_screen_screens(mtm: MainThreadMarker) -> Vec<NSScreen> {

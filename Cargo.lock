@@ -578,6 +578,7 @@ dependencies = [
 name = "vmnet"
 version = "0.1.0"
 dependencies = [
+ "foundation-sys",
  "vmnet-sys",
 ]
 

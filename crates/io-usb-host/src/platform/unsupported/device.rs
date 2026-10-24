@@ -2,11 +2,12 @@ use std::collections::BTreeMap;
 
 use dispatch2::DispatchQueue;
 
-use super::{GUARDED, NSError, NSObject, Never, Retained};
+use super::{GUARDED, Local, NSError, NSObject, Never, Retained};
 use crate::{DeviceMatchingDictionaryArguments, PropertyListValue};
 
 pub(crate) struct IOUSBHostDevice {
   never: Never,
+  local: Local,
 }
 
 pub(crate) type IOUSBHostInterestHandler = Box<dyn Fn(IOUSBHostDevice, u32, usize) + Send + Sync + 'static>;

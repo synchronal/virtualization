@@ -37,6 +37,13 @@ pub use crate::mode::Mode;
 pub use crate::network::Network;
 pub use crate::network_configuration::NetworkConfiguration;
 
+// Neither reference type is `Send` or `Sync`, on macOS or off it.
+#[cfg(test)]
+foundation_sys::assert_auto_traits! {
+  send_sync: [],
+  local: [Network, NetworkConfiguration],
+}
+
 /// What another crate's bridge passes on, e.g. `virtualization`'s
 /// `VZVmnetNetworkDeviceAttachment(network:)`. Not for callers.
 #[doc(hidden)]

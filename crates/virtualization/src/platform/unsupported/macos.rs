@@ -1,12 +1,13 @@
 use std::ffi::c_void;
 
 use super::{
-  BridgedNil, BridgedOperatingSystemVersion, BridgedThrown, GUARDED, NSError, NSObject, NSURL, Never, Retained,
+  BridgedNil, BridgedOperatingSystemVersion, BridgedThrown, GUARDED, Local, NSError, NSObject, NSURL, Never, Retained,
   VZVirtualMachine,
 };
 
 pub(crate) struct VZMacAuxiliaryStorage {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_auxiliary_storage_init(_url: &NSURL) -> VZMacAuxiliaryStorage {
@@ -109,6 +110,7 @@ impl VZMacGuestProvisioningOptions {
 
 pub(crate) struct VZMacHardwareModel {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_hardware_model_init_data_representation(
@@ -137,6 +139,7 @@ impl VZMacHardwareModel {
 
 pub(crate) struct VZMacMachineIdentifier {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_machine_identifier_init() -> VZMacMachineIdentifier {
@@ -169,6 +172,7 @@ impl VZMacMachineIdentifier {
 
 pub(crate) struct VZMacOSBootLoader {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_macos_boot_loader_init() -> VZMacOSBootLoader {
@@ -195,6 +199,7 @@ impl VZMacOSBootLoader {
 
 pub(crate) struct VZMacOSConfigurationRequirements {
   never: Never,
+  local: Local,
 }
 
 impl VZMacOSConfigurationRequirements {
@@ -258,6 +263,7 @@ impl VZMacOSInstaller {
 
 pub(crate) struct VZMacOSRestoreImage {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_macos_restore_image_load(
@@ -307,6 +313,7 @@ impl VZMacOSRestoreImage {
 
 pub(crate) struct VZMacOSVirtualMachineStartOptions {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_macos_virtual_machine_start_options_init() -> VZMacOSVirtualMachineStartOptions {
@@ -358,6 +365,7 @@ impl VZMacOSVirtualMachineStartOptions {
 
 pub(crate) struct VZMacPlatformConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_mac_platform_configuration_init() -> VZMacPlatformConfiguration {

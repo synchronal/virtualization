@@ -1,7 +1,8 @@
-use super::{BridgedThrown, GUARDED, NSObject, NSURL, Never, Retained};
+use super::{BridgedThrown, GUARDED, Local, NSObject, NSURL, Never, Retained};
 
 pub(crate) struct VZMultipleDirectoryShare {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_multiple_directory_share_init() -> VZMultipleDirectoryShare {
@@ -46,6 +47,7 @@ impl VZMultipleDirectoryShare {
 
 pub(crate) struct VZSharedDirectory {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_shared_directory_init(_url: &NSURL, _read_only: bool) -> VZSharedDirectory {
@@ -72,6 +74,7 @@ impl VZSharedDirectory {
 
 pub(crate) struct VZSingleDirectoryShare {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_single_directory_share_init(_directory: &VZSharedDirectory) -> VZSingleDirectoryShare {
@@ -102,6 +105,7 @@ impl VZSingleDirectoryShare {
 
 pub(crate) struct VZVirtioFileSystemDevice {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_file_system_device_bridge_cast(object: &NSObject) -> Option<VZVirtioFileSystemDevice> {
@@ -136,6 +140,7 @@ impl VZVirtioFileSystemDevice {
 
 pub(crate) struct VZVirtioFileSystemDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_file_system_device_configuration_init(_tag: &str) -> VZVirtioFileSystemDeviceConfiguration {

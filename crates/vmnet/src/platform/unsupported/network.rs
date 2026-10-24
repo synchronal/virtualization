@@ -1,9 +1,10 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-use super::{GUARDED, Never, VmnetNetworkConfiguration, VmnetReturn};
+use super::{GUARDED, Local, Never, VmnetNetworkConfiguration, VmnetReturn};
 
 pub(crate) struct VmnetNetwork {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vmnet_network_create(_configuration: &VmnetNetworkConfiguration) -> Result<VmnetNetwork, VmnetReturn> {

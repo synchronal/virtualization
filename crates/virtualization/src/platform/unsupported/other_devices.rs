@@ -1,7 +1,7 @@
 use std::any::Any;
 use std::sync::Arc;
 
-use super::{BridgedThrown, GUARDED, NSError, NSObject, NSUUID, Never, Retained};
+use super::{BridgedThrown, GUARDED, Local, NSError, NSObject, NSUUID, Never, Retained};
 
 pub(crate) fn vz_usb_controller_attach(
   this: &NSObject,
@@ -61,6 +61,7 @@ pub(crate) fn vz_usb_device_configuration_set_uuid(this: &NSObject, _uuid: &NSUU
 
 pub(crate) struct VZUSBPassthroughDevice {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_usb_passthrough_device_init_configuration(
@@ -89,6 +90,7 @@ impl VZUSBPassthroughDevice {
 
 pub(crate) struct VZUSBPassthroughDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_usb_passthrough_device_configuration_init(
@@ -119,6 +121,7 @@ impl VZUSBPassthroughDeviceConfiguration {
 
 pub(crate) struct VZXHCIController {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_xhci_controller_bridge_cast(object: &NSObject) -> Option<VZXHCIController> {
@@ -141,6 +144,7 @@ impl VZXHCIController {
 
 pub(crate) struct VZXHCIControllerConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_xhci_controller_configuration_init() -> VZXHCIControllerConfiguration {
@@ -167,6 +171,7 @@ impl VZXHCIControllerConfiguration {
 
 pub(crate) struct VZVirtioEntropyDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_entropy_device_configuration_init() -> VZVirtioEntropyDeviceConfiguration {
@@ -195,6 +200,7 @@ impl VZVirtioEntropyDeviceConfiguration {
 
 pub(crate) struct VZVirtioTraditionalMemoryBalloonDevice {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_traditional_memory_balloon_device_bridge_cast(
@@ -227,6 +233,7 @@ impl VZVirtioTraditionalMemoryBalloonDevice {
 
 pub(crate) struct VZVirtioTraditionalMemoryBalloonDeviceConfiguration {
   never: Never,
+  local: Local,
 }
 
 pub(crate) fn vz_virtio_traditional_memory_balloon_device_configuration_init()
