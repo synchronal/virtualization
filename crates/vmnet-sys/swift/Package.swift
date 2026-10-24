@@ -21,8 +21,7 @@ let package = Package(
   targets: [
     .target(
       name: "VmnetBridge",
-      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])],
-      linkerSettings: [.linkedFramework("vmnet")]
+      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])]
     )
   ]
 )

@@ -21,8 +21,7 @@ let package = Package(
   targets: [
     .target(
       name: "IOUSBHostBridge",
-      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])],
-      linkerSettings: [.linkedFramework("IOUSBHost")]
+      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])]
     )
   ]
 )

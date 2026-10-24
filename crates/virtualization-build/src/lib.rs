@@ -32,6 +32,10 @@ const BRIDGE_MODULE: &str = "src/lib.rs";
 /// this script regenerates.
 const NOT_INPUTS: [&str; 2] = [".build", "generated"];
 
+/// Where the dynamic Swift runtime lives. `.cargo/config.toml`'s rpath names
+/// it too: change both together.
+const SWIFT_RUNTIME_DIR: &str = "/usr/lib/swift";
+
 fn manifest_dir() -> PathBuf {
   PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("cargo sets CARGO_MANIFEST_DIR"))
 }
@@ -63,7 +67,7 @@ fn staged_package_dir() -> PathBuf {
 /// SwiftPM's build directory, one per profile.
 ///
 /// `OUT_DIR` is `<target>/<profile>/build/<crate>-<fingerprint>/out`, so the
-/// profile directory is its fourth ancestor. Cargo documents no part of that
+/// profile directory is its third ancestor. Cargo documents no part of that
 /// layout, so a path that doesn't match it falls back to `OUT_DIR`.
 fn scratch_dir() -> PathBuf {
   let out = out_dir();
@@ -110,14 +114,16 @@ fn publish_bridge_shims(bridge: &Bridge, generated: &Path) {
 }
 
 /// Mirrors `from` onto `to`, skipping unchanged files and removing anything
-/// this run didn't write. SwiftPM keys off mtimes.
+/// this run didn't write, except `skip`, which it neither writes nor removes.
+/// SwiftPM keys off mtimes.
 fn mirror(from: &Path, to: &Path, skip: &[&str]) {
   std::fs::create_dir_all(to).expect("the destination should be creatable");
 
   for entry in std::fs::read_dir(to).expect("the destination was just created") {
     let entry = entry.expect("a readable directory entry");
+    let name = entry.file_name();
 
-    if from.join(entry.file_name()).exists() {
+    if skip.iter().any(|skipped| name == *skipped) || from.join(&name).exists() {
       continue;
     }
 
@@ -190,23 +196,34 @@ fn swift_build_dir() -> PathBuf {
   scratch_dir().join(if is_release() { "release" } else { "debug" })
 }
 
-/// Where the dynamic Swift runtime lives.
-const SWIFT_RUNTIME_DIR: &str = "/usr/lib/swift";
+/// The Swift runtime the static library depends on but does not carry: the
+/// active toolchain's libraries, wherever `xcrun` finds it (Xcode's, or the
+/// Command Line Tools'), and the system's dynamic runtime.
+fn link_swift_runtime() {
+  println!("cargo:rerun-if-env-changed=DEVELOPER_DIR");
 
-/// The Swift runtime the static library depends on but does not carry, and
-/// the framework it wraps.
-fn link_swift_runtime(bridge: &Bridge) {
-  let developer = Command::new("xcode-select")
-    .arg("--print-path")
+  let output = Command::new("xcrun")
+    .args(["--find", "swiftc"])
     .output()
-    .ok()
-    .filter(|output| output.status.success())
-    .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_string())
-    .unwrap_or_else(|| "/Applications/Xcode.app/Contents/Developer".to_string());
+    .expect("xcrun should be on PATH on macOS");
 
-  println!("cargo:rustc-link-search={developer}/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx/");
+  if !output.status.success() {
+    panic!("xcrun found no swiftc\n{}", String::from_utf8_lossy(&output.stderr));
+  }
+
+  // `<toolchain>/usr/bin/swiftc`, beside `<toolchain>/usr/lib/swift`.
+  let swiftc = PathBuf::from(String::from_utf8_lossy(&output.stdout).trim());
+  let usr = swiftc
+    .ancestors()
+    .nth(2)
+    .expect("swiftc is in a toolchain's usr/bin");
+
+  println!("cargo:rustc-link-search={}", usr.join("lib/swift/macosx").display());
   println!("cargo:rustc-link-search={SWIFT_RUNTIME_DIR}");
+}
 
+/// The framework the Swift package wraps.
+fn link_framework(bridge: &Bridge) {
   println!("cargo:rustc-link-lib=framework={}", bridge.framework);
 }
 
@@ -256,5 +273,6 @@ pub fn build(bridge: Bridge) {
   println!("cargo:rustc-link-lib=static={}", bridge.package);
   println!("cargo:rustc-link-search={}", swift_build_dir().display());
 
-  link_swift_runtime(&bridge);
+  link_swift_runtime();
+  link_framework(&bridge);
 }

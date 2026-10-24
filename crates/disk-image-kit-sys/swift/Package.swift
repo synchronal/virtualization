@@ -21,8 +21,7 @@ let package = Package(
   targets: [
     .target(
       name: "DiskImageKitBridge",
-      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])],
-      linkerSettings: [.linkedFramework("DiskImageKit")]
+      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])]
     )
   ]
 )

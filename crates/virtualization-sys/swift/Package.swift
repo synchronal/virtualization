@@ -21,11 +21,7 @@ let package = Package(
   targets: [
     .target(
       name: "VirtualizationBridge",
-      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])],
-      linkerSettings: [
-        .linkedFramework("Virtualization"), .linkedFramework("DiskImageKit"), .linkedFramework("Security"),
-        .linkedFramework("vmnet"), .linkedFramework("AccessoryAccess"),
-      ]
+      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])]
     )
   ]
 )

@@ -21,11 +21,7 @@ let package = Package(
   targets: [
     .target(
       name: "AccessoryAccessBridge",
-      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])],
-      linkerSettings: [
-        .linkedFramework("AccessoryAccess"),
-        .linkedFramework("IOUSBHost"),
-      ]
+      swiftSettings: [.unsafeFlags(["-import-objc-header", bridgingHeader])]
     )
   ]
 )
