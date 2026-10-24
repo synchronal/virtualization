@@ -937,6 +937,7 @@ mod ffi {
 
     fn display_did_begin_reconfiguration(self: &VZGraphicsDisplayObserverBridge, display: *mut c_void);
     fn display_did_end_reconfiguration(self: &VZGraphicsDisplayObserverBridge, display: *mut c_void);
+    fn bridge_is_live(self: &VZGraphicsDisplayObserverBridge) -> bool;
   }
 
   // Graphics/HostAudioInputStreamSource.swift
@@ -3755,7 +3756,7 @@ pub fn vz_graphics_display_reconfigure_configuration(
 
 /// `this` is any `VZGraphicsDisplay`. `key` names `observer` to the bridge,
 /// which passes the display the same object for each observer with the same
-/// key, and keeps it until it is removed.
+/// key, and keeps it until it is removed or no longer live.
 pub fn vz_graphics_display_add_observer(this: &NSObject, observer: Arc<dyn VZGraphicsDisplayObserver>, key: usize) {
   ffi::vz_graphics_display_add_observer(borrowed(this), VZGraphicsDisplayObserverBridge { observer }, key);
 }
@@ -3772,6 +3773,9 @@ pub trait VZGraphicsDisplayObserver: Send + Sync {
   fn display_did_begin_reconfiguration(&self, display: Retained<NSObject>);
 
   fn display_did_end_reconfiguration(&self, display: Retained<NSObject>);
+
+  /// Whether the observer still exists; the bridge drops one that doesn't.
+  fn bridge_is_live(&self) -> bool;
 }
 
 /// A [`VZGraphicsDisplayObserver`] as Swift holds it.
@@ -3792,6 +3796,10 @@ impl VZGraphicsDisplayObserverBridge {
     let display = unsafe { retained(display) };
 
     self.observer.display_did_end_reconfiguration(display);
+  }
+
+  fn bridge_is_live(&self) -> bool {
+    self.observer.bridge_is_live()
   }
 }
 

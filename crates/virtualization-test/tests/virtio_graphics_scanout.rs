@@ -247,6 +247,25 @@ fn does_not_tell_an_observer_it_removed() {
 }
 
 #[test]
+fn tells_an_observer_added_after_one_dropped() {
+  let (queue, machine) = running_machine("tells_an_observer_added_after_one_dropped");
+  let (observer, receiver) = observer();
+
+  on_queue(&queue, || {
+    let scanout = scanout(&machine);
+    let dropped: Arc<dyn GraphicsDisplayObserver> = Arc::new(Ignores);
+
+    scanout.add_observer(&dropped);
+    drop(dropped);
+    scanout.add_observer(&observer);
+    scanout.reconfigure_with_size_in_pixels(SIZE).unwrap();
+  });
+
+  assert_eq!(told(&receiver), Told::Began(SIZE));
+  assert_eq!(told(&receiver), Told::Ended(SIZE));
+}
+
+#[test]
 fn tells_an_observer_added_twice_twice() {
   let (queue, machine) = running_machine("tells_an_observer_added_twice_twice");
   let (observer, receiver) = observer();

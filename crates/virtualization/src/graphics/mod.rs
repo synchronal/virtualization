@@ -105,6 +105,8 @@ pub trait GraphicsDisplay: Sealed {
   /// [`removeObserver(_:)`](https://developer.apple.com/documentation/virtualization/vzgraphicsdisplay/removeobserver(_:)):
   /// `observer` is the `Arc` it was added with.
   fn remove_observer(&self, observer: &Arc<dyn GraphicsDisplayObserver>) {
+    // The bridge finds the observer by its key, and uses this one only for an
+    // observer never added, which the display must still be given.
     ffi::vz_graphics_display_remove_observer(self.bridge_object(), observing(observer), observer_key(observer));
   }
 }
@@ -157,6 +159,10 @@ impl ffi::VZGraphicsDisplayObserver for Observing {
     if let Some(observer) = self.0.upgrade() {
       observer.display_did_end_reconfiguration(&AnyGraphicsDisplay { object: display });
     }
+  }
+
+  fn bridge_is_live(&self) -> bool {
+    self.0.strong_count() > 0
   }
 }
 

@@ -6,6 +6,7 @@
 // Function names are Rust's, which are snake_case.
 // swift-format-ignore-file: AlwaysUseLowerCamelCase
 
+import Synchronization
 import Virtualization
 
 func vz_graphics_display_size_in_pixels(this: UnsafeRawPointer) -> BridgedCGSize {
@@ -51,8 +52,9 @@ func vz_graphics_display_remove_observer(
   display.removeObserver(bridging(removingObserver: observer, key: key, from: display))
 }
 
-/// A `VZGraphicsDisplayObserver` that forwards to Rust's.
-final class BridgedGraphicsDisplayObserver: NSObject, VZGraphicsDisplayObserver {
+/// A `VZGraphicsDisplayObserver` that forwards to Rust's, which is `Send +
+/// Sync`.
+final class BridgedGraphicsDisplayObserver: NSObject, VZGraphicsDisplayObserver, @unchecked Sendable {
   let observer: VZGraphicsDisplayObserverBridge
 
   init(_ observer: VZGraphicsDisplayObserverBridge) {
@@ -73,10 +75,11 @@ final class BridgedGraphicsDisplayObserver: NSObject, VZGraphicsDisplayObserver 
 /// Each Rust observer's `BridgedGraphicsDisplayObserver` on a display, by its
 /// key: a display knows an observer by its object, so adding and removing one
 /// Rust observer must pass the same one. A display holds observers weakly, so
-/// each is kept from adding until removed: once, however often added, as the
-/// display removes it.
-final class BridgedGraphicsDisplayObservers {
-  var observers: [UInt: BridgedGraphicsDisplayObserver] = [:]
+/// each is kept from adding until removed or no longer live: once, however
+/// often added, as the display removes it. One display is reached from any
+/// thread its machine is, so a lock guards them.
+final class BridgedGraphicsDisplayObservers: @unchecked Sendable {
+  let observers = Mutex<[UInt: BridgedGraphicsDisplayObserver]>([:])
 }
 
 /// Where a display keeps its `BridgedGraphicsDisplayObservers`. Only its
@@ -85,6 +88,9 @@ nonisolated(unsafe) private var observersKey: UInt8 = 0
 
 /// The observers `display` keeps, made on first use.
 private func bridging(observersOf display: VZGraphicsDisplay) -> BridgedGraphicsDisplayObservers {
+  objc_sync_enter(display)
+  defer { objc_sync_exit(display) }
+
   if let observers = objc_getAssociatedObject(display, &observersKey) as? BridgedGraphicsDisplayObservers {
     return observers
   }
@@ -96,20 +102,23 @@ private func bridging(observersOf display: VZGraphicsDisplay) -> BridgedGraphics
 }
 
 /// The `BridgedGraphicsDisplayObserver` for the Rust observer `key` names,
-/// kept by `display` for adding.
+/// kept by `display` for adding. Forgets those no longer live first, whose
+/// keys a new observer may reuse.
 func bridging(addingObserver observer: VZGraphicsDisplayObserverBridge, key: UInt, to display: VZGraphicsDisplay)
   -> BridgedGraphicsDisplayObserver
 {
-  let observers = bridging(observersOf: display)
+  bridging(observersOf: display).observers.withLock { observers in
+    observers = observers.filter { $0.value.observer.bridge_is_live() }
 
-  if let bridged = observers.observers[key] {
+    if let bridged = observers[key] {
+      return bridged
+    }
+
+    let bridged = BridgedGraphicsDisplayObserver(observer)
+
+    observers[key] = bridged
     return bridged
   }
-
-  let bridged = BridgedGraphicsDisplayObserver(observer)
-
-  observers.observers[key] = bridged
-  return bridged
 }
 
 /// The `BridgedGraphicsDisplayObserver` for the Rust observer `key` names, no
@@ -120,5 +129,6 @@ func bridging(
   key: UInt,
   from display: VZGraphicsDisplay
 ) -> BridgedGraphicsDisplayObserver {
-  bridging(observersOf: display).observers.removeValue(forKey: key) ?? BridgedGraphicsDisplayObserver(observer)
+  bridging(observersOf: display).observers.withLock { $0.removeValue(forKey: key) }
+    ?? BridgedGraphicsDisplayObserver(observer)
 }
