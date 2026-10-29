@@ -70,7 +70,7 @@ func vz_network_block_device_storage_device_attachment_set_delegate(
 ) {
   let delegate = BridgedNetworkBlockDeviceStorageDeviceAttachmentDelegate(delegate)
 
-  objc_setAssociatedObject(this, &delegateKey, delegate, .OBJC_ASSOCIATION_RETAIN)
+  objc_setAssociatedObject(this, delegateKey.address, delegate, .OBJC_ASSOCIATION_RETAIN)
   this.delegate = delegate
 }
 
@@ -88,15 +88,14 @@ extension VZNetworkBlockDeviceStorageDeviceAttachment {
   }
 
   func bridge_set_delegate_nil() {
-    objc_setAssociatedObject(self, &delegateKey, nil, .OBJC_ASSOCIATION_RETAIN)
+    objc_setAssociatedObject(self, delegateKey.address, nil, .OBJC_ASSOCIATION_RETAIN)
     delegate = nil
   }
 }
 
 /// Where an attachment keeps its
-/// `BridgedNetworkBlockDeviceStorageDeviceAttachmentDelegate`. Only its
-/// address is used.
-nonisolated(unsafe) private var delegateKey: UInt8 = 0
+/// `BridgedNetworkBlockDeviceStorageDeviceAttachmentDelegate`.
+private let delegateKey = AssociationKey()
 
 /// A `VZNetworkBlockDeviceStorageDeviceAttachmentDelegate` that forwards to
 /// Rust's.

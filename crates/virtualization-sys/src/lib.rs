@@ -133,7 +133,7 @@ mod ffi {
   }
 
   extern "Swift" {
-    fn bridge_take_thrown_error() -> *mut c_void;
+    fn bridge_take_thrown_error() -> usize;
   }
 
   #[swift_bridge(swift_repr = "struct")]
@@ -2173,10 +2173,16 @@ unsafe fn bridge_objects(pointer: *mut c_void) -> Vec<Retained<NSObject>> {
 // Foundation.swift
 
 /// What the last throwing call on this thread threw. Call it on that thread,
-/// only after the call returned [`BridgedThrown`].
+/// once, after the call returned [`BridgedThrown`].
+///
+/// # Panics
+///
+/// When no throwing call on this thread has returned [`BridgedThrown`] since
+/// the last take.
 pub fn bridge_take_thrown_error() -> Retained<NSError> {
-  // SAFETY: `bridge_take_thrown_error` returns a retained `NSError`.
-  unsafe { retained(ffi::bridge_take_thrown_error()) }
+  // SAFETY: `bridge_take_thrown_error` returns a retained `NSError`, or `0`.
+  unsafe { retained_or_nil(ffi::bridge_take_thrown_error()) }
+    .expect("bridge_take_thrown_error follows a BridgedThrown on the same thread")
 }
 
 // Security.swift

@@ -48,20 +48,19 @@ func vz_usb_controller_set_delegate(this: UnsafeRawPointer, delegate: VZUSBContr
   let controller: VZUSBController = bridging(borrowed: this)
   let delegate = BridgedUSBControllerDelegate(delegate)
 
-  objc_setAssociatedObject(controller, &delegateKey, delegate, .OBJC_ASSOCIATION_RETAIN)
+  objc_setAssociatedObject(controller, delegateKey.address, delegate, .OBJC_ASSOCIATION_RETAIN)
   controller.delegate = delegate
 }
 
 func vz_usb_controller_bridge_set_delegate_nil(this: UnsafeRawPointer) {
   let controller: VZUSBController = bridging(borrowed: this)
 
-  objc_setAssociatedObject(controller, &delegateKey, nil, .OBJC_ASSOCIATION_RETAIN)
+  objc_setAssociatedObject(controller, delegateKey.address, nil, .OBJC_ASSOCIATION_RETAIN)
   controller.delegate = nil
 }
 
-/// Where a controller keeps its `BridgedUSBControllerDelegate`. Only its
-/// address is used.
-nonisolated(unsafe) private var delegateKey: UInt8 = 0
+/// Where a controller keeps its `BridgedUSBControllerDelegate`.
+private let delegateKey = AssociationKey()
 
 /// A `VZUSBController.Delegate` that forwards to Rust's.
 final class BridgedUSBControllerDelegate: NSObject, VZUSBController.Delegate {

@@ -24,13 +24,13 @@ func vz_virtio_console_device_delegate(this: VZVirtioConsoleDevice) -> UInt {
 func vz_virtio_console_device_set_delegate(this: VZVirtioConsoleDevice, delegate: VZVirtioConsoleDeviceDelegateBridge) {
   let delegate = BridgedVirtioConsoleDeviceDelegate(delegate)
 
-  objc_setAssociatedObject(this, &delegateKey, delegate, .OBJC_ASSOCIATION_RETAIN)
+  objc_setAssociatedObject(this, delegateKey.address, delegate, .OBJC_ASSOCIATION_RETAIN)
   this.delegate = delegate
 }
 
 extension VZVirtioConsoleDevice {
   func bridge_set_delegate_nil() {
-    objc_setAssociatedObject(self, &delegateKey, nil, .OBJC_ASSOCIATION_RETAIN)
+    objc_setAssociatedObject(self, delegateKey.address, nil, .OBJC_ASSOCIATION_RETAIN)
     delegate = nil
   }
 
@@ -39,9 +39,8 @@ extension VZVirtioConsoleDevice {
   }
 }
 
-/// Where a device keeps its `BridgedVirtioConsoleDeviceDelegate`. Only its
-/// address is used.
-nonisolated(unsafe) private var delegateKey: UInt8 = 0
+/// Where a device keeps its `BridgedVirtioConsoleDeviceDelegate`.
+private let delegateKey = AssociationKey()
 
 /// A `VZVirtioConsoleDeviceDelegate` that forwards to Rust's.
 final class BridgedVirtioConsoleDeviceDelegate: NSObject, VZVirtioConsoleDeviceDelegate {

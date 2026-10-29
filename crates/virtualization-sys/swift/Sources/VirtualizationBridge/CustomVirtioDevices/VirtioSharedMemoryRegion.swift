@@ -81,8 +81,11 @@ extension VZVirtioSharedMemoryRegion {
   }
 }
 
-/// Where a region keeps its `MappedMemoryPages`. Only its address is used.
-nonisolated(unsafe) private var mappedKey: UInt8 = 0
+/// Where a region keeps its `MappedMemoryPages`.
+private let mappedKey = AssociationKey()
+
+/// So a region makes only one `MappedMemoryPages`.
+private let mappedLock = NSLock()
 
 /// The pages Rust mapped into a region, each by the offset and size it was
 /// mapped at, numbered in the order kept. Completion handlers run on the
@@ -94,16 +97,15 @@ private final class MappedMemoryPages: @unchecked Sendable {
 
   /// The region's, made the first time it's asked for.
   static func of(_ region: VZVirtioSharedMemoryRegion) -> MappedMemoryPages {
-    objc_sync_enter(region)
-    defer { objc_sync_exit(region) }
+    mappedLock.withLock {
+      if let mapped = objc_getAssociatedObject(region, mappedKey.address) as? MappedMemoryPages {
+        return mapped
+      }
 
-    if let mapped = objc_getAssociatedObject(region, &mappedKey) as? MappedMemoryPages {
+      let mapped = MappedMemoryPages()
+      objc_setAssociatedObject(region, mappedKey.address, mapped, .OBJC_ASSOCIATION_RETAIN)
       return mapped
     }
-
-    let mapped = MappedMemoryPages()
-    objc_setAssociatedObject(region, &mappedKey, mapped, .OBJC_ASSOCIATION_RETAIN)
-    return mapped
   }
 
   /// Keeps `memory`, mapped at `offset`, returning its number.

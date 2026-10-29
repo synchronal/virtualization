@@ -19,7 +19,7 @@ func vz_custom_virtio_device_delegate_provider_init(
   let delegate = BridgedCustomVirtioDeviceConfigurationDelegate(delegate)
   let provider = VZCustomVirtioDeviceDelegateProvider(deviceQueue: bridging(borrowed: device_queue), delegate: delegate)
 
-  objc_setAssociatedObject(provider, &delegateKey, delegate, .OBJC_ASSOCIATION_RETAIN)
+  objc_setAssociatedObject(provider, delegateKey.address, delegate, .OBJC_ASSOCIATION_RETAIN)
   return provider
 }
 
@@ -44,8 +44,7 @@ func vz_custom_virtio_device_delegate_provider_delegate(this: VZCustomVirtioDevi
 }
 
 /// Where a provider keeps its `BridgedCustomVirtioDeviceConfigurationDelegate`.
-/// Only its address is used.
-nonisolated(unsafe) private var delegateKey: UInt8 = 0
+private let delegateKey = AssociationKey()
 
 /// A `VZCustomVirtioDeviceConfigurationDelegate` that forwards to Rust's.
 final class BridgedCustomVirtioDeviceConfigurationDelegate: NSObject, VZCustomVirtioDeviceConfigurationDelegate {

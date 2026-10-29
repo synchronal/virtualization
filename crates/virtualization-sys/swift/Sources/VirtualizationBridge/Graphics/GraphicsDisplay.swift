@@ -82,23 +82,24 @@ private final class BridgedGraphicsDisplayObservers: Sendable {
   let observers = Mutex<[UInt: BridgedGraphicsDisplayObserver]>([:])
 }
 
-/// Where a display keeps its `BridgedGraphicsDisplayObservers`. Only its
-/// address is used.
-nonisolated(unsafe) private var observersKey: UInt8 = 0
+/// Where a display keeps its `BridgedGraphicsDisplayObservers`.
+private let observersKey = AssociationKey()
+
+/// So a display makes only one `BridgedGraphicsDisplayObservers`.
+private let observersLock = NSLock()
 
 /// The observers `display` keeps, made on first use.
 private func bridging(observersOf display: VZGraphicsDisplay) -> BridgedGraphicsDisplayObservers {
-  objc_sync_enter(display)
-  defer { objc_sync_exit(display) }
+  observersLock.withLock {
+    if let observers = objc_getAssociatedObject(display, observersKey.address) as? BridgedGraphicsDisplayObservers {
+      return observers
+    }
 
-  if let observers = objc_getAssociatedObject(display, &observersKey) as? BridgedGraphicsDisplayObservers {
+    let observers = BridgedGraphicsDisplayObservers()
+
+    objc_setAssociatedObject(display, observersKey.address, observers, .OBJC_ASSOCIATION_RETAIN)
     return observers
   }
-
-  let observers = BridgedGraphicsDisplayObservers()
-
-  objc_setAssociatedObject(display, &observersKey, observers, .OBJC_ASSOCIATION_RETAIN)
-  return observers
 }
 
 /// The `BridgedGraphicsDisplayObserver` for the Rust observer `key` names,

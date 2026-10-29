@@ -79,6 +79,14 @@ func bridging(retainedError result: Result<Void, any Error>) -> UInt {
   return bridging(retainedError: error)
 }
 
+/// An associated object's key: its address, stable while it lives, as a
+/// global does forever.
+final class AssociationKey: Sendable {
+  var address: UnsafeRawPointer {
+    UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque())
+  }
+}
+
 /// A value Swift's concurrency checking can't see is safe to send: a
 /// swift-bridge closure, which Rust declares `Send`.
 struct Bridged<T>: @unchecked Sendable {
@@ -114,12 +122,11 @@ func bridging<T>(_ body: () throws -> T) throws(BridgedThrown) -> T {
 }
 
 /// What the last `bridging` call on this thread threw, as an `NSError` Rust
-/// takes over. Rust calls this only after one returned `Thrown`, so there is
-/// always an error to take.
-func bridge_take_thrown_error() -> UnsafeMutableRawPointer {
-  let error = Thread.current.threadDictionary[thrownErrorKey] as! NSError
+/// takes over, by address: `0` if it was taken already, or none threw.
+func bridge_take_thrown_error() -> UInt {
+  let error = Thread.current.threadDictionary[thrownErrorKey] as? NSError
   Thread.current.threadDictionary.removeObject(forKey: thrownErrorKey)
-  return bridging(retained: error)
+  return bridging(retainedAddress: error)
 }
 
 extension BridgedOperatingSystemVersion {

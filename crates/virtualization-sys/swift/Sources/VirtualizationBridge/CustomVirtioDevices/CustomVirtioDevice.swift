@@ -19,7 +19,7 @@ func vz_custom_virtio_device_delegate(this: VZCustomVirtioDevice) -> UInt {
 func vz_custom_virtio_device_set_delegate(this: VZCustomVirtioDevice, delegate: VZCustomVirtioDeviceDelegateBridge) {
   let delegate = BridgedCustomVirtioDeviceDelegate(delegate)
 
-  objc_setAssociatedObject(this, &delegateKey, delegate, .OBJC_ASSOCIATION_RETAIN)
+  objc_setAssociatedObject(this, delegateKey.address, delegate, .OBJC_ASSOCIATION_RETAIN)
   this.delegate = delegate
 }
 
@@ -43,7 +43,7 @@ func vz_custom_virtio_device_update(
 
 extension VZCustomVirtioDevice {
   func bridge_set_delegate_nil() {
-    objc_setAssociatedObject(self, &delegateKey, nil, .OBJC_ASSOCIATION_RETAIN)
+    objc_setAssociatedObject(self, delegateKey.address, nil, .OBJC_ASSOCIATION_RETAIN)
     delegate = nil
   }
 
@@ -64,9 +64,8 @@ extension VZCustomVirtioDevice {
   }
 }
 
-/// Where a device keeps its `BridgedCustomVirtioDeviceDelegate`. Only its
-/// address is used.
-nonisolated(unsafe) private var delegateKey: UInt8 = 0
+/// Where a device keeps its `BridgedCustomVirtioDeviceDelegate`.
+private let delegateKey = AssociationKey()
 
 /// A `VZCustomVirtioDeviceDelegate` that forwards to Rust's.
 final class BridgedCustomVirtioDeviceDelegate: NSObject, VZCustomVirtioDeviceDelegate {

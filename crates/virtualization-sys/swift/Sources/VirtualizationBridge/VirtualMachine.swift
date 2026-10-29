@@ -111,13 +111,13 @@ func vz_virtual_machine_delegate(this: VZVirtualMachine) -> UInt {
 func vz_virtual_machine_set_delegate(this: VZVirtualMachine, delegate: VZVirtualMachineDelegateBridge) {
   let delegate = BridgedVirtualMachineDelegate(delegate)
 
-  objc_setAssociatedObject(this, &delegateKey, delegate, .OBJC_ASSOCIATION_RETAIN)
+  objc_setAssociatedObject(this, delegateKey.address, delegate, .OBJC_ASSOCIATION_RETAIN)
   this.delegate = delegate
 }
 
 extension VZVirtualMachine {
   func bridge_set_delegate_nil() {
-    objc_setAssociatedObject(self, &delegateKey, nil, .OBJC_ASSOCIATION_RETAIN)
+    objc_setAssociatedObject(self, delegateKey.address, nil, .OBJC_ASSOCIATION_RETAIN)
     delegate = nil
   }
 
@@ -152,9 +152,8 @@ extension VZVirtualMachine {
   }
 }
 
-/// Where a machine keeps its `BridgedVirtualMachineDelegate`. Only its address
-/// is used.
-nonisolated(unsafe) private var delegateKey: UInt8 = 0
+/// Where a machine keeps its `BridgedVirtualMachineDelegate`.
+private let delegateKey = AssociationKey()
 
 /// A `VZVirtualMachineDelegate` that forwards to Rust's.
 final class BridgedVirtualMachineDelegate: NSObject, VZVirtualMachineDelegate {

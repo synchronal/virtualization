@@ -26,20 +26,19 @@ func vz_virtio_socket_listener_set_delegate(
 ) {
   let delegate = BridgedVirtioSocketListenerDelegate(delegate)
 
-  objc_setAssociatedObject(this, &delegateKey, delegate, .OBJC_ASSOCIATION_RETAIN)
+  objc_setAssociatedObject(this, delegateKey.address, delegate, .OBJC_ASSOCIATION_RETAIN)
   this.delegate = delegate
 }
 
 extension VZVirtioSocketListener {
   func bridge_set_delegate_nil() {
-    objc_setAssociatedObject(self, &delegateKey, nil, .OBJC_ASSOCIATION_RETAIN)
+    objc_setAssociatedObject(self, delegateKey.address, nil, .OBJC_ASSOCIATION_RETAIN)
     delegate = nil
   }
 }
 
-/// Where a listener keeps its `BridgedVirtioSocketListenerDelegate`. Only its
-/// address is used.
-nonisolated(unsafe) private var delegateKey: UInt8 = 0
+/// Where a listener keeps its `BridgedVirtioSocketListenerDelegate`.
+private let delegateKey = AssociationKey()
 
 /// A `VZVirtioSocketListenerDelegate` that forwards to Rust's.
 final class BridgedVirtioSocketListenerDelegate: NSObject, VZVirtioSocketListenerDelegate {
