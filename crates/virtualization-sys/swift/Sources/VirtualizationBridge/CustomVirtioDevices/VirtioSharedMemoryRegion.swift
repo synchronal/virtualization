@@ -27,7 +27,7 @@ func vz_virtio_shared_memory_region_map_memory(
 }
 
 /// `mapMemory` of all of `memory`, which the region holds until mapping it
-/// fails or an unmap covering it completes.
+/// fails or an unmap covering it, started after it, completes.
 func vz_virtio_shared_memory_region_map_memory_pages(
   this: VZVirtioSharedMemoryRegion,
   memory: BridgedMemoryPages,
@@ -38,19 +38,20 @@ func vz_virtio_shared_memory_region_map_memory_pages(
   let size = UInt64(memory.bridge_length())
   let address = UnsafeMutableRawPointer(bitPattern: memory.bridge_address())!
   let mapped = MappedMemoryPages.of(this)
+  let kept = mapped.keep(memory, offset: offset, size: size)
 
-  mapped.keep(memory, offset: offset, size: size)
   this.mapMemory(address, atOffset: offset, size: size) { error in
     // Only these pages: others in the range may still be mapped there.
     if error != nil {
-      mapped.release(memory)
+      mapped.release(kept)
     }
 
     completionHandler.value(bridging(retainedError: error))
   }
 }
 
-/// `unmapMemory`, then releasing the pages it covers.
+/// `unmapMemory`, then releasing the pages it covers that were mapped before
+/// it started: pages mapped while it was in flight stay mapped.
 func vz_virtio_shared_memory_region_unmap_memory(
   this: VZVirtioSharedMemoryRegion,
   offset: UInt64,
@@ -59,10 +60,11 @@ func vz_virtio_shared_memory_region_unmap_memory(
 ) {
   let completionHandler = Bridged(value: completion_handler)
   let mapped = MappedMemoryPages.of(this)
+  let lastKept = mapped.lastKept()
 
   this.unmapMemory(atOffset: offset, size: size) { error in
     if error == nil {
-      mapped.releaseUnmapped(offset: offset, size: size)
+      mapped.releaseUnmapped(offset: offset, size: size, keptBy: lastKept)
     }
 
     completionHandler.value(bridging(retainedError: error))
@@ -83,11 +85,12 @@ extension VZVirtioSharedMemoryRegion {
 nonisolated(unsafe) private var mappedKey: UInt8 = 0
 
 /// The pages Rust mapped into a region, each by the offset and size it was
-/// mapped at. Completion handlers run on the device's queue, maybe not the
-/// caller's thread, so a lock guards them.
+/// mapped at, numbered in the order kept. Completion handlers run on the
+/// device's queue, maybe not the caller's thread, so a lock guards them.
 private final class MappedMemoryPages: NSObject, @unchecked Sendable {
   private let lock = NSLock()
-  private var pages: [(offset: UInt64, size: UInt64, memory: BridgedMemoryPages)] = []
+  private var kept = 0
+  private var pages: [(kept: Int, offset: UInt64, size: UInt64, memory: BridgedMemoryPages)] = []
 
   /// The region's, made the first time it's asked for.
   static func of(_ region: VZVirtioSharedMemoryRegion) -> MappedMemoryPages {
@@ -103,18 +106,31 @@ private final class MappedMemoryPages: NSObject, @unchecked Sendable {
     return mapped
   }
 
-  func keep(_ memory: BridgedMemoryPages, offset: UInt64, size: UInt64) {
-    lock.withLock { pages.append((offset, size, memory)) }
+  /// Keeps `memory`, mapped at `offset`, returning its number.
+  func keep(_ memory: BridgedMemoryPages, offset: UInt64, size: UInt64) -> Int {
+    lock.withLock {
+      kept += 1
+      pages.append((kept, offset, size, memory))
+      return kept
+    }
   }
 
-  /// Drops `memory`, kept for a map that failed.
-  func release(_ memory: BridgedMemoryPages) {
-    lock.withLock { pages.removeAll { $0.memory === memory } }
+  /// The number of the pages kept last: an unmap starting now covers those
+  /// and earlier ones only.
+  func lastKept() -> Int {
+    lock.withLock { kept }
   }
 
-  /// Drops the pages mapped wholly within `offset..<offset + size`, once
-  /// unmapped.
-  func releaseUnmapped(offset: UInt64, size: UInt64) {
-    lock.withLock { pages.removeAll { $0.offset >= offset && $0.offset + $0.size <= offset + size } }
+  /// Drops the pages numbered `kept`, for a map that failed.
+  func release(_ kept: Int) {
+    lock.withLock { pages.removeAll { $0.kept == kept } }
+  }
+
+  /// Drops the pages numbered up to `keptBy` that were mapped wholly within
+  /// `offset..<offset + size`, once unmapped.
+  func releaseUnmapped(offset: UInt64, size: UInt64, keptBy: Int) {
+    lock.withLock {
+      pages.removeAll { $0.kept <= keptBy && $0.offset >= offset && $0.offset + $0.size <= offset + size }
+    }
   }
 }

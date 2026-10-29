@@ -3552,7 +3552,7 @@ impl VZVirtioSharedMemoryRegion {
   }
 
   /// [`Self::vz_map_memory`] of all of `memory`, which the region holds until
-  /// an unmap covering it completes, or mapping it fails.
+  /// an unmap covering it, started after this, completes, or mapping it fails.
   /// `completion_handler` is called on the device's queue.
   pub fn vz_map_memory_pages(
     &self,
@@ -3568,7 +3568,8 @@ impl VZVirtioSharedMemoryRegion {
     );
   }
 
-  /// Releases the [`MemoryPages`] mapped wholly within what it unmaps.
+  /// Releases the [`MemoryPages`] mapped wholly within what it unmaps, by
+  /// maps started before it.
   /// `completion_handler` is called on the device's queue.
   pub fn vz_unmap_memory(
     &self,

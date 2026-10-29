@@ -21,8 +21,9 @@ impl VirtioSharedMemoryRegion {
 
   /// [`mapMemory(_:atOffset:size:completionHandler:)`](https://developer.apple.com/documentation/virtualization/vzvirtiosharedmemoryregion/mapmemory(_:atoffset:size:completionhandler:)),
   /// of all of `memory`: its length is the size. The region holds `memory`
-  /// until an [`unmap_memory`](Self::unmap_memory) covering all of it
-  /// completes, or mapping it fails, so the guest never sees it freed.
+  /// until an [`unmap_memory`](Self::unmap_memory) covering all of it, called
+  /// after this, completes, or mapping it fails, so the guest never sees it
+  /// freed.
   pub fn map_memory(
     &self,
     memory: &MemoryPages,
@@ -38,7 +39,8 @@ impl VirtioSharedMemoryRegion {
 
   /// [`unmapMemory(atOffset:size:completionHandler:)`](https://developer.apple.com/documentation/virtualization/vzvirtiosharedmemoryregion/unmapmemory(atoffset:size:completionhandler:)):
   /// once it completes, the region lets go of the [`MemoryPages`] mapped
-  /// wholly within `offset..offset + size`.
+  /// wholly within `offset..offset + size` by
+  /// [`map_memory`](Self::map_memory) calls made before it.
   pub fn unmap_memory(
     &self,
     offset: u64,

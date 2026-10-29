@@ -11,14 +11,14 @@ fn device_matching_criteria() -> USBAccessoryMatchingCriteriaDeviceMatchingCrite
   }
 }
 
-/// Without the entitlement, a dictionary makes none, even one IOUSBHost made.
+/// Even without the entitlement, unlike interface matching dictionaries.
 #[test]
-fn makes_none_of_a_device_matching_dictionary_without_the_entitlement() {
-  assert!(
-    USBAccessoryMatchingCriteria::new(&apple_device_matching_dictionary())
-      .unwrap()
-      .is_none()
-  );
+fn makes_one_of_a_device_matching_dictionary() {
+  let criteria = USBAccessoryMatchingCriteria::new(&apple_device_matching_dictionary())
+    .unwrap()
+    .unwrap();
+
+  assert!(format!("{criteria:?}").starts_with("<AAUSBAccessoryMatchingCriteria: 0x"));
 }
 
 #[test]

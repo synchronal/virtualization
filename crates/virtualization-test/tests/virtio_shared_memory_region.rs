@@ -143,6 +143,36 @@ fn fails_to_map_over_what_is_mapped() {
   );
 }
 
+/// Mapping where an unmap still in flight covers keeps the new pages mapped,
+/// held by the region alone, once the unmap completes.
+#[test]
+fn maps_where_an_unmap_in_flight_covers() {
+  let reported = operated("maps_where_an_unmap_in_flight_covers", 4, |region, sender| {
+    let size = ns_page_size().unwrap() as u64;
+    let again = region.clone();
+
+    region.map_memory(&page(), size, move |mapped| {
+      let _ = sender.send(format!("mapped:{mapped:?}"));
+      let unmapped_sender = sender.clone();
+      again.unmap_memory(size, size, move |unmapped| {
+        let _ = unmapped_sender.send(format!("unmapped:{unmapped:?}"));
+      });
+      let finally = again.clone();
+      again.map_memory(&page(), size, move |remapped| {
+        let _ = sender.send(format!("remapped:{remapped:?}"));
+        finally.unmap_memory(size, size, move |unmapped| {
+          let _ = sender.send(format!("unmapped:{unmapped:?}"));
+        });
+      });
+    });
+  });
+
+  assert_eq!(
+    reported,
+    ["mapped:Ok(())", "unmapped:Ok(())", "remapped:Ok(())", "unmapped:Ok(())"]
+  );
+}
+
 #[test]
 fn fails_to_unmap_what_isnt_mapped() {
   let reported = operated("fails_to_unmap_what_isnt_mapped", 1, |region, sender| {

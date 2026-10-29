@@ -26,36 +26,47 @@ final class BridgedUSBAccessoryListener: NSObject, AAUSBAccessoryListener, @unch
   }
 }
 
-/// The `BridgedUSBAccessoryListener` of each Rust listener, by the key Rust
-/// gives it: AccessoryAccess knows a listener by its object, so registering
-/// and unregistering one Rust listener must pass the same one. Each is kept
-/// from registering until an unregister starts or the registration fails.
-private let listeners = Mutex<[UInt: BridgedUSBAccessoryListener]>([:])
+/// A Rust listener's `BridgedUSBAccessoryListener`, with how many of its
+/// registrations are in flight and whether one has succeeded.
+private struct Registration {
+  let bridged: BridgedUSBAccessoryListener
+  var pending = 0
+  var registered = false
+}
 
-/// The `BridgedUSBAccessoryListener` for the Rust listener `key` names,
-/// kept for registering, and whether it is new: one already kept belongs to
-/// an earlier registration.
+/// The `Registration` of each Rust listener, by the key Rust gives it:
+/// AccessoryAccess knows a listener by its object, so registering and
+/// unregistering one Rust listener must pass the same one. Each is kept from
+/// registering until an unregister starts, or every registration in flight
+/// has failed and none succeeded.
+private let listeners = Mutex<[UInt: Registration]>([:])
+
+/// The `BridgedUSBAccessoryListener` for the Rust listener `key` names, kept
+/// for a registration now in flight: one already kept belongs to an earlier
+/// registration.
 func bridging(registeringListener listener: AAUSBAccessoryListenerBridge, key: UInt)
-  -> (bridged: BridgedUSBAccessoryListener, isNew: Bool)
+  -> BridgedUSBAccessoryListener
 {
   listeners.withLock { listeners in
-    if let bridged = listeners[key] {
-      return (bridged, false)
-    }
-
-    let bridged = BridgedUSBAccessoryListener(listener)
-    listeners[key] = bridged
-    return (bridged, true)
+    var registration = listeners[key] ?? Registration(bridged: BridgedUSBAccessoryListener(listener))
+    registration.pending += 1
+    listeners[key] = registration
+    return registration.bridged
   }
 }
 
-/// Forgets `bridged`, new for a registration that failed, unless the Rust
-/// listener `key` names has since been kept again.
-func bridging(failedListener bridged: BridgedUSBAccessoryListener, key: UInt) {
+/// Ends a registration of `bridged` in flight, forgetting it once none are
+/// and none has succeeded. One unregistered since is no longer kept: the Rust
+/// listener `key` names may have been kept again, for a new registration.
+func bridging(registeredListener bridged: BridgedUSBAccessoryListener, key: UInt, succeeded: Bool) {
   listeners.withLock { listeners in
-    if listeners[key] === bridged {
-      listeners[key] = nil
+    guard var registration = listeners[key], registration.bridged === bridged else {
+      return
     }
+
+    registration.pending -= 1
+    registration.registered = registration.registered || succeeded
+    listeners[key] = registration.pending == 0 && !registration.registered ? nil : registration
   }
 }
 
@@ -66,7 +77,7 @@ func bridging(failedListener bridged: BridgedUSBAccessoryListener, key: UInt) {
 func bridging(unregisteringListener listener: AAUSBAccessoryListenerBridge, key: UInt)
   -> BridgedUSBAccessoryListener
 {
-  listeners.withLock { $0.removeValue(forKey: key) } ?? BridgedUSBAccessoryListener(listener)
+  listeners.withLock { $0.removeValue(forKey: key) }?.bridged ?? BridgedUSBAccessoryListener(listener)
 }
 
 extension AAUSBAccessoryListenerBridge: @unchecked Sendable {}
