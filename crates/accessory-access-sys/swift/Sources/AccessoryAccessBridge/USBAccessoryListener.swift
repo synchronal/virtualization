@@ -10,7 +10,7 @@ import AccessoryAccess
 import Synchronization
 
 /// An `AAUSBAccessoryListener` that forwards to Rust's.
-final class BridgedUSBAccessoryListener: NSObject, AAUSBAccessoryListener, @unchecked Sendable {
+final class BridgedUSBAccessoryListener: NSObject, AAUSBAccessoryListener, Sendable {
   let listener: AAUSBAccessoryListenerBridge
 
   init(_ listener: AAUSBAccessoryListenerBridge) {

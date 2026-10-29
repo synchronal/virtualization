@@ -1541,7 +1541,7 @@ mod ffi {
     fn vz_usb_controller_usb_devices(this: *const c_void) -> *mut c_void;
     fn vz_usb_controller_delegate(this: *const c_void) -> usize;
     fn vz_usb_controller_set_delegate(this: *const c_void, delegate: VZUSBControllerDelegateBridge);
-    fn vz_usb_controller_set_delegate_nil(this: *const c_void);
+    fn vz_usb_controller_bridge_set_delegate_nil(this: *const c_void);
   }
 
   extern "Rust" {
@@ -4572,7 +4572,7 @@ pub fn vz_usb_controller_delegate(this: &NSObject) -> Option<Arc<dyn VZUSBContro
 pub fn vz_usb_controller_set_delegate(this: &NSObject, delegate: Option<Arc<dyn VZUSBControllerDelegate>>) {
   match delegate {
     Some(delegate) => ffi::vz_usb_controller_set_delegate(borrowed(this), VZUSBControllerDelegateBridge { delegate }),
-    None => ffi::vz_usb_controller_set_delegate_nil(borrowed(this)),
+    None => ffi::vz_usb_controller_bridge_set_delegate_nil(borrowed(this)),
   }
 }
 

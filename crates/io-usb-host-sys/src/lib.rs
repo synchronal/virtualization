@@ -510,7 +510,7 @@ pub fn iousbhost_object_enqueue_device_request(
     completion_handler,
   );
 
-  // SAFETY: `bridging(thrownAddress:)`, a retained `NSError` or `0`.
+  // SAFETY: `thrownAddress(of:)`, a retained `NSError` or `0`.
   match unsafe { retained_or_nil(error) } {
     Some(error) => Err(error),
     None => Ok(()),

@@ -13,18 +13,15 @@ func aa_error_domain() -> RustString {
 
 /// `AAError.Code(rawValue:)`: `Unknown` for a raw value with no case.
 func aa_error_code_init_raw_value(raw_value: Int) -> BridgedAAErrorCode {
-  AAError.Code(rawValue: raw_value).map { BridgedAAErrorCode($0) } ?? .Unknown(raw_value)
+  BridgedAAErrorCode(AAError.Code(rawValue: raw_value)!)
 }
 
-/// An `Unknown` code's raw value is its own: AccessoryAccess has no case for
-/// it.
 func aa_error_code_raw_value(code: BridgedAAErrorCode) -> Int {
-  if case .Unknown(let rawValue) = code {
-    return rawValue
-  }
-
-  return AAError.Code(code).rawValue
+  AAError.Code(code).rawValue
 }
+
+// An Objective-C enum's `init(rawValue:)` accepts any value: these unwraps
+// can't fail.
 
 extension AAError.Code {
   init(_ code: BridgedAAErrorCode) {

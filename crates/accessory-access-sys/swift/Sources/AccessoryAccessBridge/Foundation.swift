@@ -78,8 +78,7 @@ func bridging<T>(_ value: T?) throws(AccessoryAccessNil) -> T {
 }
 
 /// A value Swift's concurrency checking can't see is safe to send: a
-/// swift-bridge closure, which Rust declares `Send`, or a Rust object, which
-/// Rust declares `Sync`.
+/// swift-bridge closure, which Rust declares `Send`.
 struct Bridged<T>: @unchecked Sendable {
   let value: T
 }

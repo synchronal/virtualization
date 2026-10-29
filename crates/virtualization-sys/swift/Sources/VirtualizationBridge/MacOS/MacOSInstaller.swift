@@ -24,7 +24,7 @@ func vz_macos_installer_install(this: VZMacOSInstaller, completion_handler: @esc
 
 /// `progress`, which the installer holds, lent by address.
 func vz_macos_installer_progress(this: VZMacOSInstaller) -> UnsafeRawPointer {
-  UnsafeRawPointer(Unmanaged.passUnretained(this.progress).toOpaque())
+  this.progress.bridge_borrowed()
 }
 
 func vz_macos_installer_restore_image_url(this: VZMacOSInstaller) -> UnsafeMutableRawPointer {

@@ -52,7 +52,7 @@ func vz_usb_controller_set_delegate(this: UnsafeRawPointer, delegate: VZUSBContr
   controller.delegate = delegate
 }
 
-func vz_usb_controller_set_delegate_nil(this: UnsafeRawPointer) {
+func vz_usb_controller_bridge_set_delegate_nil(this: UnsafeRawPointer) {
   let controller: VZUSBController = bridging(borrowed: this)
 
   objc_setAssociatedObject(controller, &delegateKey, nil, .OBJC_ASSOCIATION_RETAIN)

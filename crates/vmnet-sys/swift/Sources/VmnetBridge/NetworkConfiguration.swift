@@ -29,12 +29,12 @@ func vmnet_network_configuration_create(mode: BridgedVmnetMode) throws(BridgedVm
     throw BridgedVmnetReturn(status)
   }
 
-  return VmnetNetworkConfiguration(bridging(retained: configuration))
+  return VmnetNetworkConfiguration(bridging(taken: configuration))
 }
 
 extension VmnetNetworkConfiguration {
   func bridge_retained() -> VmnetNetworkConfiguration {
-    VmnetNetworkConfiguration(object)
+    self
   }
 
   func bridge_description() -> RustString {

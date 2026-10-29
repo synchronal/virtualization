@@ -87,7 +87,7 @@ nonisolated(unsafe) private var mappedKey: UInt8 = 0
 /// The pages Rust mapped into a region, each by the offset and size it was
 /// mapped at, numbered in the order kept. Completion handlers run on the
 /// device's queue, maybe not the caller's thread, so a lock guards them.
-private final class MappedMemoryPages: NSObject, @unchecked Sendable {
+private final class MappedMemoryPages: @unchecked Sendable {
   private let lock = NSLock()
   private var kept = 0
   private var pages: [(kept: Int, offset: UInt64, size: UInt64, memory: BridgedMemoryPages)] = []

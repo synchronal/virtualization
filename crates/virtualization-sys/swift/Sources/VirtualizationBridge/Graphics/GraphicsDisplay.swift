@@ -78,7 +78,7 @@ final class BridgedGraphicsDisplayObserver: NSObject, VZGraphicsDisplayObserver,
 /// each is kept from adding until removed or no longer live: once, however
 /// often added, as the display removes it. One display is reached from any
 /// thread its machine is, so a lock guards them.
-final class BridgedGraphicsDisplayObservers: @unchecked Sendable {
+private final class BridgedGraphicsDisplayObservers: Sendable {
   let observers = Mutex<[UInt: BridgedGraphicsDisplayObserver]>([:])
 }
 
@@ -104,7 +104,9 @@ private func bridging(observersOf display: VZGraphicsDisplay) -> BridgedGraphics
 /// The `BridgedGraphicsDisplayObserver` for the Rust observer `key` names,
 /// kept by `display` for adding. Forgets those no longer live first, whose
 /// keys a new observer may reuse.
-func bridging(addingObserver observer: VZGraphicsDisplayObserverBridge, key: UInt, to display: VZGraphicsDisplay)
+private func bridging(
+  addingObserver observer: VZGraphicsDisplayObserverBridge, key: UInt, to display: VZGraphicsDisplay
+)
   -> BridgedGraphicsDisplayObserver
 {
   bridging(observersOf: display).observers.withLock { observers in
@@ -124,7 +126,7 @@ func bridging(addingObserver observer: VZGraphicsDisplayObserverBridge, key: UIn
 /// The `BridgedGraphicsDisplayObserver` for the Rust observer `key` names, no
 /// longer kept by `display`, for removing: the one added, or a new one for an
 /// observer never added, as the display would be given in Swift.
-func bridging(
+private func bridging(
   removingObserver observer: VZGraphicsDisplayObserverBridge,
   key: UInt,
   from display: VZGraphicsDisplay

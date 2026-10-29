@@ -27,7 +27,7 @@ func vmnet_network_create(configuration: VmnetNetworkConfiguration) throws(Bridg
     throw BridgedVmnetReturn(status)
   }
 
-  return VmnetNetwork(bridging(retained: network))
+  return VmnetNetwork(bridging(taken: network))
 }
 
 /// A `vmnet_network_ref` another bridge lends by address for the call.
@@ -37,7 +37,7 @@ func vmnet_network_bridge_from(reference: UnsafeRawPointer) -> VmnetNetwork {
 
 extension VmnetNetwork {
   func bridge_retained() -> VmnetNetwork {
-    VmnetNetwork(object)
+    self
   }
 
   func bridge_description() -> RustString {

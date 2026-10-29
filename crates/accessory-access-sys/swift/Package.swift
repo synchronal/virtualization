@@ -1,12 +1,10 @@
 // swift-tools-version: 6.2
 
-import Foundation
 import PackageDescription
 
 // Absolute, because the flag reaches the compiler verbatim and its working
 // directory is unspecified.
-let bridgingHeader =
-  "\(URL(fileURLWithPath: #filePath).deletingLastPathComponent().path)/Sources/AccessoryAccessBridge/bridging-header.h"
+let bridgingHeader = "\(Context.packageDirectory)/Sources/AccessoryAccessBridge/bridging-header.h"
 
 let package = Package(
   name: "AccessoryAccessBridge",

@@ -13,17 +13,15 @@ func vz_error_domain() -> RustString {
 
 /// `VZError.Code(rawValue:)`: `Unknown` for a raw value with no case.
 func vz_error_code_init_raw_value(raw_value: Int) -> BridgedVZErrorCode {
-  VZError.Code(rawValue: raw_value).map { BridgedVZErrorCode($0) } ?? .Unknown(raw_value)
+  BridgedVZErrorCode(VZError.Code(rawValue: raw_value)!)
 }
 
-/// `Unknown`'s raw value is its own: Virtualization has no case for it.
 func vz_error_code_raw_value(code: BridgedVZErrorCode) -> Int {
-  if case .Unknown(let rawValue) = code {
-    return rawValue
-  }
-
-  return VZError.Code(code).rawValue
+  VZError.Code(code).rawValue
 }
+
+// An Objective-C enum's `init(rawValue:)` accepts any value: these unwraps
+// can't fail.
 
 extension VZError.Code {
   init(_ code: BridgedVZErrorCode) {

@@ -11,10 +11,10 @@
 
 import vmnet
 
-/// A reference vmnet returned retained, for Swift to release with its last
-/// use. Swift doesn't manage vmnet's references; they are Core Foundation
-/// objects, which `CFRelease` releases.
-func bridging(retained reference: OpaquePointer) -> AnyObject {
+/// A reference vmnet returned retained, which Swift takes over and releases
+/// with its last use. Swift doesn't manage vmnet's references; they are Core
+/// Foundation objects, which `CFRelease` releases.
+func bridging(taken reference: OpaquePointer) -> AnyObject {
   Unmanaged<AnyObject>.fromOpaque(UnsafeRawPointer(reference)).takeRetainedValue()
 }
 
@@ -33,20 +33,20 @@ func bridging(inAddr address: in_addr) -> UInt32 {
   UInt32(bigEndian: address.s_addr)
 }
 
-/// An `in6_addr` Rust passes as its first and last eight octets, each a
-/// big-endian `u64`. (swift-bridge has no fixed-size arrays.)
+/// An `in6_addr` Rust passes as its first and last eight octets, each read as
+/// a big-endian `u64`. (swift-bridge has no fixed-size arrays.)
 func bridging(in6AddrHigh high: UInt64, low: UInt64) -> in6_addr {
   var address = in6_addr()
 
   withUnsafeMutableBytes(of: &address) { octets in
-    withUnsafeBytes(of: high.bigEndian) { octets.baseAddress!.copyMemory(from: $0.baseAddress!, byteCount: 8) }
-    withUnsafeBytes(of: low.bigEndian) { (octets.baseAddress! + 8).copyMemory(from: $0.baseAddress!, byteCount: 8) }
+    octets.storeBytes(of: high.bigEndian, toByteOffset: 0, as: UInt64.self)
+    octets.storeBytes(of: low.bigEndian, toByteOffset: 8, as: UInt64.self)
   }
 
   return address
 }
 
-/// An `in6_addr` for Rust, as its first and last eight octets, each a
+/// An `in6_addr` for Rust, as its first and last eight octets, each read as a
 /// big-endian `u64`.
 func bridging(in6Addr address: in6_addr) -> (high: UInt64, low: UInt64) {
   withUnsafeBytes(of: address) { octets in
