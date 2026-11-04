@@ -14,6 +14,12 @@ virtualization.workspace = true
 [lints.rust]
 unsafe_code = "forbid"
 
+# The workspace's examples: the root manifest is virtual, so a crate must own
+# them, and this one is unpublished.
+[[example]]
+name = "boot_linux"
+path = "../../examples/boot_linux.rs"
+
 # AppKit's members run on the main thread, where libtest runs no test.
 [[test]]
 harness = false
