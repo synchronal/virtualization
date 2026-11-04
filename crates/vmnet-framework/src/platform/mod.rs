@@ -1,4 +1,5 @@
-//! vmnet-sys on macOS, stand-ins elsewhere, so every type is written once.
+//! vmnet-framework-sys on macOS, stand-ins elsewhere, so every type is written
+//! once.
 
 use crate::Error;
 
@@ -6,7 +7,7 @@ use crate::Error;
 pub(crate) mod unsupported;
 
 #[cfg(target_os = "macos")]
-pub(crate) use vmnet_sys as ffi;
+pub(crate) use vmnet_framework_sys as ffi;
 
 #[cfg(not(target_os = "macos"))]
 pub(crate) use self::unsupported as ffi;

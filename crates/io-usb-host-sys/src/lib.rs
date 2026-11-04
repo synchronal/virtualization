@@ -13,7 +13,7 @@
 //!   address: swift-bridge has no subclassing. Its members are free functions
 //!   `iousbhost_object_<member>`, and `iousbhost_device_bridge_cast` is
 //!   Swift's `as?` back to [`IOUSBHostDevice`].
-//! - Foundation's objects are objc2's, through `foundation-sys`, and cross as
+//! - Foundation's objects are objc2's, through `apple-bridge-foundation`, and cross as
 //!   pointers. A descriptor, which IOUSBHost lends as a pointer to memory the
 //!   object owns, is a copy of its bytes.
 //! - A throwing function returns `Result<T, Retained<NSError>>`.
@@ -31,13 +31,13 @@ use std::collections::BTreeMap;
 use std::ffi::c_void;
 use std::ptr::{self, NonNull};
 
-use dispatch2::{DispatchQueue, DispatchRetained};
-use foundation_sys::PropertyListValue;
-use foundation_sys::objc::{
+use apple_bridge_foundation::PropertyListValue;
+use apple_bridge_foundation::objc::{
   AnyObject, NSArray, NSData, NSDictionary, NSNumber, NSString, borrowed, borrowed_or_nil, ns_data_bytes,
   property_list_dictionary, retained, retained_or_nil,
 };
-pub use foundation_sys::objc::{NSError, NSMutableData, NSObject, Retained};
+pub use apple_bridge_foundation::objc::{NSError, NSMutableData, NSObject, Retained};
+use dispatch2::{DispatchQueue, DispatchRetained};
 
 pub use self::ffi::{
   BridgedIOUSBDeviceRequest, IOUSBDescriptorType, IOUSBDeviceRequestDirectionValue, IOUSBDeviceRequestRecipientValue,

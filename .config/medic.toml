@@ -18,7 +18,7 @@ checks = [
 checks = [
   {name = "rust: audit", shell = "cargo audit", verbose = true},
   {name = "rust: check", shell = "cargo check --workspace --all-targets --color always", remedy = "cargo fix --allow-dirty"},
-  {name = "rust: check linux", shell = "cargo check --target x86_64-unknown-linux-gnu -p accessory-access -p disk-image-kit -p foundation-sys -p io-usb-host -p virtualization -p vmnet --all-targets --color always"},
+  {name = "rust: check linux", shell = "cargo check --target x86_64-unknown-linux-gnu -p accessory-access -p apple-bridge-foundation -p disk-image-kit -p io-usb-host -p virtualization -p vmnet-framework --all-targets --color always"},
   {name = "rust: clippy", shell = "cargo clippy --workspace --all-targets --all-features -- -D warnings", remedy = "cargo clippy --workspace --all-targets --all-features --fix --allow-dirty"},
   {check = "rust", command = "format-check"},
   {name = "swift: format", shell = "bin/dev/format-swift --check", remedy = "bin/dev/format-swift --all"},

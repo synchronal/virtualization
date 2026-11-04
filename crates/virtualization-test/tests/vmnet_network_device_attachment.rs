@@ -1,4 +1,4 @@
-use virtualization::vmnet::{Mode, Network, NetworkConfiguration};
+use virtualization::vmnet_framework::{Mode, Network, NetworkConfiguration};
 use virtualization::{NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration, VmnetNetworkDeviceAttachment};
 use virtualization_test::{guest_network, linux_configuration};
 

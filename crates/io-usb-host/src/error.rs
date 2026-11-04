@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-pub use foundation_sys::NSError;
+pub use apple_bridge_foundation::NSError;
 
 #[derive(Debug)]
 #[non_exhaustive]

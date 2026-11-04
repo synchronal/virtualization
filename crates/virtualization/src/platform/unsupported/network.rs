@@ -262,7 +262,9 @@ pub(crate) struct VZVmnetNetworkDeviceAttachment {
   local: Local,
 }
 
-pub(crate) fn vz_vmnet_network_device_attachment_init(_network: &vmnet::Network) -> VZVmnetNetworkDeviceAttachment {
+pub(crate) fn vz_vmnet_network_device_attachment_init(
+  _network: &vmnet_framework::Network,
+) -> VZVmnetNetworkDeviceAttachment {
   unreachable!("{GUARDED}")
 }
 
@@ -285,7 +287,7 @@ impl VZVmnetNetworkDeviceAttachment {
     match self.never {}
   }
 
-  pub(crate) fn vz_network(&self) -> vmnet::Network {
+  pub(crate) fn vz_network(&self) -> vmnet_framework::Network {
     match self.never {}
   }
 }

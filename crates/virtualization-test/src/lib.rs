@@ -15,7 +15,7 @@ use std::time::Duration;
 use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::io_usb_host::{Device, DeviceMatchingDictionaryArguments, PropertyListValue};
 use virtualization::url::Url;
-use virtualization::vmnet::{Mode, Network, NetworkConfiguration};
+use virtualization::vmnet_framework::{Mode, Network, NetworkConfiguration};
 use virtualization::{
   CustomVirtioDevice, CustomVirtioDeviceConfiguration, CustomVirtioDeviceConfigurationDelegate,
   CustomVirtioDeviceDelegate, CustomVirtioDeviceDelegateProvider, DiskImageStorageDeviceAttachment, EFIVariableStore,

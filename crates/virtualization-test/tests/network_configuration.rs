@@ -1,7 +1,7 @@
 use std::net::{IpAddr, Ipv4Addr};
 
 use virtualization::NetworkDeviceConfiguration;
-use virtualization::vmnet::{Error, Mode, Network, NetworkConfiguration, Return};
+use virtualization::vmnet_framework::{Error, Mode, Network, NetworkConfiguration, Return};
 use virtualization_test::guest_network;
 
 const IPPROTO_ICMP: u8 = 1;

@@ -6,24 +6,24 @@ use crate::{Error, NetworkDeviceAttachment};
 
 /// [`VZVmnetNetworkDeviceAttachment`](https://developer.apple.com/documentation/virtualization/vzvmnetnetworkdeviceattachment)
 ///
-/// A `vmnet_network_ref` is [`vmnet::Network`].
+/// A `vmnet_network_ref` is [`vmnet_framework::Network`].
 pub struct VmnetNetworkDeviceAttachment {
   inner: ffi::VZVmnetNetworkDeviceAttachment,
 }
 
 impl VmnetNetworkDeviceAttachment {
   /// [`init(network:)`](https://developer.apple.com/documentation/virtualization/vzvmnetnetworkdeviceattachment/init(network:))
-  pub fn new(network: &vmnet::Network) -> Result<Self, Error> {
+  pub fn new(network: &vmnet_framework::Network) -> Result<Self, Error> {
     platform::supported()?;
 
     Ok(Self {
-      inner: ffi::vz_vmnet_network_device_attachment_init(vmnet::bridge::network(network)),
+      inner: ffi::vz_vmnet_network_device_attachment_init(vmnet_framework::bridge::network(network)),
     })
   }
 
   /// [`network`](https://developer.apple.com/documentation/virtualization/vzvmnetnetworkdeviceattachment/network)
-  pub fn network(&self) -> vmnet::Network {
-    vmnet::bridge::network_from(self.inner.vz_network())
+  pub fn network(&self) -> vmnet_framework::Network {
+    vmnet_framework::bridge::network_from(self.inner.vz_network())
   }
 }
 

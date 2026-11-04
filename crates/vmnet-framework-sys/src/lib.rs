@@ -1,5 +1,5 @@
-//! FFI to Apple's [vmnet] framework, through swift-bridge. Use the `vmnet`
-//! crate instead; this one holds its `unsafe`.
+//! FFI to Apple's [vmnet] framework, through swift-bridge. Use the
+//! `vmnet-framework` crate instead; this one holds its `unsafe`.
 //!
 //! Signatures are Apple's, as far as swift-bridge can carry them, the way
 //! `virtualization-sys`'s are:

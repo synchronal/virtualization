@@ -24,7 +24,7 @@
 //! - A completion handler is a closure, called on the queue Virtualization
 //!   calls Swift's on. A delegate is a trait object, held as weakly as Swift
 //!   holds its delegate.
-//! - DiskImageKit's types are [`disk_image_kit`]'s, vmnet's are [`vmnet`]'s,
+//! - DiskImageKit's types are [`disk_image_kit`]'s, vmnet's are [`vmnet_framework`]'s,
 //!   AccessoryAccess's are [`accessory_access`]'s, and IOUSBHost's
 //!   [`io_usb_host`]'s, re-exported. Security's
 //!   `SecCertificate` is [`SecCertificate`], made from and read as its DER
@@ -66,7 +66,7 @@ mod virtual_machine_configuration;
 mod virtual_machine_view;
 
 pub use accessory_access::io_usb_host;
-pub use {accessory_access, disk_image_kit, dispatch2, url, uuid, vmnet};
+pub use {accessory_access, disk_image_kit, dispatch2, url, uuid, vmnet_framework};
 
 pub use crate::app_kit::{MainThreadMarker, NSScreen};
 pub use crate::boot_loader::{
@@ -140,7 +140,7 @@ pub use crate::virtual_machine_view::{VirtualMachineView, VirtualMachineViewAdap
 // Each class is `Send + Sync` off macOS exactly where virtualization-sys makes
 // it so on macOS.
 #[cfg(test)]
-foundation_sys::assert_auto_traits! {
+apple_bridge_foundation::assert_auto_traits! {
   send_sync: [
     CustomVirtioDevice,
     EFISignature,

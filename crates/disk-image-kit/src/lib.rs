@@ -47,7 +47,7 @@ pub use crate::open_configuration::{OpenConfiguration, OpenConfigurationMode, Op
 // Each type is `Send + Sync` off macOS exactly where disk-image-kit-sys makes
 // it so on macOS.
 #[cfg(test)]
-foundation_sys::assert_auto_traits! {
+apple_bridge_foundation::assert_auto_traits! {
   send_sync: [DiskImageLayerType],
   local: [
     ASIFCreationConfiguration,

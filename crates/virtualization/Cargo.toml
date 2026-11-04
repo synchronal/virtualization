@@ -12,12 +12,12 @@ version.workspace = true
 
 [dependencies]
 accessory-access.workspace = true
+apple-bridge-foundation.workspace = true
 disk-image-kit.workspace = true
 dispatch2.workspace = true
-foundation-sys.workspace = true
 url.workspace = true
 uuid.workspace = true
-vmnet.workspace = true
+vmnet-framework.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 virtualization-sys.workspace = true

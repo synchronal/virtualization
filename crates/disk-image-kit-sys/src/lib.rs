@@ -9,7 +9,7 @@
 //!   and static members are free functions `dik_<type>_init[_<labels>]` and
 //!   `dik_<type>_<member>`.
 //! - DiskImageKit's structs cross in Swift classes: `Bridged<Name>`.
-//! - Foundation's objects are objc2's, through `foundation-sys`, and cross as
+//! - Foundation's objects are objc2's, through `apple-bridge-foundation`, and cross as
 //!   pointers. The bridge module is private, and each function that takes or
 //!   returns one, or throws, is wrapped here.
 //! - What DiskImageKit throws is [`DiskImageKitError`]: its own error types by
@@ -26,10 +26,10 @@
 
 use std::ffi::c_void;
 
-pub use foundation_sys::objc::{
+pub use apple_bridge_foundation::objc::{
   NSError, NSURL, NSUUID, Retained, ns_url_absolute_string, ns_url_init_string, ns_uuid_uuid_string,
 };
-use foundation_sys::objc::{borrowed, retained, retained_or_nil};
+use apple_bridge_foundation::objc::{borrowed, retained, retained_or_nil};
 
 pub use self::ffi::{
   BridgedASIFCreationConfiguration, BridgedASIFLayerCreationConfiguration, BridgedDiskImageLayerType,

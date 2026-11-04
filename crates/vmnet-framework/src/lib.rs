@@ -39,7 +39,7 @@ pub use crate::network_configuration::NetworkConfiguration;
 
 // Neither reference type is `Send` or `Sync`, on macOS or off it.
 #[cfg(test)]
-foundation_sys::assert_auto_traits! {
+apple_bridge_foundation::assert_auto_traits! {
   send_sync: [],
   local: [Network, NetworkConfiguration],
 }
@@ -48,15 +48,15 @@ foundation_sys::assert_auto_traits! {
 /// `VZVmnetNetworkDeviceAttachment(network:)`. Not for callers.
 #[doc(hidden)]
 pub mod bridge {
-  /// The `vmnet-sys` object behind `network`.
+  /// The `vmnet-framework-sys` object behind `network`.
   #[cfg(target_os = "macos")]
-  pub fn network(network: &crate::Network) -> &vmnet_sys::VmnetNetwork {
+  pub fn network(network: &crate::Network) -> &vmnet_framework_sys::VmnetNetwork {
     &network.inner
   }
 
-  /// A `Network` of the `vmnet-sys` object another bridge returned.
+  /// A `Network` of the `vmnet-framework-sys` object another bridge returned.
   #[cfg(target_os = "macos")]
-  pub fn network_from(inner: vmnet_sys::VmnetNetwork) -> crate::Network {
+  pub fn network_from(inner: vmnet_framework_sys::VmnetNetwork) -> crate::Network {
     crate::Network { inner }
   }
 

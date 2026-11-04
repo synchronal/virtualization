@@ -7,8 +7,8 @@ name = "accessory-access"
 version = "0.1.0"
 dependencies = [
  "accessory-access-sys",
+ "apple-bridge-foundation",
  "dispatch2",
- "foundation-sys",
  "io-usb-host",
 ]
 
@@ -16,11 +16,26 @@ dependencies = [
 name = "accessory-access-sys"
 version = "0.1.0"
 dependencies = [
+ "apple-bridge-build",
+ "apple-bridge-foundation",
  "dispatch2",
- "foundation-sys",
  "io-usb-host-sys",
  "swift-bridge",
- "virtualization-build",
+]
+
+[[package]]
+name = "apple-bridge-build"
+version = "0.1.0"
+dependencies = [
+ "swift-bridge-build",
+]
+
+[[package]]
+name = "apple-bridge-foundation"
+version = "0.1.0"
+dependencies = [
+ "objc2",
+ "objc2-foundation",
 ]
 
 [[package]]
@@ -39,8 +54,8 @@ checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 name = "disk-image-kit"
 version = "0.1.0"
 dependencies = [
+ "apple-bridge-foundation",
  "disk-image-kit-sys",
- "foundation-sys",
  "url",
  "uuid",
 ]
@@ -49,9 +64,9 @@ dependencies = [
 name = "disk-image-kit-sys"
 version = "0.1.0"
 dependencies = [
- "foundation-sys",
+ "apple-bridge-build",
+ "apple-bridge-foundation",
  "swift-bridge",
- "virtualization-build",
 ]
 
 [[package]]
@@ -98,14 +113,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
-]
-
-[[package]]
-name = "foundation-sys"
-version = "0.1.0"
-dependencies = [
- "objc2",
- "objc2-foundation",
 ]
 
 [[package]]
@@ -227,8 +234,8 @@ dependencies = [
 name = "io-usb-host"
 version = "0.1.0"
 dependencies = [
+ "apple-bridge-foundation",
  "dispatch2",
- "foundation-sys",
  "io-usb-host-sys",
 ]
 
@@ -236,10 +243,10 @@ dependencies = [
 name = "io-usb-host-sys"
 version = "0.1.0"
 dependencies = [
+ "apple-bridge-build",
+ "apple-bridge-foundation",
  "dispatch2",
- "foundation-sys",
  "swift-bridge",
- "virtualization-build",
 ]
 
 [[package]]
@@ -542,20 +549,13 @@ name = "virtualization"
 version = "0.1.0"
 dependencies = [
  "accessory-access",
+ "apple-bridge-foundation",
  "disk-image-kit",
  "dispatch2",
- "foundation-sys",
  "url",
  "uuid",
  "virtualization-sys",
- "vmnet",
-]
-
-[[package]]
-name = "virtualization-build"
-version = "0.1.0"
-dependencies = [
- "swift-bridge-build",
+ "vmnet-framework",
 ]
 
 [[package]]
@@ -563,15 +563,15 @@ name = "virtualization-sys"
 version = "0.1.0"
 dependencies = [
  "accessory-access-sys",
+ "apple-bridge-build",
+ "apple-bridge-foundation",
  "disk-image-kit-sys",
  "dispatch2",
- "foundation-sys",
  "objc2",
  "objc2-app-kit",
  "objc2-foundation",
  "swift-bridge",
- "virtualization-build",
- "vmnet-sys",
+ "vmnet-framework-sys",
 ]
 
 [[package]]
@@ -582,19 +582,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "vmnet"
+name = "vmnet-framework"
 version = "0.1.0"
 dependencies = [
- "foundation-sys",
- "vmnet-sys",
+ "apple-bridge-foundation",
+ "vmnet-framework-sys",
 ]
 
 [[package]]
-name = "vmnet-sys"
+name = "vmnet-framework-sys"
 version = "0.1.0"
 dependencies = [
+ "apple-bridge-build",
  "swift-bridge",
- "virtualization-build",
 ]
 
 [[package]]

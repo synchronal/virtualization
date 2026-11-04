@@ -7,7 +7,7 @@
 //!   `vz_set_<member>`; Foundation's are `ns_<member>`.
 //! - Initializers and class members are free functions:
 //!   `vz_<type>_init[_<later labels>]`, `vz_<type>_<member>`.
-//! - Foundation's objects are objc2's, through `foundation-sys`: `URL` is
+//! - Foundation's objects are objc2's, through `apple-bridge-foundation`: `URL` is
 //!   [`Retained<NSURL>`], and a thrown error is [`Retained<NSError>`]. They
 //!   cross the bridge as pointers, which only this crate handles: the bridge
 //!   module is private, and each function that takes or returns one is
@@ -43,18 +43,18 @@ use std::ptr::{self, NonNull};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
 
-use dispatch2::{DispatchQueue, DispatchRetained};
-use foundation_sys::objc::{
+use apple_bridge_foundation::objc::{
   AnyObject, NSArray, NSData, NSDictionary, NSNull, NSString, borrowed, borrowed_or_nil, ns_array, ns_array_objects,
   ns_data, ns_data_bytes, ns_description, ns_dictionary, ns_dictionary_entries, retained, retained_or_nil,
 };
-pub use foundation_sys::objc::{
+pub use apple_bridge_foundation::objc::{
   NSError, NSObject, NSURL, NSUUID, Retained, ns_url_absolute_string, ns_url_init_string, ns_uuid_init_uuid_string,
   ns_uuid_uuid_string,
 };
-use foundation_sys::objc::{
+use apple_bridge_foundation::objc::{
   NSFileHandle, ns_file_handle_file_descriptor, ns_file_handle_init_file_descriptor_close_on_dealloc,
 };
+use dispatch2::{DispatchQueue, DispatchRetained};
 
 pub use self::ffi::{
   BridgedCGSize, BridgedNil, BridgedOperatingSystemVersion, BridgedThrown, BridgedVZVirtualMachineViewAdaptor,
@@ -4506,8 +4506,10 @@ impl VZVirtioNetworkDeviceConfiguration {
 
 // Network/VmnetNetworkDeviceAttachment.swift
 
-/// `network` crosses from vmnet-sys's bridge, lent for the call.
-pub fn vz_vmnet_network_device_attachment_init(network: &vmnet_sys::VmnetNetwork) -> VZVmnetNetworkDeviceAttachment {
+/// `network` crosses from vmnet-framework-sys's bridge, lent for the call.
+pub fn vz_vmnet_network_device_attachment_init(
+  network: &vmnet_framework_sys::VmnetNetwork,
+) -> VZVmnetNetworkDeviceAttachment {
   ffi::vz_vmnet_network_device_attachment_init(network.bridge_borrowed())
 }
 
@@ -4521,11 +4523,13 @@ impl VZVmnetNetworkDeviceAttachment {
     unsafe { bridge_object(self, self.bridge_borrowed()) }
   }
 
-  /// `network`, crossing back to vmnet-sys's bridge.
-  pub fn vz_network(&self) -> vmnet_sys::VmnetNetwork {
+  /// `network`, crossing back to vmnet-framework-sys's bridge.
+  pub fn vz_network(&self) -> vmnet_framework_sys::VmnetNetwork {
     // SAFETY: the attachment's `network`, which `self` holds through the call.
     unsafe {
-      vmnet_sys::vmnet_network_bridge_from(ffi::vz_vmnet_network_device_attachment_network(self.bridge_retained()))
+      vmnet_framework_sys::vmnet_network_bridge_from(ffi::vz_vmnet_network_device_attachment_network(
+        self.bridge_retained(),
+      ))
     }
   }
 }

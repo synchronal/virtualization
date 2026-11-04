@@ -1,5 +1,5 @@
-//! vmnet-sys's names and signatures, off macOS, grouped as its Swift package
-//! is.
+//! vmnet-framework-sys's names and signatures, off macOS, grouped as its Swift
+//! package is.
 //!
 //! Each reference type holds a [`Never`], so no instance exists and its
 //! methods are unreachable. Free functions are entry points, which
@@ -22,7 +22,7 @@ pub(crate) use self::r#return::*;
 pub(crate) enum Never {}
 
 /// Held beside a [`Never`] by each reference type, so it isn't `Send` or
-/// `Sync` here, as vmnet-sys's aren't.
+/// `Sync` here, as vmnet-framework-sys's aren't.
 pub(crate) type Local = PhantomData<*const ()>;
 
 const GUARDED: &str = "an entry point called a stand-in without checking `platform::supported`";

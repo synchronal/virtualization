@@ -9,7 +9,7 @@
 //!   [`AAUSBAccessoryMatchingCriteriaInterfaceMatchingOption`]). Members are
 //!   methods `aa_<member>`; initializers and class members are free functions
 //!   `aa_<type>_init[_<labels>]` and `aa_<type>_<member>`.
-//! - Foundation's objects are objc2's, through `foundation-sys`, and cross as
+//! - Foundation's objects are objc2's, through `apple-bridge-foundation`, and cross as
 //!   pointers. A `[String: any Sendable]` is a property list dictionary.
 //! - IOUSBHost's `IOUSBHostDevice` is `io-usb-host-sys`'s, crossing by
 //!   address.
@@ -31,13 +31,13 @@ use std::ffi::c_void;
 use std::ptr;
 use std::sync::Arc;
 
-use dispatch2::DispatchQueue;
-use foundation_sys::PropertyListValue;
-use foundation_sys::objc::{
+use apple_bridge_foundation::PropertyListValue;
+use apple_bridge_foundation::objc::{
   NSArray, NSData, NSObject, borrowed, borrowed_or_nil, ns_array, ns_array_objects, ns_data_bytes,
   ns_property_list_dictionary, retained, retained_or_nil,
 };
-pub use foundation_sys::objc::{NSError, Retained};
+pub use apple_bridge_foundation::objc::{NSError, Retained};
+use dispatch2::DispatchQueue;
 use io_usb_host_sys::IOUSBHostDevice;
 
 pub use self::ffi::{

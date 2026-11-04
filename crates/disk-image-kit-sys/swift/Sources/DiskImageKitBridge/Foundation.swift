@@ -1,6 +1,7 @@
 //===----------------------------------------------------------------------===//
 // The glue for crossing swift-bridge. Foundation's own objects cross as
-// pointers, which Rust holds through objc2 (`foundation_sys::objc`).
+// pointers, which Rust holds through objc2
+// (`apple_bridge_foundation::objc`).
 //
 // Names here differ from the other bridges': all link into one binary, and
 // swift-bridge's symbols are named for each bridge's types.

@@ -1,7 +1,7 @@
-//! Builds `swift/` and links it: see `virtualization-build`.
+//! Builds `swift/` and links it: see `apple-bridge-build`.
 
 fn main() {
-  virtualization_build::build(virtualization_build::Bridge {
+  apple_bridge_build::build(apple_bridge_build::Bridge {
     bridge: "io-usb-host-bridge",
     package: "IOUSBHostBridge",
     framework: "IOUSBHost",

@@ -8,7 +8,7 @@ argv = ["cargo", "audit"]
 argv = ["cargo", "check", "--workspace", "--all-targets"]
 
 [host.commands.check-linux]
-argv = ["cargo", "check", "--target", "x86_64-unknown-linux-gnu", "-p", "accessory-access", "-p", "disk-image-kit", "-p", "foundation-sys", "-p", "io-usb-host", "-p", "virtualization", "-p", "vmnet", "--all-targets"]
+argv = ["cargo", "check", "--target", "x86_64-unknown-linux-gnu", "-p", "accessory-access", "-p", "apple-bridge-foundation", "-p", "disk-image-kit", "-p", "io-usb-host", "-p", "virtualization", "-p", "vmnet-framework", "--all-targets"]
 
 [host.commands.clippy]
 argv = ["cargo", "clippy", "--workspace", "--all-targets", "--all-features", "--", "-D", "warnings"]

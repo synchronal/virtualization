@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-pub use foundation_sys::NSError;
+pub use apple_bridge_foundation::NSError;
 use url::Url;
 
 /// What a call into DiskImageKit failed with: what it threw, or why Rust

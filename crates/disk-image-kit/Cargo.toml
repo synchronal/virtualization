@@ -10,7 +10,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-foundation-sys.workspace = true
+apple-bridge-foundation.workspace = true
 url.workspace = true
 uuid.workspace = true
 

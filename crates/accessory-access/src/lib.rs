@@ -44,7 +44,7 @@ mod usb_accessory_listener;
 mod usb_accessory_manager;
 mod usb_accessory_matching_criteria;
 
-pub use foundation_sys::PropertyListValue;
+pub use apple_bridge_foundation::PropertyListValue;
 pub use {dispatch2, io_usb_host};
 
 pub use crate::error::{Error, ErrorCode, NSError, error_domain};
@@ -58,7 +58,7 @@ pub use crate::usb_accessory_matching_criteria::{
 
 // Every class is `Sendable`, so `Send + Sync`, on macOS or off it.
 #[cfg(test)]
-foundation_sys::assert_auto_traits! {
+apple_bridge_foundation::assert_auto_traits! {
   send_sync: [USBAccessory, USBAccessoryManager, USBAccessoryMatchingCriteria],
   local: [],
 }

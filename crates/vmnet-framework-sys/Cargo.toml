@@ -1,11 +1,11 @@
 [package]
 categories.workspace = true
-description = "FFI to Apple's vmnet framework, through swift-bridge. Use the `vmnet` crate instead."
+description = "FFI to Apple's vmnet framework, through swift-bridge. Use the `vmnet-framework` crate instead."
 edition.workspace = true
 keywords.workspace = true
 license.workspace = true
 links = "VmnetBridge"
-name = "vmnet-sys"
+name = "vmnet-framework-sys"
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
@@ -26,4 +26,4 @@ include = [
 swift-bridge.workspace = true
 
 [build-dependencies]
-virtualization-build.workspace = true
+apple-bridge-build.workspace = true

@@ -42,8 +42,8 @@ mod object;
 mod platform;
 mod sealed;
 
+pub use apple_bridge_foundation::{NSMutableData, PropertyListValue};
 pub use dispatch2;
-pub use foundation_sys::{NSMutableData, PropertyListValue};
 
 pub use crate::definitions::{
   DescriptorType, DevicePropertyKey, DeviceRequest, DeviceRequestDirectionValue, DeviceRequestRecipientValue,
@@ -59,7 +59,7 @@ pub use crate::object::{
 // Each type is `Send + Sync` off macOS exactly where io-usb-host-sys makes it
 // so on macOS.
 #[cfg(test)]
-foundation_sys::assert_auto_traits! {
+apple_bridge_foundation::assert_auto_traits! {
   send_sync: [],
   local: [Device, NSMutableData],
 }

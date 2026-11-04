@@ -23,9 +23,9 @@ include = [
 ]
 
 [dependencies]
+apple-bridge-foundation.workspace = true
 dispatch2.workspace = true
-foundation-sys.workspace = true
 swift-bridge.workspace = true
 
 [build-dependencies]
-virtualization-build.workspace = true
+apple-bridge-build.workspace = true
