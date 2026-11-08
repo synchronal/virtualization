@@ -8,7 +8,7 @@ links = "AccessoryAccessBridge"
 name = "accessory-access-sys"
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.1"
 
 # The Swift package is an input to the build script, not a cargo target, so it
 # ships whole. Naming the sources keeps the tarball the same whatever is lying

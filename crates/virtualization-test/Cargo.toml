@@ -6,7 +6,7 @@ name = "virtualization-test"
 publish = false
 repository.workspace = true
 rust-version.workspace = true
-version.workspace = true
+version = "0.1.1"
 
 [dependencies]
 virtualization.workspace = true

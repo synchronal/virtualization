@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## v0.1.1
+
+- Add a README and changelog.
 - Move `Return` from `error.rs` to `return.rs`, matching `Return.swift`. The
   public API is unchanged.
 

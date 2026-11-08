@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v0.1.1
+
+- Add a README and changelog.
+
 ## v0.1.0
 
 - Shared build script for the `-sys` crates: generates swift-bridge glue,
