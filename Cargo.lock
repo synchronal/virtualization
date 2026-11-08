@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "accessory-access"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "accessory-access-sys",
  "apple-bridge-foundation",
@@ -14,7 +14,7 @@ dependencies = [
 
 [[package]]
 name = "accessory-access-sys"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "apple-bridge-build",
  "apple-bridge-foundation",
@@ -25,14 +25,14 @@ dependencies = [
 
 [[package]]
 name = "apple-bridge-build"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "swift-bridge-build",
 ]
 
 [[package]]
 name = "apple-bridge-foundation"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "objc2",
  "objc2-foundation",
@@ -52,7 +52,7 @@ checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
 name = "disk-image-kit"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "apple-bridge-foundation",
  "disk-image-kit-sys",
@@ -62,7 +62,7 @@ dependencies = [
 
 [[package]]
 name = "disk-image-kit-sys"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "apple-bridge-build",
  "apple-bridge-foundation",
@@ -232,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "io-usb-host"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "apple-bridge-foundation",
  "dispatch2",
@@ -241,7 +241,7 @@ dependencies = [
 
 [[package]]
 name = "io-usb-host-sys"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "apple-bridge-build",
  "apple-bridge-foundation",
@@ -546,7 +546,7 @@ checksum = "2ef6dac1e96601b4fb3acccccff2139741fcb757cb9a36089bf5be91cfb285ce"
 
 [[package]]
 name = "virtualization"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "accessory-access",
  "apple-bridge-foundation",
@@ -560,7 +560,7 @@ dependencies = [
 
 [[package]]
 name = "virtualization-sys"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "accessory-access-sys",
  "apple-bridge-build",
@@ -576,14 +576,14 @@ dependencies = [
 
 [[package]]
 name = "virtualization-test"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "virtualization",
 ]
 
 [[package]]
 name = "vmnet-framework"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "apple-bridge-foundation",
  "vmnet-framework-sys",
@@ -591,7 +591,7 @@ dependencies = [
 
 [[package]]
 name = "vmnet-framework-sys"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "apple-bridge-build",
  "swift-bridge",
