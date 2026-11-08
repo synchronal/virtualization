@@ -7,4 +7,8 @@
 
 ## v0.1.0
 
-Initial release.
+- Network configurations: host, shared, and bridged modes.
+- Subnets, IPv6 prefixes, MTU, external interface.
+- DHCP reservations, port forwarding; disabling DHCP, DNS proxy, NAT, router
+  advertisement.
+- Networks: create, read subnet and prefix.

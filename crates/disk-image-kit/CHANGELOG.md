@@ -1,0 +1,10 @@
+# Changelog
+
+## Unreleased
+
+## v0.1.0
+
+- Disk images: create, open, inspect, truncate.
+- RAW and ASIF formats, ASIF layers.
+- Stacked images: appending layers, caches, overlays.
+- Typed DiskImageKit errors.
