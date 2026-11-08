@@ -1,4 +1,4 @@
-use virtualization::accessory_access::{
+use accessory_access::{
   USBAccessoryMatchingCriteria, USBAccessoryMatchingCriteriaDeviceMatchingCriteria,
   USBAccessoryMatchingCriteriaInterfaceMatchingCriteria, USBAccessoryMatchingCriteriaInterfaceMatchingOption,
 };

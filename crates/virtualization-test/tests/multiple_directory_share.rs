@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use virtualization::url::Url;
+use url::Url;
 use virtualization::{ErrorCode, MultipleDirectoryShare, SharedDirectory};
 use virtualization_test::{directory, ns_error};
 

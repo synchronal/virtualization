@@ -1,6 +1,6 @@
-use virtualization::vmnet_framework::{Mode, Network, NetworkConfiguration};
 use virtualization::{NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration, VmnetNetworkDeviceAttachment};
 use virtualization_test::{guest_network, linux_configuration};
+use vmnet_framework::{Mode, Network, NetworkConfiguration};
 
 fn network() -> Network {
   Network::new(&NetworkConfiguration::new(Mode::Host).unwrap()).unwrap()

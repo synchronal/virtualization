@@ -20,7 +20,7 @@
 //!   configuration or BOS descriptor, so the descriptors it holds come along.
 //! - An I/O buffer is [`NSMutableData`]; a matching dictionary is a
 //!   `BTreeMap` of [`PropertyListValue`]s; a dispatch queue is
-//!   [`dispatch2`]'s, re-exported. `NSNumber`s are `i64`s.
+//!   [`dispatch2`]'s. `NSNumber`s are `i64`s.
 //! - An `NSError **` is a `Result`. An out parameter is returned: alone, or
 //!   in a tuple after the result.
 //! - A handler is a closure. An `IOReturn` is its `i32`.
@@ -43,7 +43,6 @@ mod platform;
 mod sealed;
 
 pub use apple_bridge_foundation::{NSMutableData, PropertyListValue};
-pub use dispatch2;
 
 pub use crate::definitions::{
   DescriptorType, DevicePropertyKey, DeviceRequest, DeviceRequestDirectionValue, DeviceRequestRecipientValue,

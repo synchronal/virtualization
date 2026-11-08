@@ -22,7 +22,7 @@
 //!   the bridge passes it the same one for the same `Arc`.
 //! - A `[String: any Sendable]` is a `BTreeMap` of [`PropertyListValue`]s.
 //!   `IOUSBHostDevice` is [`io_usb_host::Device`], and a dispatch queue
-//!   [`dispatch2`]'s, both re-exported.
+//!   [`dispatch2`]'s.
 //! - A completion handler is a closure.
 //! - An enum has an `Unknown(rawValue)` case, for one newer than this crate.
 //! - Swift's `async` forms aren't bridged, so neither is `events(matching:)`,
@@ -45,7 +45,6 @@ mod usb_accessory_manager;
 mod usb_accessory_matching_criteria;
 
 pub use apple_bridge_foundation::PropertyListValue;
-pub use {dispatch2, io_usb_host};
 
 pub use crate::error::{Error, ErrorCode, NSError, error_domain};
 pub use crate::usb_accessory::USBAccessory;

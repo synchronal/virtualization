@@ -11,8 +11,7 @@
 //! - A nested type joins its names: `DiskImage.Format` is [`DiskImageFormat`].
 //! - A protocol is a trait. One only DiskImageKit's own types conform to is
 //!   sealed.
-//! - `URL` is [`url::Url`] and `UUID` is [`uuid::Uuid`], re-exported as
-//!   [`url`] and [`uuid`].
+//! - `URL` is [`url::Url`] and `UUID` is [`uuid::Uuid`].
 //! - An enum has an `Unknown` case, for one newer than this crate.
 //! - Initializers, static members, throwing members, and members that take or
 //!   return a URL return `Result<_, Error>`. What DiskImageKit throws is its
@@ -30,9 +29,6 @@ mod foundation;
 mod open_configuration;
 mod platform;
 mod sealed;
-
-pub use url;
-pub use uuid;
 
 pub use crate::creation_configuration::{
   ASIFCreationConfiguration, ASIFLayerCreationConfiguration, CreationConfiguration, RAWCreationConfiguration,

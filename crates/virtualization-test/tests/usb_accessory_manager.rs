@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::sync::mpsc;
 use std::time::Duration;
 
-use virtualization::accessory_access::{
+use accessory_access::{
   Error, ErrorCode, USBAccessoryListener, USBAccessoryManager, USBAccessoryMatchingCriteria,
   USBAccessoryMatchingCriteriaDeviceMatchingCriteria,
 };

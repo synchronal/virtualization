@@ -578,7 +578,14 @@ dependencies = [
 name = "virtualization-test"
 version = "0.1.1"
 dependencies = [
+ "accessory-access",
+ "disk-image-kit",
+ "dispatch2",
+ "io-usb-host",
+ "url",
+ "uuid",
  "virtualization",
+ "vmnet-framework",
 ]
 
 [[package]]

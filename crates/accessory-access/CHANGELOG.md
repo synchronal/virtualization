@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Breaking: stop re-exporting `io_usb_host` and `dispatch2`. Depend on them
+  directly.
+
 ## v0.1.1
 
 - Add a README and changelog.

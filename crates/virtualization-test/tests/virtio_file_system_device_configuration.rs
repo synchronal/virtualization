@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
-use virtualization::url::Url;
+use dispatch2::{DispatchQueue, DispatchRetained};
+use url::Url;
 use virtualization::{
   ErrorCode, MultipleDirectoryShare, SharedDirectory, SingleDirectoryShare, VirtioFileSystemDeviceConfiguration,
   VirtualMachine,

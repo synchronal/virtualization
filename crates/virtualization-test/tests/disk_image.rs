@@ -1,8 +1,8 @@
-use virtualization::disk_image_kit::{
+use disk_image_kit::{
   ASIFCreationConfiguration, ASIFLayerCreationConfiguration, DiskImage, DiskImageBlockSize, DiskImageFormat,
   DiskImageLayerType, Error, OpenConfiguration, OpenConfigurationMode, RAWCreationConfiguration,
 };
-use virtualization::url::Url;
+use url::Url;
 use virtualization_test::{file, file_url, new_file_url};
 
 /// 1 MiB, in 512-byte blocks.

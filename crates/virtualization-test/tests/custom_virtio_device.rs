@@ -1,7 +1,7 @@
 use std::sync::mpsc::{self, Sender};
 use std::sync::{Arc, Mutex};
 
-use virtualization::url::Url;
+use url::Url;
 use virtualization::{
   CustomVirtioDevice, CustomVirtioDeviceConfiguration, CustomVirtioDeviceDelegate, ErrorCode, GenericMachineIdentifier,
   GenericPlatformConfiguration, VirtioDeviceSpecificConfiguration, VirtualMachineConfiguration,

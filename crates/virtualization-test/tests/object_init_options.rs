@@ -1,4 +1,4 @@
-use virtualization::io_usb_host::ObjectInitOptions;
+use io_usb_host::ObjectInitOptions;
 
 #[test]
 fn has_iousbhosts_raw_values() {

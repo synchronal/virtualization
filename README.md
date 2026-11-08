@@ -58,7 +58,7 @@ forbids `unsafe`.
 
 | Crate | What it is |
 | --- | --- |
-| `virtualization` | Virtualization: configurations, virtual machines, devices, boot loaders. Re-exports the other safe crates. |
+| `virtualization` | Virtualization: configurations, virtual machines, devices, boot loaders. |
 | `disk-image-kit` | DiskImageKit: creating and opening disk images. |
 | `vmnet-framework` | vmnet's networks, which a virtual machine can attach to. (`vmnet` on crates.io is a different project.) |
 | `accessory-access` | AccessoryAccess: finding USB accessories and passing them through to a virtual machine. |
@@ -68,9 +68,7 @@ forbids `unsafe`.
 | `apple-bridge-build` | Build scripts shared by `-sys` crates: generates swift-bridge's glue, builds the Swift package, and links it. |
 | `virtualization-test` | Integration test suites, and the owner of `examples/`. Not published. |
 
-Most users only need `virtualization`, which re-exports the others as
-`virtualization::disk_image_kit`, `virtualization::vmnet_framework`,
-`virtualization::accessory_access`, and `virtualization::io_usb_host`.
+Depend on `virtualization`, plus the safe crates whose types you use with it.
 
 ## Development
 

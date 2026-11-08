@@ -1,4 +1,4 @@
-use virtualization::uuid::Uuid;
+use uuid::Uuid;
 use virtualization::{
   DiskImageStorageDeviceAttachment, StorageDeviceConfiguration, USBDeviceConfiguration,
   USBMassStorageDeviceConfiguration, VirtioBlockDeviceConfiguration,

@@ -1,4 +1,4 @@
-use virtualization::io_usb_host::{DevicePropertyKey, property_key_location_id};
+use io_usb_host::{DevicePropertyKey, property_key_location_id};
 
 #[test]
 fn has_iousbhosts_raw_values() {

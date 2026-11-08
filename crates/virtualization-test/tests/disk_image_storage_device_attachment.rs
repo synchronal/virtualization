@@ -1,8 +1,8 @@
-use virtualization::disk_image_kit::{
+use disk_image_kit::{
   ASIFCreationConfiguration, ASIFLayerCreationConfiguration, DiskImage, DiskImageBlockSize, DiskImageLayerType,
   OpenConfiguration, OpenConfigurationMode,
 };
-use virtualization::url::Url;
+use url::Url;
 use virtualization::{
   DiskImageCachingMode, DiskImageStorageDeviceAttachment, DiskImageSynchronizationMode, ErrorCode,
   VirtioBlockDeviceConfiguration,

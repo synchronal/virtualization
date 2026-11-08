@@ -2,7 +2,7 @@ use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
+use dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::{
   CGSize, ErrorCode, GraphicsDevice, GraphicsDisplay, GraphicsDisplayObserver, VirtioGraphicsDevice,
   VirtioGraphicsDeviceConfiguration, VirtioGraphicsScanout, VirtioGraphicsScanoutConfiguration, VirtualMachine,

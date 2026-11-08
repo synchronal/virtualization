@@ -1,4 +1,4 @@
-use virtualization::io_usb_host::ObjectDestroyOptions;
+use io_usb_host::ObjectDestroyOptions;
 
 #[test]
 fn has_iousbhosts_raw_values() {

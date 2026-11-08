@@ -1,6 +1,6 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-use virtualization::vmnet_framework::{Error, Mode, Network, NetworkConfiguration, Return};
+use vmnet_framework::{Error, Mode, Network, NetworkConfiguration, Return};
 
 fn network(mode: Mode) -> Network {
   Network::new(&NetworkConfiguration::new(mode).unwrap()).unwrap()

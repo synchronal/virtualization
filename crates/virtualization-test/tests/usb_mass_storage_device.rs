@@ -1,4 +1,4 @@
-use virtualization::uuid::Uuid;
+use uuid::Uuid;
 use virtualization::{
   USBController, USBControllerConfiguration, USBDevice, USBDeviceConfiguration, USBMassStorageDevice, XHCIController,
   XHCIControllerConfiguration,

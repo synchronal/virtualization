@@ -1,6 +1,6 @@
 use std::net::Ipv4Addr;
 
-use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
+use dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::{
   MACAddress, NATNetworkDeviceAttachment, NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration, VirtualMachine,
 };

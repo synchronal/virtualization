@@ -2,7 +2,7 @@ use std::io::Write;
 use std::ptr::NonNull;
 use std::sync::{Arc, Mutex, mpsc};
 
-use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
+use dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::{
   Error, ErrorCode, GenericMachineIdentifier, GenericPlatformConfiguration, VirtualMachine,
   VirtualMachineConfiguration, VirtualMachineDelegate, VirtualMachineState,

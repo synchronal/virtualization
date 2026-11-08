@@ -1,5 +1,5 @@
+use url::Url;
 use virtualization::SharedDirectory;
-use virtualization::url::Url;
 use virtualization_test::directory;
 
 #[test]

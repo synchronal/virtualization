@@ -1,4 +1,4 @@
-use virtualization::io_usb_host::{
+use io_usb_host::{
   DeviceRequestDirectionValue, DeviceRequestRecipientValue, DeviceRequestTypeValue, default_control_completion_timeout,
   device_request_type,
 };

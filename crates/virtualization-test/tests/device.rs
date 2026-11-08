@@ -1,6 +1,6 @@
 //! With no USB accessory to open, only failing to open a device is tested.
 
-use virtualization::io_usb_host::{
+use io_usb_host::{
   Device, DeviceMatchingDictionaryArguments, Error, ObjectInitOptions, PropertyListValue, error_domain,
 };
 use virtualization_test::apple_device_matching_dictionary;

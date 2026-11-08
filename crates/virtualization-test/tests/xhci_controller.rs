@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
-use virtualization::uuid::Uuid;
+use dispatch2::{DispatchQueue, DispatchRetained};
+use uuid::Uuid;
 use virtualization::{
   ErrorCode, USBController, USBControllerConfiguration, USBControllerDelegate, USBDevice, USBDeviceConfiguration,
   USBMassStorageDevice, VirtualMachine, XHCIController, XHCIControllerConfiguration,

@@ -3,7 +3,7 @@ use std::os::fd::OwnedFd;
 use std::os::unix::net::UnixDatagram;
 use std::time::Duration;
 
-use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
+use dispatch2::{DispatchQueue, DispatchRetained};
 use virtualization::{
   Error, ErrorCode, FileHandleNetworkDeviceAttachment, NetworkDeviceConfiguration, VirtioNetworkDeviceConfiguration,
   VirtualMachine,

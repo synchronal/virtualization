@@ -1,5 +1,5 @@
-use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
-use virtualization::url::Url;
+use dispatch2::{DispatchQueue, DispatchRetained};
+use url::Url;
 use virtualization::{
   DiskImageStorageDeviceAttachment, ErrorCode, StorageDeviceConfiguration, VirtioBlockDeviceConfiguration,
   VirtualMachine,

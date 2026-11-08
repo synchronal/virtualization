@@ -1,4 +1,4 @@
-use virtualization::url::Url;
+use url::Url;
 use virtualization::{SharedDirectory, SingleDirectoryShare};
 use virtualization_test::directory;
 

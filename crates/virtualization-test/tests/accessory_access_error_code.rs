@@ -1,4 +1,4 @@
-use virtualization::accessory_access::{ErrorCode, error_domain};
+use accessory_access::{ErrorCode, error_domain};
 
 #[test]
 fn has_accessory_accesss_domain() {

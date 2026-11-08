@@ -1,4 +1,4 @@
-use virtualization::url::Url;
+use url::Url;
 use virtualization::{
   MultipleDirectoryShare, SharedDirectory, SingleDirectoryShare, VirtioFileSystemDevice,
   VirtioFileSystemDeviceConfiguration, VirtualMachine,

@@ -1,4 +1,4 @@
-use virtualization::io_usb_host::MatchingPropertyKey;
+use io_usb_host::MatchingPropertyKey;
 
 #[test]
 fn has_iousbhosts_raw_values() {

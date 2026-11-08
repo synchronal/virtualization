@@ -6,8 +6,8 @@
 
 use std::sync::mpsc;
 
-use virtualization::dispatch2::DispatchQueue;
-use virtualization::url::Url;
+use dispatch2::DispatchQueue;
+use url::Url;
 use virtualization::{Error, LinuxBootLoader, VirtualMachine, VirtualMachineConfiguration};
 
 fn main() -> Result<(), Error> {

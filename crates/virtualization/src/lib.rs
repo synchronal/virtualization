@@ -15,8 +15,8 @@
 //!   member that returns one takes the subclass to cast it to, as Swift's
 //!   `as?`, and returns `None` when it is another. An array of one is a slice
 //!   of trait objects going in, and a `Vec` of each element cast coming out.
-//! - `URL` is [`url::Url`] and `UUID` is [`uuid::Uuid`], re-exported as
-//!   [`url`] and [`uuid`]; a dispatch queue is [`dispatch2`]'s, re-exported.
+//! - `URL` is [`url::Url`] and `UUID` is [`uuid::Uuid`]; a dispatch queue is
+//!   [`dispatch2`]'s.
 //!   A `TimeInterval` is its seconds, an `f64`, and an `OperatingSystemVersion`
 //!   is [`OperatingSystemVersion`]. A `FileHandle` is its descriptor: an
 //!   [`OwnedFd`](std::os::fd::OwnedFd) going in, a
@@ -24,11 +24,10 @@
 //! - A completion handler is a closure, called on the queue Virtualization
 //!   calls Swift's on. A delegate is a trait object, held as weakly as Swift
 //!   holds its delegate.
-//! - DiskImageKit's types are [`disk_image_kit`]'s, vmnet's are [`vmnet_framework`]'s,
-//!   AccessoryAccess's are [`accessory_access`]'s, and IOUSBHost's
-//!   [`io_usb_host`]'s, re-exported. Security's
-//!   `SecCertificate` is [`SecCertificate`], made from and read as its DER
-//!   bytes. Core Graphics' `CGSize` is [`CGSize`], its `width` and `height`.
+//! - DiskImageKit's types are [`disk_image_kit`]'s, vmnet's are
+//!   [`vmnet_framework`]'s, and AccessoryAccess's are [`accessory_access`]'s.
+//!   Security's `SecCertificate` is [`SecCertificate`], made from and read as
+//!   its DER bytes. Core Graphics' `CGSize` is [`CGSize`], its `width` and `height`.
 //!   AppKit's `NSScreen` is [`NSScreen`], from `screens` and `main`, which
 //!   take a [`MainThreadMarker`]: they're `@MainActor`.
 //! - Host memory a shared memory region maps is [`MemoryPages`], from
@@ -64,9 +63,6 @@ mod storage;
 mod virtual_machine;
 mod virtual_machine_configuration;
 mod virtual_machine_view;
-
-pub use accessory_access::io_usb_host;
-pub use {accessory_access, disk_image_kit, dispatch2, url, uuid, vmnet_framework};
 
 pub use crate::app_kit::{MainThreadMarker, NSScreen};
 pub use crate::boot_loader::{

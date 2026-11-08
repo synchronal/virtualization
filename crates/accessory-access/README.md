@@ -7,7 +7,7 @@ to pass through to a virtual machine. Apple's API, nothing added.
   `Error::Unsupported`.
 - Needs the `com.apple.developer.accessory-access.usb` entitlement and an app
   with a UI.
-- Re-exports [`io-usb-host`]; re-exported by [`virtualization`].
+- An opened accessory is an [`io-usb-host`] device.
 
 Development and testing: see the [main README].
 
@@ -15,5 +15,4 @@ MIT licensed.
 
 [AccessoryAccess]: https://developer.apple.com/documentation/accessoryaccess
 [`io-usb-host`]: https://crates.io/crates/io-usb-host
-[`virtualization`]: https://crates.io/crates/virtualization
 [main README]: https://github.com/synchronal/virtualization#development

@@ -1,8 +1,8 @@
 //! Each on a macOS machine's queue, where Virtualization takes an installer's
 //! calls.
 
-use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
-use virtualization::url::Url;
+use dispatch2::{DispatchQueue, DispatchRetained};
+use url::Url;
 use virtualization::{ErrorCode, MacOSInstaller, VirtualMachine};
 use virtualization_test::{completed, file, macos_machine, ns_error, on_queue};
 

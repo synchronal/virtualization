@@ -12,10 +12,9 @@ use std::process::Command;
 use std::sync::{Arc, Mutex, mpsc};
 use std::time::Duration;
 
-use virtualization::dispatch2::{DispatchQueue, DispatchRetained};
-use virtualization::io_usb_host::{Device, DeviceMatchingDictionaryArguments, PropertyListValue};
-use virtualization::url::Url;
-use virtualization::vmnet_framework::{Mode, Network, NetworkConfiguration};
+use dispatch2::{DispatchQueue, DispatchRetained};
+use io_usb_host::{Device, DeviceMatchingDictionaryArguments, PropertyListValue};
+use url::Url;
 use virtualization::{
   CustomVirtioDevice, CustomVirtioDeviceConfiguration, CustomVirtioDeviceConfigurationDelegate,
   CustomVirtioDeviceDelegate, CustomVirtioDeviceDelegateProvider, DiskImageStorageDeviceAttachment, EFIVariableStore,
@@ -27,6 +26,7 @@ use virtualization::{
   VirtioSocketDeviceConfiguration, VirtualMachine, VirtualMachineConfiguration, VmnetNetworkDeviceAttachment,
   XHCIController,
 };
+use vmnet_framework::{Mode, Network, NetworkConfiguration};
 
 /// A path in the suites' scratch directory, named for the test that uses it.
 pub fn scratch_path(name: &str) -> PathBuf {
