@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+#
+# Publishes the workspace's crates whose versions aren't on crates.io yet.
+#
+# `cargo publish --workspace` stops at the first crate whose version is
+# already published, so this names only the unpublished ones, which Cargo
+# publishes in dependency order.
+#
+# Arguments go to `cargo publish`, e.g. to check a release first:
+#
+#   bin/dev/publish --dry-run
+
+set -euo pipefail
+
+root="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$root"
+
+# The sparse index's path for a crate: by name length, then its first letters.
+index_path() {
+  local name
+  name="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+  case "${#name}" in
+    1 | 2) echo "${#name}/$name" ;;
+    3) echo "3/${name:0:1}/$name" ;;
+    *) echo "${name:0:2}/${name:2:2}/$name" ;;
+  esac
+}
+
+# The index lists one JSON line per published version, and answers 404 for a
+# crate never published.
+is_published() {
+  local name="$1" version="$2" body status found=1
+  body="$(mktemp)"
+  status="$(curl -sS -o "$body" -w '%{http_code}' -A bin/dev/publish "https://index.crates.io/$(index_path "$name")")"
+  case "$status" in
+    200) jq -e --arg version "$version" 'select(.vers == $version)' "$body" >/dev/null && found=0 ;;
+    404) ;;
+    *)
+      rm -f "$body"
+      echo "bin/dev/publish: the index answered $status for $name" >&2
+      exit 1
+      ;;
+  esac
+  rm -f "$body"
+  return "$found"
+}
+
+# A crate with `publish = false` has `"publish": []` in the metadata.
+crates="$(
+  cargo metadata --no-deps --format-version 1 |
+    jq -r '.packages[] | select(.publish != []) | "\(.name) \(.version)"'
+)"
+
+args=()
+while read -r name version; do
+  if is_published "$name" "$version"; then
+    echo "$name $version: already published" >&2
+  else
+    args+=(-p "$name")
+  fi
+done <<<"$crates"
+
+if [ "${#args[@]}" -eq 0 ]; then
+  echo "bin/dev/publish: every crate's version is already published" >&2
+  exit 0
+fi
+
+exec cargo publish "${args[@]}" "$@"
