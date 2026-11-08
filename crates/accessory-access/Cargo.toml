@@ -7,7 +7,7 @@ license.workspace = true
 name = "accessory-access"
 repository.workspace = true
 rust-version.workspace = true
-version = "0.1.1"
+version = "0.2.0"
 
 [dependencies]
 apple-bridge-foundation.workspace = true

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.2.0
+
 - Breaking: stop re-exporting `url` and `uuid`. Depend on them directly.
 
 ## v0.1.1

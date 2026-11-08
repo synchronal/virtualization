@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.2.0
+
 - Breaking: stop re-exporting `disk_image_kit`, `vmnet_framework`,
   `accessory_access`, `io_usb_host`, `dispatch2`, `url`, and `uuid`. Depend
   on them directly.

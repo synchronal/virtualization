@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "accessory-access"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "accessory-access-sys",
  "apple-bridge-foundation",
@@ -52,7 +52,7 @@ checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
 
 [[package]]
 name = "disk-image-kit"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "apple-bridge-foundation",
  "disk-image-kit-sys",
@@ -232,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "io-usb-host"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "apple-bridge-foundation",
  "dispatch2",
@@ -546,7 +546,7 @@ checksum = "2ef6dac1e96601b4fb3acccccff2139741fcb757cb9a36089bf5be91cfb285ce"
 
 [[package]]
 name = "virtualization"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "accessory-access",
  "apple-bridge-foundation",

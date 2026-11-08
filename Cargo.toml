@@ -40,14 +40,14 @@ default-members = [
 resolver = "3"
 
 [workspace.dependencies]
-accessory-access = { path = "crates/accessory-access", version = "0.1.0" }
+accessory-access = { path = "crates/accessory-access", version = "0.2.0" }
 accessory-access-sys = { path = "crates/accessory-access-sys", version = "0.1.0" }
 apple-bridge-build = { path = "crates/apple-bridge-build", version = "0.1.0" }
 apple-bridge-foundation = { path = "crates/apple-bridge-foundation", version = "0.1.0" }
-disk-image-kit = { path = "crates/disk-image-kit", version = "0.1.0" }
+disk-image-kit = { path = "crates/disk-image-kit", version = "0.2.0" }
 disk-image-kit-sys = { path = "crates/disk-image-kit-sys", version = "0.1.0" }
 dispatch2 = { version = "0.3.1", default-features = false, features = ["std"] }
-io-usb-host = { path = "crates/io-usb-host", version = "0.1.0" }
+io-usb-host = { path = "crates/io-usb-host", version = "0.2.0" }
 io-usb-host-sys = { path = "crates/io-usb-host-sys", version = "0.1.0" }
 objc2 = { version = "0.6.4", default-features = false, features = ["std"] }
 objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "NSScreen"] }
@@ -71,7 +71,7 @@ swift-bridge = "0.1.59"
 swift-bridge-build = "0.1.59"
 url = "2"
 uuid = { version = "1", default-features = false }
-virtualization = { path = "crates/virtualization", version = "0.1.0" }
+virtualization = { path = "crates/virtualization", version = "0.2.0" }
 virtualization-sys = { path = "crates/virtualization-sys", version = "0.1.0" }
 vmnet-framework = { path = "crates/vmnet-framework", version = "0.1.0" }
 vmnet-framework-sys = { path = "crates/vmnet-framework-sys", version = "0.1.0" }

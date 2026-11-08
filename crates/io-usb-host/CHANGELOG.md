@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.2.0
+
 - Breaking: stop re-exporting `dispatch2`. Depend on it directly.
 
 ## v0.1.1
