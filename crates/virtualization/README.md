@@ -1,7 +1,11 @@
 # virtualization
 
-Rust bindings for Apple's [Virtualization] framework: Linux and macOS virtual
-machines on a Mac. Apple's API, nothing added.
+Rust bindings for Apple's [Virtualization] framework, for creating and running
+Linux and macOS virtual machines on a Mac.
+
+This project provides safe access to Apple's APIs, as close to the upstream
+API as possible. Types and methods mirror Virtualization, without providing
+extra functionality.
 
 Re-exports [`disk-image-kit`], [`vmnet-framework`], [`accessory-access`], and
 [`io-usb-host`].
