@@ -14,7 +14,9 @@ version.workspace = true
 # ships whole. Naming the sources keeps the tarball the same whatever is lying
 # around a working tree.
 include = [
+  "/CHANGELOG.md",
   "/LICENSE",
+  "/README.md",
   "/build.rs",
   "/src/**/*.rs",
   "/swift/Package.swift",
