@@ -1,6 +1,8 @@
 # The checks medic's `audit` and `test` run. Jobs split where each needs its
-# own build anyway (clippy, unit tests, integration suites) or none at all.
-# medic's `cargo check --workspace` is left out: clippy builds the same.
+# own build anyway (clippy, unit tests) or none at all. medic's
+# `cargo check --workspace` is left out: clippy builds the same. So are the
+# integration suites: GitHub's macOS runners are virtual machines, where
+# Virtualization is "not available on this hardware".
 
 name: CI
 
@@ -55,28 +57,6 @@ jobs:
           tool: cargo-nextest
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: cargo nextest run
-
-  integration-tests:
-    runs-on: xcode-27
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - run: rustup toolchain install
-      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
-        with:
-          tool: cargo-nextest
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
-      # The kernel and busybox bin/dev/prepare-integration downloads.
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/virtualization-tests
-          key: virtualization-tests-${{ hashFiles('bin/dev/prepare-integration') }}
-      # Signed ad hoc: no DEVELOPMENT_TEAM.
-      - name: integration
-        run: bin/dev/test-integration
-      # Shares the signed build, so a step here rather than its own job.
-      - name: integration, screen
-        if: ${{ !cancelled() }}
-        run: bin/dev/test-integration --profile screen
 
   linux-check:
     # The safe crates compile off macOS, with every call unsupported.
