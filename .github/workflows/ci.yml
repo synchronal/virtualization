@@ -1,0 +1,72 @@
+# The checks medic's `audit` and `test` run, minus the integration suites:
+# GitHub's macOS runners are virtual machines that can't run Virtualization's
+# own, so the suites stay local (`bin/dev/test-integration`).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  macos:
+    # macOS 27 with Xcode 27: the Swift packages need its SDK.
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The toolchain and targets come from rust-toolchain.toml.
+      - run: rustup toolchain install && rustup component add clippy rustfmt
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-nextest
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      # Xcode's swift-format, which bin/dev's scripts find on PATH.
+      - run: dirname "$(xcrun --find swift-format)" >>"$GITHUB_PATH"
+      - name: rust format
+        run: cargo fmt --all --check
+      - name: swift format
+        run: bin/dev/format-swift --check
+      - name: swift lint
+        run: bin/dev/lint-swift
+      - name: check
+        run: cargo check --workspace --all-targets
+      - name: clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+      - name: test
+        run: cargo nextest run
+
+  linux:
+    # The safe crates compile off macOS, with every call unsupported.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: check linux
+        run: >-
+          cargo check --target x86_64-unknown-linux-gnu --all-targets
+          -p accessory-access
+          -p apple-bridge-foundation
+          -p disk-image-kit
+          -p io-usb-host
+          -p virtualization
+          -p vmnet-framework
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: rustup toolchain install
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-audit
+      - name: audit
+        run: cargo audit
